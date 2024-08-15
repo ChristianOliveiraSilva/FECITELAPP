@@ -91,5 +91,10 @@ class DatabaseSeeder extends Seeder
             ['award_id' => 1, 'question_id' => 1, 'weight' => 10],
             ['award_id' => 2, 'question_id' => 2, 'weight' => 5],
         ]);
+        
+        User::factory()->create([
+            'name' => 'Test User',
+            'email' => 'test@ifms.edu.br',
+        ]);
     }
 }

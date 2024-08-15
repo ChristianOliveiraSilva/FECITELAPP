@@ -2,9 +2,9 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\AwardResource\Pages;
-use App\Filament\Resources\AwardResource\RelationManagers;
-use App\Models\Award;
+use App\Filament\Resources\ResponseResource\Pages;
+use App\Filament\Resources\ResponseResource\RelationManagers;
+use App\Models\Response;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -13,21 +13,20 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class AwardResource extends Resource
+class ResponseResource extends Resource
 {
-    protected static ?string $model = Award::class;
+    protected static ?string $model = Response::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-trophy';
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-    protected static ?string $modelLabel = 'prêmio';
+    protected static ?string $modelLabel = 'avaliação';
+
+    protected static ?string $pluralLabel = 'avaliações';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('name')
-                    ->label('Nome')
-                    ->required(),
             ]);
     }
 
@@ -35,9 +34,25 @@ class AwardResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')
-                    ->label('Nome')
-                    ->searchable(),
+                Tables\Columns\TextColumn::make('evaluator_id')
+                    ->label('Avaliador')
+                    ->numeric()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('project_id')
+                    ->label('Projeto')
+                    ->numeric()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('question_id')
+                    ->label('Pergunta')
+                    ->numeric()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('response')
+                    ->label('Resposta')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('score')
+                    ->label('Pontuação')
+                    ->numeric()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Criado em')
                     ->dateTime()
@@ -72,9 +87,9 @@ class AwardResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListAwards::route('/'),
-            'create' => Pages\CreateAward::route('/create'),
-            'edit' => Pages\EditAward::route('/{record}/edit'),
+            'index' => Pages\ListResponses::route('/'),
+            'create' => Pages\CreateResponse::route('/create'),
+            'edit' => Pages\EditResponse::route('/{record}/edit'),
         ];
     }
 }

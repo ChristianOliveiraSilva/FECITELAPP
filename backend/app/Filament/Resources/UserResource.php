@@ -2,9 +2,9 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\AwardResource\Pages;
-use App\Filament\Resources\AwardResource\RelationManagers;
-use App\Models\Award;
+use App\Filament\Resources\UserResource\Pages;
+use App\Filament\Resources\UserResource\RelationManagers;
+use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -13,13 +13,13 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class AwardResource extends Resource
+class UserResource extends Resource
 {
-    protected static ?string $model = Award::class;
+    protected static ?string $model = User::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-trophy';
+    protected static ?string $navigationIcon = 'heroicon-s-cog';
 
-    protected static ?string $modelLabel = 'prêmio';
+    protected static ?string $modelLabel = 'usuário';
 
     public static function form(Form $form): Form
     {
@@ -27,6 +27,14 @@ class AwardResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('name')
                     ->label('Nome')
+                    ->required(),
+                Forms\Components\TextInput::make('email')
+                    ->email()
+                    ->required(),
+                Forms\Components\DateTimePicker::make('email_verified_at')
+                    ->label('Email verificado'),
+                Forms\Components\TextInput::make('password')
+                    ->password()
                     ->required(),
             ]);
     }
@@ -38,6 +46,12 @@ class AwardResource extends Resource
                 Tables\Columns\TextColumn::make('name')
                     ->label('Nome')
                     ->searchable(),
+                Tables\Columns\TextColumn::make('email')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('email_verified_at')
+                    ->label('Email verificado')
+                    ->dateTime()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Criado em')
                     ->dateTime()
@@ -45,6 +59,11 @@ class AwardResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('updated_at')
                     ->label('Atualizado em')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('deleted_at')
+                    ->label('Deletado em')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -72,9 +91,9 @@ class AwardResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListAwards::route('/'),
-            'create' => Pages\CreateAward::route('/create'),
-            'edit' => Pages\EditAward::route('/{record}/edit'),
+            'index' => Pages\ListUsers::route('/'),
+            'create' => Pages\CreateUser::route('/create'),
+            'edit' => Pages\EditUser::route('/{record}/edit'),
         ];
     }
 }
