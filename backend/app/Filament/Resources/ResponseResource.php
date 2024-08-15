@@ -34,15 +34,15 @@ class ResponseResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('evaluator_id')
+                Tables\Columns\TextColumn::make('evaluator.name')
                     ->label('Avaliador')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('project_id')
+                Tables\Columns\TextColumn::make('project.title')
                     ->label('Projeto')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('question_id')
+                Tables\Columns\TextColumn::make('question.text')
                     ->label('Pergunta')
                     ->numeric()
                     ->sortable(),

@@ -37,11 +37,11 @@ class ProjectResource extends Resource
                 Forms\Components\TextInput::make('year')
                     ->label('Ano')
                     ->numeric(),
-                Forms\Components\TextInput::make('student_id')
+                Forms\Components\TextInput::make('student.name')
                     ->label('Estudante')
                     ->required()
                     ->numeric(),
-                Forms\Components\TextInput::make('category_id')
+                Forms\Components\TextInput::make('category.name')
                     ->label('Categoria')
                     ->required()
                     ->numeric(),
@@ -62,11 +62,11 @@ class ProjectResource extends Resource
                     ->label('Ano')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('student_id')
+                Tables\Columns\TextColumn::make('student.name')
                     ->label('Estudante')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('category_id')
+                Tables\Columns\TextColumn::make('category.name')
                     ->label('Categoria')
                     ->numeric()
                     ->sortable(),

@@ -19,7 +19,9 @@ class UserResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-s-cog';
 
-    protected static ?string $modelLabel = 'usuário';
+    protected static ?string $modelLabel = 'usuário do sistema';
+
+    protected static ?string $pluralLabel = 'usuários do sistema';
 
     public static function form(Form $form): Form
     {
@@ -31,8 +33,6 @@ class UserResource extends Resource
                 Forms\Components\TextInput::make('email')
                     ->email()
                     ->required(),
-                Forms\Components\DateTimePicker::make('email_verified_at')
-                    ->label('Email verificado'),
                 Forms\Components\TextInput::make('password')
                     ->password()
                     ->required(),
