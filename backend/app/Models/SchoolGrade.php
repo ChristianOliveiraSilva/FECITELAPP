@@ -6,22 +6,21 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Award extends Model
+class SchoolGrade extends Model
 {
     use HasFactory, SoftDeletes;
     
     protected $fillable = [
         'name',
-        'school_grade_id',
     ];
 
-    public function schoolGrade()
+    public function students()
     {
-        return $this->hasOne(SchoolGrade::class);
+        return $this->hasMany(Student::class);
     }
 
-    public function questions()
+    public function awards()
     {
-        return $this->belongsToMany(Question::class)->withPivot('weight');
+        return $this->hasMany(Award::class);
     }
 }

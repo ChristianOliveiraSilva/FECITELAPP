@@ -6,79 +6,100 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        // Tabela students
+        Schema::create('school_grades', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->timestamps();
+            $table->softDeletes();
+        });
+        
         Schema::create('students', function (Blueprint $table) {
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
+            $table->foreignId('school_grade_id')->constrained('school_grades')->onDelete('cascade');
             $table->timestamps();
+            $table->softDeletes();
         });
 
-        // Tabela categories
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->foreignId('main_category_id')->nullable()->constrained('categories')->onDelete('cascade');
             $table->timestamps();
+            $table->softDeletes();
         });
 
-        // Tabela projects
         Schema::create('projects', function (Blueprint $table) {
             $table->id();
             $table->string('title');
             $table->string('qr_code');
             $table->text('description')->nullable();
             $table->integer('year')->nullable();
-            $table->foreignId('student_id')->constrained('students')->onDelete('cascade');
             $table->foreignId('category_id')->constrained('categories')->onDelete('cascade');
             $table->timestamps();
+            $table->softDeletes();
+        });
+        
+        Schema::create('student_projects', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('student_id')->constrained('students')->onDelete('cascade');
+            $table->foreignId('project_id')->constrained('projects')->onDelete('cascade');
+            $table->timestamps();
+            $table->softDeletes();
         });
 
-        // Tabela evaluators
         Schema::create('evaluators', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
             $table->integer('PIN')->nullable();
+            $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('cascade');
             $table->timestamps();
+            $table->softDeletes();
         });
 
-        // Tabela questions
+        Schema::create('assessments', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('evaluator_id')->constrained('evaluators')->onDelete('cascade');
+            $table->foreignId('project_id')->constrained('projects')->onDelete('cascade');
+            $table->timestamps();
+            $table->softDeletes();
+        });
+
         Schema::create('questions', function (Blueprint $table) {
             $table->id();
             $table->text('text');
             $table->integer('type'); // 1 para texto, 2 para escolha
             $table->timestamps();
+            $table->softDeletes();
         });
 
-        // Tabela responses
         Schema::create('responses', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('evaluator_id')->constrained('evaluators')->onDelete('cascade');
-            $table->foreignId('project_id')->constrained('projects')->onDelete('cascade');
             $table->foreignId('question_id')->constrained('questions')->onDelete('cascade');
-            $table->text('response');
-            $table->integer('score');
+            $table->foreignId('assessment_id')->constrained('assessments')->onDelete('cascade');
+            $table->text('response')->nullable();
+            $table->integer('score')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
 
-        // Tabela awards
         Schema::create('awards', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->foreignId('school_grade_id')->constrained('school_grades')->onDelete('cascade');
             $table->timestamps();
+            $table->softDeletes();
         });
 
-        // Tabela award_question
         Schema::create('award_question', function (Blueprint $table) {
+            $table->id();
             $table->foreignId('award_id')->constrained('awards')->onDelete('cascade');
             $table->foreignId('question_id')->constrained('questions')->onDelete('cascade');
             $table->integer('weight');
-            $table->primary(['award_id', 'question_id']);
+            $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::table('users', function (Blueprint $table) {
@@ -92,6 +113,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn('evaluator_id');
             $table->dropSoftDeletes();
         });
 

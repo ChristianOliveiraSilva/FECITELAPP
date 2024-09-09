@@ -42,6 +42,10 @@ class ResponseResource extends Resource
                     ->label('Projeto')
                     ->numeric()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('project.student.name')
+                    ->label('Estudante')
+                    ->numeric()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('question.text')
                     ->label('Pergunta')
                     ->numeric()

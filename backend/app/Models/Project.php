@@ -4,23 +4,23 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Project extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'title',
         'qr_code',
         'description',
         'year',
-        'student_id',
         'category_id',
     ];
 
-    public function student()
+    public function students()
     {
-        return $this->belongsTo(Student::class);
+        return $this->belongsToMany(Student::class, 'student_projects');
     }
 
     public function category()
@@ -28,8 +28,8 @@ class Project extends Model
         return $this->belongsTo(Category::class);
     }
 
-    public function responses()
+    public function assessments()
     {
-        return $this->hasMany(Response::class);
+        return $this->hasMany(Assessment::class);
     }
 }

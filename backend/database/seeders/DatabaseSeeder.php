@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Enum\QuestionTypeEnum;
+use App\Models\Assessment;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use App\Models\Student;
@@ -11,90 +13,119 @@ use App\Models\Evaluator;
 use App\Models\Question;
 use App\Models\Response;
 use App\Models\Award;
+use App\Models\SchoolGrade;
 use Illuminate\Support\Facades\DB;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-
-        // Inserir dados na tabela students
-        Student::insert([
-            ['name' => 'Ana Souza', 'email' => 'ana.souza@example.com'],
-            ['name' => 'Carlos Silva', 'email' => 'carlos.silva@example.com'],
+        $this->call([
+            SchoolGradeSeeder::class,
+            CategorySeeder::class,
         ]);
+        
+        if (env('APP_ENV') !== 'production') {
+            User::factory()->create([
+                'name' => 'Test User',
+                'email' => 'test@ifms.edu.br',
+            ]);
 
-        // Inserir dados na tabela categories
-        Category::insert([
-            ['name' => 'Tecnologia'],
-            ['name' => 'Ciências'],
-        ]);
+            User::factory()->create(
+                ['name' => 'Dra. Juliana Costa', 'email' => 'juliana.costa@example.com'],
+            );
 
-        // Inserir dados na tabela projects
-        Project::insert([
-            [
-                'title' => 'Pesquisa em IA',
-                'qr_code' => 'QR1234',
-                'description' => 'Um projeto sobre inteligência artificial.',
-                'year' => 2024,
-                'student_id' => 1,
-                'category_id' => 1,
-            ],
-            [
-                'title' => 'Computação Quântica',
-                'qr_code' => 'QR5678',
-                'description' => 'Um projeto explorando conceitos de computação quântica.',
-                'year' => 2024,
-                'student_id' => 2,
-                'category_id' => 2,
-            ],
-        ]);
+            User::factory()->create(
+                ['name' => 'Prof. João Pereira', 'email' => 'joao.pereira@example.com'],
+            );
 
-        // Inserir dados na tabela evaluators
-        Evaluator::insert([
-            ['name' => 'Dra. Juliana Costa', 'email' => 'juliana.costa@example.com', 'PIN' => 1111],
-            ['name' => 'Prof. João Pereira', 'email' => 'joao.pereira@example.com', 'PIN' => 2222],
-        ]);
+            $elementarySchool = SchoolGrade::where('name', 'Ensino Fundamental')->first();
+            $highSchool = SchoolGrade::where('name', 'Ensino médio')->first();
 
-        // Inserir dados na tabela questions
-        Question::insert([
-            ['text' => 'Qual é a inovação do projeto?', 'type' => 2],
-            ['text' => 'Forneça comentários detalhados.', 'type' => 1],
-        ]);
+            Student::insert([
+                ['name' => 'Ana Souza', 'email' => 'ana.souza@example.com', 'school_grade_id' => $elementarySchool->id],
+                ['name' => 'Carlos Silva', 'email' => 'carlos.silva@example.com', 'school_grade_id' => $highSchool->id],
+            ]);
 
-        // Inserir dados na tabela responses
-        Response::insert([
-            [
-                'evaluator_id' => 1,
-                'project_id' => 1,
-                'question_id' => 1,
-                'response' => 'Muito inovador',
-                'score' => 9,
-            ],
-            [
-                'evaluator_id' => 2,
-                'project_id' => 2,
-                'question_id' => 2,
-                'response' => 'Excelente trabalho!',
-                'score' => 10,
-            ],
-        ]);
+            Project::insert([
+                [
+                    'title' => 'Pesquisa em IA',
+                    'qr_code' => 'QR1234',
+                    'description' => 'Um projeto sobre inteligência artificial.',
+                    'year' => 2024,
+                    'category_id' => 5,
+                ],
+                [
+                    'title' => 'Computação Quântica',
+                    'qr_code' => 'QR5678',
+                    'description' => 'Um projeto explorando conceitos de computação quântica.',
+                    'year' => 2024,
+                    'category_id' => 5,
+                ],
+            ]);
 
-        // Inserir dados na tabela awards
-        Award::insert([
-            ['name' => 'Melhor Inovação'],
-            ['name' => 'Desempenho Excepcional'],
-        ]);
+            DB::table('student_projects')->insert([
+                ['project_id' => 1, 'student_id' => 1],
+                ['project_id' => 2, 'student_id' => 2],
+            ]);
 
-        // Inserir dados na tabela award_question (tabela pivô)
-        DB::table('award_question')->insert([
-            ['award_id' => 1, 'question_id' => 1, 'weight' => 10],
-            ['award_id' => 2, 'question_id' => 2, 'weight' => 5],
+            Evaluator::insert([
+                ['PIN' => 1111, 'user_id' => 2],
+                ['PIN' => 2222, 'user_id' => 3],
+            ]);
+
+            Question::insert([
+                ['text' => 'Qual é a inovação do projeto?', 'type' => QuestionTypeEnum::MULTIPLE_CHOICE],
+                ['text' => 'Forneça comentários detalhados.', 'type' => QuestionTypeEnum::TEXT],
+                ['text' => 'De a nota da apresentação oral', 'type' => QuestionTypeEnum::MULTIPLE_CHOICE],
+                ['text' => 'De a nota do banner I', 'type' => QuestionTypeEnum::MULTIPLE_CHOICE],
+                ['text' => 'De a nota do banner II', 'type' => QuestionTypeEnum::MULTIPLE_CHOICE],
+            ]);
+
+            Assessment::insert([
+                [ 'project_id' => 1, 'evaluator_id' => 1, ],
+                [ 'project_id' => 2, 'evaluator_id' => 1, ],
+                [ 'project_id' => 1, 'evaluator_id' => 2, ],
+                [ 'project_id' => 2, 'evaluator_id' => 2, ],
+            ]);
+
+            Response::insert([
+                [
+                    'question_id' => 1,
+                    'assessment_id' => 1,
+                    'response' => null,
+                    'score' => 8,
+                ],
+                [
+                    'question_id' => 2,
+                    'assessment_id' => 2,
+                    'response' => 'Excelente trabalho!',
+                    'score' => null,
+                ],
+            ]);
+
+            Award::insert([
+                ['name' => 'Apresentação Oral', 'school_grade_id' => $elementarySchool->id],
+                ['name' => 'Melhor Banner', 'school_grade_id' => $elementarySchool->id],
+            ]);
+
+            DB::table('award_question')->insert([
+                ['award_id' => 1, 'question_id' => 3, 'weight' => 10],
+                ['award_id' => 2, 'question_id' => 4, 'weight' => 5],
+                ['award_id' => 2, 'question_id' => 5, 'weight' => 5],
+            ]);
+        }
+
+        User::factory()->create([
+            'name' => 'Rogério Alves dos Santos Antoniassi',
+            'email' => 'rogerio.antoniassi@ifms.edu.br',
+            'password' => bcrypt('R8$hG7@fK4jLp9#Qw1Z!uV2'),
         ]);
         
         User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@ifms.edu.br',
+            'name' => 'Alex Fernando de Araujo',
+            'email' => 'alex.araujo@ifms.edu.br',
+            'password' => bcrypt('m5^Tz8*QrW3&yJ0@bC6!xL7'),
         ]);
     }
 }
