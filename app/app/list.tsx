@@ -1,12 +1,26 @@
+import { Link } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { FlatList, StyleSheet, Text, View, Image } from 'react-native';
 
 const fetchProjects = async () => {
-  return [
-    { id: '1', projectName: 'Projeto A', studentName: 'Aluno 1' },
-    { id: '2', projectName: 'Projeto B', studentName: 'Aluno 2' },
-    { id: '3', projectName: 'Projeto C', studentName: 'Aluno 3' },
-  ];
+  try {
+    const response = await fetch('http://localhost/assessments');
+    
+    if (!response.ok) {
+      throw new Error('Erro ao buscar os assessments');
+    }
+    
+    const data = await response.json();
+    
+    return data.map((assessment: any) => ({
+      id: assessment.id,
+      projectName: assessment.project.title,
+      studentName: assessment.project.students.map((student: any) => student.name).join(', '),
+    }));
+  } catch (error) {
+    console.error('Erro:', error);
+    return [];
+  }
 };
 
 export default function Index() {
@@ -31,9 +45,20 @@ export default function Index() {
           style={styles.icon}
         />
       </View>
+
       <View>
         <Text style={styles.projectName}>{item.projectName}</Text>
         <Text style={styles.studentName}>{item.studentName}</Text>
+      </View>
+
+      <View style={styles.assessmentButtonContainer}>
+        <Link
+          href={{
+            pathname: '/questionnaire/[assessmentId]',
+            params: { assessmentId: item.id },
+          }}>
+          <Text>Avaliar</Text>
+        </Link>
       </View>
     </View>
   );
@@ -58,6 +83,8 @@ const styles = StyleSheet.create({
   itemContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
     padding: 10,
     marginVertical: 5,
     backgroundColor: '#fff',
@@ -76,6 +103,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 15,
+  },
+  assessmentButtonContainer: {
+    alignItems: 'flex-end',
+    flex: 1,
   },
   icon: {
     width: 20,

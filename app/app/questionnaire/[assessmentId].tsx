@@ -1,28 +1,36 @@
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, FlatList } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, FlatList, TextInput } from 'react-native';
 
-// Função para simular a requisição das questões
 const fetchQuestions = async () => {
-  return [
-    { id: '1', question: 'Como você avalia a qualidade do produto?' },
-    { id: '2', question: 'Como você avalia o atendimento ao cliente?' },
-    { id: '3', question: 'Qual a probabilidade de você recomendar o produto a um amigo?' },
-    { id: '4', question: 'O produto atendeu às suas expectativas?' },
-    { id: '5', question: 'Como você avalia a facilidade de uso do produto?' },
-    { id: '6', question: 'Qual é o seu nível de satisfação com o preço do produto?' },
-    { id: '7', question: 'Como você avalia a entrega do produto?' },
-    { id: '8', question: 'Você encontrou algum problema ao usar o produto?' },
-    { id: '9', question: 'O produto possui as características que você esperava?' },
-    { id: '10', question: 'Você considera que o suporte ao cliente foi eficiente?' },
-  ];
+  try {
+    const response = await fetch('http://localhost/questions');
+
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+
+    const data = await response.json();
+
+    return data;
+  } catch (error) {
+    return [];
+  }
 };
 
+const MULTIPLE_CHOICE_QUESTION = 1;
+
 export default function Questionnaire() {
+  const { assessmentId } = useLocalSearchParams();
+
+  const router = useRouter();
+
   const [questions, setQuestions] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState([]);
   const [isReady, setIsReady] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const [answer, setAnswer] = useState('');
 
   useEffect(() => {
     const loadQuestions = async () => {
@@ -33,10 +41,16 @@ export default function Questionnaire() {
     loadQuestions();
   }, []);
 
-  const handleAnswer = (score) => {
+  const handleAnswer = (value) => {
     const newAnswers = [...answers];
-    newAnswers[currentQuestionIndex] = { question: questions[currentQuestionIndex].question, score };
+    newAnswers[currentQuestionIndex] = { 
+      question_id: questions[currentQuestionIndex].id,
+      value,
+      type: questions[currentQuestionIndex].type,
+    };
+
     setAnswers(newAnswers);
+    setAnswer('');
     
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
@@ -48,6 +62,35 @@ export default function Questionnaire() {
   const handlePrevious = () => {
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(currentQuestionIndex - 1);
+      setShowResults(false);
+    }
+  };
+
+  const handleRestart = () => {
+      setCurrentQuestionIndex(0);
+      setShowResults(false);
+  };
+
+  const handleSave = async () => {
+    try {
+      const response = await fetch('http://localhost/responses', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          responses: answers,
+          assessment: assessmentId,
+        }),
+      });
+  
+      if (response.ok) {
+        router.replace('/list');
+      } else {
+        console.error('Erro ao enviar resposta:', await response.text());
+      }
+    } catch (error) {
+      console.error('Erro ao enviar resposta:', error);
     }
   };
 
@@ -60,11 +103,11 @@ export default function Questionnaire() {
     </View>
   );
 
-  const renderQuestionScreen = () => (
+  const renderMultipleChoiceQuestionScreen = () => (
     <View style={styles.container}>
-      <Text style={styles.question}>{questions[currentQuestionIndex].question}</Text>
+      <Text style={styles.question}>{questions[currentQuestionIndex].text}</Text>
       <FlatList
-        data={[...Array(10).keys()].map(n => n + 1)} // Números de 1 a 10
+        data={[...Array(10).keys()].map(n => n + 1)}
         numColumns={5}
         keyExtractor={(item) => item.toString()}
         renderItem={({ item }) => (
@@ -83,20 +126,50 @@ export default function Questionnaire() {
     </View>
   );
 
+  const renderOpenEndedQuestionScreen = () => (
+    <View style={styles.container}>
+      <Text style={styles.question}>{questions[currentQuestionIndex].text}</Text>
+      <TextInput
+        style={styles.textInput}
+        placeholder='Digite a sua resposta'
+        value={answer}
+        onChangeText={setAnswer}
+      />
+      <TouchableOpacity style={styles.optionButton} onPress={() => handleAnswer(answer)}>
+        <Text style={styles.optionText}>Salvar</Text>
+      </TouchableOpacity>
+      <View style={styles.navigationContainer}>
+        {currentQuestionIndex > 0 && (
+          <TouchableOpacity style={styles.navButton} onPress={handlePrevious}>
+            <Text style={styles.buttonText}>Voltar</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    </View>
+  );
+
+  const renderQuestionScreen = () => {
+    if (questions[currentQuestionIndex].type === MULTIPLE_CHOICE_QUESTION) {
+      return renderMultipleChoiceQuestionScreen();
+    } else {
+      return renderOpenEndedQuestionScreen();
+    }
+  }
+
   const renderResultsScreen = () => (
     <View style={styles.container}>
       <Text style={styles.title}>Suas Respostas:</Text>
       {answers.map((answer, index) => (
         <Text key={index} style={styles.resultText}>
-          {index + 1}. {answer.question} - Nota: {answer.score || 'Pulado'}
+          {index + 1}. {answer.text} Nota: {answer.value || '-'}
         </Text>
       ))}
       
       <View style={styles.containerInline}>
-        <TouchableOpacity style={styles.navButton} onPress={handlePrevious}>
-          <Text style={styles.navButtonText}>Editar</Text>
+        <TouchableOpacity style={styles.navButton} onPress={handleRestart}>
+          <Text style={styles.navButtonText}>Refazer</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navButton} onPress={handlePrevious}>
+        <TouchableOpacity style={styles.navButton} onPress={handleSave}>
           <Text style={styles.navButtonText}>Salvar</Text>
         </TouchableOpacity>
       </View>
@@ -184,5 +257,13 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#fff',
     fontSize: 18,
+  },
+  textInput: {
+    height: 40,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 4,
+    paddingHorizontal: 8,
+    marginBottom: 20,
   },
 });
