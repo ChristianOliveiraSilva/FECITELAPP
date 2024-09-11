@@ -28,6 +28,10 @@ class CategoryResource extends Resource
                 Forms\Components\TextInput::make('name')
                     ->label('Nome')
                     ->required(),
+
+                Forms\Components\Select::make('main_category_id')
+                    ->relationship('mainCategory', 'name')
+                    ->label('Categoria Pai'),
             ]);
     }
 
@@ -38,11 +42,13 @@ class CategoryResource extends Resource
                 Tables\Columns\TextColumn::make('name')
                     ->label('Nome')
                     ->searchable(),
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Criado em')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+
                 Tables\Columns\TextColumn::make('updated_at')
                     ->label('Atualizado em')
                     ->dateTime()
@@ -60,6 +66,11 @@ class CategoryResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery();
     }
 
     public static function getRelations(): array
