@@ -27,14 +27,31 @@ class EvaluatorResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('name')
-                    ->label('Nome')
+                Forms\Components\Select::make('user_id')
+                    ->relationship('user', 'name')
+                    ->label('Usuário')
+                    ->createOptionForm([
+                        Forms\Components\TextInput::make('name')
+                            ->label('Nome')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('email')
+                            ->label('Email')
+                            ->email()
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('password')
+                            ->label('Senha')
+                            ->password()
+                            ->required()
+                            ->maxLength(255),
+                    ])
                     ->required(),
-                Forms\Components\TextInput::make('email')
-                    ->email()
-                    ->required(),
+
                 Forms\Components\TextInput::make('PIN')
-                    ->numeric(),
+                    ->label('PIN')
+                    ->numeric()
+                    ->required(),
             ]);
     }
 
@@ -42,13 +59,14 @@ class EvaluatorResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')
+                Tables\Columns\TextColumn::make('user.name')
                     ->label('Nome')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('email')
+                Tables\Columns\TextColumn::make('user.email')
+                    ->label('Email')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('PIN')
-                    ->numeric()
+                    ->label('PIN')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Criado em')

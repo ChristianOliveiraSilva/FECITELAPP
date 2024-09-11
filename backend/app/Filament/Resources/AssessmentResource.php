@@ -2,9 +2,9 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\ResponseResource\Pages;
-use App\Filament\Resources\ResponseResource\RelationManagers;
-use App\Models\Response;
+use App\Filament\Resources\AssessmentResource\Pages;
+use App\Filament\Resources\AssessmentResource\RelationManagers;
+use App\Models\Assessment;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -13,9 +13,9 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class ResponseResource extends Resource
+class AssessmentResource extends Resource
 {
-    protected static ?string $model = Response::class;
+    protected static ?string $model = Assessment::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
@@ -25,16 +25,14 @@ class ResponseResource extends Resource
 
     public static function form(Form $form): Form
     {
-        return $form
-            ->schema([
-            ]);
+        return $form->schema([]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('evaluator.name')
+                Tables\Columns\TextColumn::make('evaluator.user.name')
                     ->label('Avaliador')
                     ->numeric()
                     ->sortable(),
@@ -42,19 +40,8 @@ class ResponseResource extends Resource
                     ->label('Projeto')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('project.student.name')
+                Tables\Columns\TextColumn::make('project.students.name')
                     ->label('Estudante')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('question.text')
-                    ->label('Pergunta')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('response')
-                    ->label('Resposta')
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('score')
-                    ->label('Pontuação')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
@@ -72,6 +59,7 @@ class ResponseResource extends Resource
                 //
             ])
             ->actions([
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
@@ -91,9 +79,10 @@ class ResponseResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListResponses::route('/'),
-            'create' => Pages\CreateResponse::route('/create'),
-            'edit' => Pages\EditResponse::route('/{record}/edit'),
+            'index' => Pages\ListAssessments::route('/'),
+            'create' => Pages\CreateAssessment::route('/create'),
+            'view' => Pages\ViewAssessment::route('/{record}'),
+            'edit' => Pages\EditAssessment::route('/{record}/edit'),
         ];
     }
 }

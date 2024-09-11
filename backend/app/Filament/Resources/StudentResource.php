@@ -28,8 +28,14 @@ class StudentResource extends Resource
                 Forms\Components\TextInput::make('name')
                     ->label('Nome')
                     ->required(),
+
                 Forms\Components\TextInput::make('email')
                     ->email()
+                    ->required(),
+
+                Forms\Components\Select::make('school_grade_id')
+                    ->relationship('schoolGrade', 'name')
+                    ->label('Grau de escolaridade')
                     ->required(),
             ]);
     }
@@ -42,6 +48,9 @@ class StudentResource extends Resource
                     ->label('Nome')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('email')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('schoolGrade.name')
+                    ->label('Grau de escolaridade')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Criado em')

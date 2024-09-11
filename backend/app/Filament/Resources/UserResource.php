@@ -88,6 +88,11 @@ class UserResource extends Resource
         ];
     }
 
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->whereDoesntHave('evaluator');
+    }
+
     public static function getPages(): array
     {
         return [
