@@ -16,7 +16,7 @@ const Index = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>
-        Faça Login com o PIN fornecido
+        Faça login com o PIN fornecido
       </Text>
       
       <TextInput
@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5FCFF',
   },
   title: {
-    fontSize: 24,
+    fontSize: 20,
     marginBottom: 20,
   },
   input: {
@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   button: {
-    backgroundColor: '#1E90FF',
+    backgroundColor: '#56BA54',
     paddingVertical: 10,
     paddingHorizontal: 30,
     borderRadius: 5,

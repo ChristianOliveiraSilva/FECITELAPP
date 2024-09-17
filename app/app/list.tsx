@@ -1,22 +1,24 @@
-import { Link } from 'expo-router';
+import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { FlatList, StyleSheet, Text, View, Image } from 'react-native';
+import { FlatList, StyleSheet, Text, View, Image, TouchableOpacity } from 'react-native';
 
 const fetchProjects = async () => {
   try {
     const response = await fetch('http://localhost/assessments');
-    
+
     if (!response.ok) {
       throw new Error('Erro ao buscar os assessments');
     }
-    
+
     const data = await response.json();
-    
+
     return data.map((assessment: any) => ({
       id: assessment.id,
       projectName: assessment.project.title,
       studentName: assessment.project.students.map((student: any) => student.name).join(', '),
+      hasResponse: assessment.has_response,
     }));
+
   } catch (error) {
     console.error('Erro:', error);
     return [];
@@ -25,6 +27,7 @@ const fetchProjects = async () => {
 
 export default function Index() {
   const [projects, setProjects] = useState([]);
+  const router = useRouter();
 
   useEffect(() => {
     const loadProjects = async () => {
@@ -35,8 +38,12 @@ export default function Index() {
     loadProjects();
   }, []);
 
+  const handlePress = (id: string) => {
+    router.push(`/questionnaire/${id}`);
+  };
+
   const renderItem = ({ item }) => (
-    <View style={styles.itemContainer}>
+    <TouchableOpacity onPress={() => handlePress(item.id)} style={styles.itemContainer}>
       <View style={styles.iconContainer}>
         <Image
           source={{
@@ -52,15 +59,14 @@ export default function Index() {
       </View>
 
       <View style={styles.assessmentButtonContainer}>
-        <Link
-          href={{
-            pathname: '/questionnaire/[assessmentId]',
-            params: { assessmentId: item.id },
-          }}>
-          <Text>Avaliar</Text>
-        </Link>
+        <Text style={[
+          styles.assessmentText,
+          item.hasResponse ? styles.hasResponse : styles.noResponse
+        ]}>
+          {item.hasResponse ? 'Avaliado' : 'Avaliar'}
+        </Text>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   return (
@@ -99,7 +105,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#FF6347',
+    backgroundColor: '#56BA54',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 15,
@@ -119,5 +125,16 @@ const styles = StyleSheet.create({
   studentName: {
     fontSize: 14,
     color: '#555',
+  },
+  assessmentText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginRight: 5,
+  },
+  hasResponse: {
+    color: '#56BA54',
+  },
+  noResponse: {
+    color: 'red',
   },
 });
