@@ -1,16 +1,29 @@
 import { Stack } from "expo-router";
+import { Image, View, Text } from 'react-native';
 
 export default function RootLayout() {
   return (
     <Stack
       screenOptions={{
         headerStyle: {
-          backgroundColor: '#f4511e',
+          backgroundColor: '#56BA54',
         },
+        headerTitle: '',
         headerTintColor: '#fff',
-        headerTitleStyle: {
-          fontWeight: 'bold',
-        },
+        headerLeft: () => (
+          <Image
+            source={require('../assets/images/fecitel-logo.png')}
+            style={{ width: 150, height: 30, marginLeft: 15, }}
+            resizeMode="contain"
+          />
+        ),
+        headerRight: () => (
+          <Image
+            source={require('../assets/images/cossoftware-logo.png')}
+            style={{ width: 50, height: 40, marginRight: 15 }}
+            resizeMode="contain"
+          />
+        ),
       }}>
       <Stack.Screen name="index" />
       <Stack.Screen name="list" />

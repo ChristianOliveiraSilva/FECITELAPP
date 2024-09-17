@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, FlatList, TextInput } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, FlatList, TextInput, ActivityIndicator  } from 'react-native';
 
 const fetchQuestions = async () => {
   try {
@@ -96,7 +96,7 @@ export default function Questionnaire() {
 
   const renderReadyScreen = () => (
     <View style={styles.readyContainer}>
-      <Text style={styles.title}>Você está pronto para começar?</Text>
+      <Text style={styles.title}>Pronto(a) para começar a avaliação?</Text>
       <TouchableOpacity style={styles.button} onPress={() => setIsReady(true)}>
         <Text style={styles.buttonText}>Começar</Text>
       </TouchableOpacity>
@@ -107,8 +107,8 @@ export default function Questionnaire() {
     <View style={styles.container}>
       <Text style={styles.question}>{questions[currentQuestionIndex].text}</Text>
       <FlatList
-        data={[...Array(10).keys()].map(n => n + 1)}
-        numColumns={5}
+        data={[...Array(21).keys()]}
+        numColumns={7}
         keyExtractor={(item) => item.toString()}
         renderItem={({ item }) => (
           <TouchableOpacity style={styles.optionButton} onPress={() => handleAnswer(item)}>
@@ -149,12 +149,22 @@ export default function Questionnaire() {
   );
 
   const renderQuestionScreen = () => {
-    if (questions[currentQuestionIndex].type === MULTIPLE_CHOICE_QUESTION) {
+    if (!questions || questions.length === 0 || currentQuestionIndex >= questions.length) {
+      return (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#56BA54" />
+        </View>
+      );
+    }
+  
+    const currentQuestion = questions[currentQuestionIndex];
+  
+    if (currentQuestion.type === MULTIPLE_CHOICE_QUESTION) {
       return renderMultipleChoiceQuestionScreen();
     } else {
       return renderOpenEndedQuestionScreen();
     }
-  }
+  };
 
   const renderResultsScreen = () => (
     <View style={styles.container}>
@@ -248,7 +258,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   button: {
-    backgroundColor: '#1E90FF',
+    backgroundColor: '#56BA54',
     paddingVertical: 15,
     paddingHorizontal: 30,
     borderRadius: 5,
@@ -265,5 +275,10 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     paddingHorizontal: 8,
     marginBottom: 20,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
