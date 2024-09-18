@@ -1,5 +1,5 @@
 import { Stack } from "expo-router";
-import { Image, View, Text } from 'react-native';
+import { Image } from 'react-native';
 
 export default function RootLayout() {
   return (
@@ -27,7 +27,7 @@ export default function RootLayout() {
       }}>
       <Stack.Screen name="index" />
       <Stack.Screen name="list" />
-      <Stack.Screen name="login" />
+      <Stack.Screen name="login" options={{ headerShown: false }}/>
       <Stack.Screen name="qr" />
       <Stack.Screen name="questionnaire" />
     </Stack>
