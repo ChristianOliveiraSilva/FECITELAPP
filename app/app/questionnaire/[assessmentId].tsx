@@ -1,31 +1,66 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, FlatList, TextInput, ActivityIndicator  } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, FlatList, TextInput, ActivityIndicator } from 'react-native';
 
-const fetchQuestions = async () => {
+const fetchProject = async (assessmentId) => {
   try {
-    const response = await fetch('http://localhost/questions');
-
-    if (!response.ok) {
-      throw new Error('Network response was not ok');
+    const assessmentsResponse = await fetch('http://localhost/assessments');
+    if (!assessmentsResponse.ok) {
+      throw new Error('Erro ao buscar os assessments');
     }
-
-    const data = await response.json();
-
-    return data;
+    
+    const assessmentsData = await assessmentsResponse.json();
+    
+    const assessment = assessmentsData.find((a) => a.id === assessmentId);
+    
+    if (!assessment) {
+      throw new Error('Assessment não encontrado');
+    }
+    
+    const project = {
+      projectName: assessment.project.title,
+      studentNames: assessment.project.students.map((student) => student.name).join(', '),
+      hasResponse: assessment.has_response,
+    };
+    
+    return project;
+    
   } catch (error) {
+    console.error('Erro:', error);
+    return {};
+  }
+};
+
+
+
+const fetchQuestions = async (assessmentId) => {
+  try {
+    const questionsResponse = await fetch('http://localhost/questions');
+    if (!questionsResponse.ok) {
+      throw new Error('Erro ao buscar as perguntas');
+    }
+    
+    const allQuestions = await questionsResponse.json();
+    
+    const questions = allQuestions.filter((q) => q.assessment_id === assessmentId);
+    
+    return questions;
+    
+  } catch (error) {
+    console.error('Erro:', error);
     return [];
   }
 };
+
 
 const MULTIPLE_CHOICE_QUESTION = 1;
 
 export default function Questionnaire() {
   const { assessmentId } = useLocalSearchParams();
-
   const router = useRouter();
 
   const [questions, setQuestions] = useState([]);
+  const [project, setProject] = useState({});
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState([]);
   const [isReady, setIsReady] = useState(false);
@@ -33,13 +68,25 @@ export default function Questionnaire() {
   const [answer, setAnswer] = useState('');
 
   useEffect(() => {
-    const loadQuestions = async () => {
-      const data = await fetchQuestions();
-      setQuestions(data);
+    const loadProject = async () => {
+      const projectData = await fetchProject(assessmentId);
+      setProject(projectData);
+      setIsReady(true); 
     };
 
-    loadQuestions();
-  }, []);
+    loadProject();
+  }, [assessmentId]);
+
+  useEffect(() => {
+    if (isReady) {
+      const loadQuestions = async () => {
+        const questionsData = await fetchQuestions(assessmentId);
+        setQuestions(questionsData);
+      };
+
+      loadQuestions();
+    }
+  }, [isReady, assessmentId]);
 
   const handleAnswer = (value) => {
     const newAnswers = [...answers];
@@ -67,8 +114,8 @@ export default function Questionnaire() {
   };
 
   const handleRestart = () => {
-      setCurrentQuestionIndex(0);
-      setShowResults(false);
+    setCurrentQuestionIndex(0);
+    setShowResults(false);
   };
 
   const handleSave = async () => {
@@ -96,6 +143,10 @@ export default function Questionnaire() {
 
   const renderReadyScreen = () => (
     <View style={styles.readyContainer}>
+      <View style={styles.projectContainer}>
+        <Text style={styles.projectTitle}>Projeto: {project.projectName}</Text>
+        <Text style={styles.projectStudents}>Alunos: {project.studentNames}</Text>
+      </View>
       <Text style={styles.title}>Pronto(a) para começar a avaliação?</Text>
       <TouchableOpacity style={styles.button} onPress={() => setIsReady(true)}>
         <Text style={styles.buttonText}>Começar</Text>
@@ -141,7 +192,7 @@ export default function Questionnaire() {
       <View style={styles.navigationContainer}>
         {currentQuestionIndex > 0 && (
           <TouchableOpacity style={styles.navButton} onPress={handlePrevious}>
-            <Text style={styles.buttonText}>Voltar</Text>
+            <Text style={styles.navButtonText}>Voltar</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -171,7 +222,7 @@ export default function Questionnaire() {
       <Text style={styles.title}>Suas Respostas:</Text>
       {answers.map((answer, index) => (
         <Text key={index} style={styles.resultText}>
-          {index + 1}. {answer.text} Nota: {answer.value || '-'}
+          {index + 1}. {answer.value || '-'}
         </Text>
       ))}
       
@@ -194,6 +245,7 @@ export default function Questionnaire() {
     return renderQuestionScreen();
   }
 }
+
 
 const styles = StyleSheet.create({
   readyContainer: {
@@ -255,30 +307,31 @@ const styles = StyleSheet.create({
   },
   resultText: {
     fontSize: 18,
-    marginBottom: 10,
-  },
-  button: {
-    backgroundColor: '#56BA54',
-    paddingVertical: 15,
-    paddingHorizontal: 30,
-    borderRadius: 5,
-    marginTop: 20,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 18,
+    marginVertical: 5,
   },
   textInput: {
-    height: 40,
+    height: 100,
     borderColor: '#ccc',
     borderWidth: 1,
-    borderRadius: 4,
-    paddingHorizontal: 8,
+    borderRadius: 5,
+    padding: 10,
+    width: '100%',
     marginBottom: 20,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  button: {
+    backgroundColor: '#1E90FF',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    marginTop: 20,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 18,
   },
 });
