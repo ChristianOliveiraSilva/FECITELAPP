@@ -26,7 +26,7 @@ const fetchProjects = async () => {
 
 export default function Index() {
   const [projects, setProjects] = useState([]);
-  const [loading, setLoading] = useState(true); 
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
@@ -75,8 +75,8 @@ export default function Index() {
     <View style={styles.container}>
       {loading ? (
         <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#56BA54" />
-      </View>
+          <ActivityIndicator size="large" color="#56BA54" />
+        </View>
       ) : (
         <FlatList
           data={projects}
