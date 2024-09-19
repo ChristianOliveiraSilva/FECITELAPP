@@ -23,6 +23,7 @@ const fetchProject = async (assessmentId) => {
       description: assessment.project.description,
       year: assessment.project.year,
       type: assessment.project.type,
+      category: assessment.project.category_id,
     };
 
   } catch (error) {
@@ -151,12 +152,16 @@ export default function Questionnaire() {
           <Text style={styles.value}>{project.type == 'cientifico' ? 'Científico' : 'Tecnológico'}</Text>
         </View>
         <View style={styles.projectDetails}>
+          <Text style={styles.label}>Categoria:</Text>
+          <Text style={styles.value}>{project.category}</Text>
+        </View>
+        <View style={styles.projectDetails}>
           <Text style={styles.label}>Ano:</Text>
           <Text style={styles.value}>{project.year}</Text>
         </View>
         <View style={styles.projectDetails}>
           <Text style={styles.label}>Estudante(s):</Text>
-          <Text style={styles.value}>{project.studentNames}, {project.studentNames}, {project.studentNames}, {project.studentNames} </Text>
+          <Text style={styles.value}>{project.studentNames}</Text>
         </View>
         <View style={styles.projectDetails}>
           <Text style={styles.label}>Descrição:</Text>
