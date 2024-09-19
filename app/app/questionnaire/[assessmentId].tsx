@@ -368,7 +368,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   label: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
     marginRight: 5,
     color: '#555',
@@ -376,9 +376,10 @@ const styles = StyleSheet.create({
   value: {
     flex: 1,
     color: '#333',
+    fontSize: 18,
   },
   button: {
-    backgroundColor: '#007bff',
+    backgroundColor: '#56BA54',
     paddingVertical: 15,
     paddingHorizontal: 40,
     borderRadius: 50,

@@ -56,7 +56,7 @@ export default function Index() {
       </View>
 
       <View>
-        <Text style={styles.projectName}>{item.projectName}</Text>
+        <Text style={styles.projectName}>{item.projectName} (ID: {item.id})</Text>
         <Text style={styles.studentName}>{item.studentName}</Text>
       </View>
 
@@ -82,6 +82,7 @@ export default function Index() {
           data={projects}
           renderItem={renderItem}
           keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.flatListContent} 
         />
       )}
     </View>
@@ -93,6 +94,9 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     backgroundColor: '#F5FCFF',
+  },
+  flatListContent: {
+    flexGrow: 1, 
   },
   itemContainer: {
     flexDirection: 'row',
