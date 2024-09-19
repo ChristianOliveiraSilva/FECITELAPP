@@ -227,9 +227,9 @@ export default function Questionnaire() {
         </View>
       );
     }
-  
+
     const currentQuestion = questions[currentQuestionIndex];
-  
+
     if (currentQuestion.type === MULTIPLE_CHOICE_QUESTION) {
       return renderMultipleChoiceQuestionScreen();
     } else {
@@ -371,7 +371,7 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     marginBottom: 30,
     width: '100%',
-    maxWidth: 800, 
+    maxWidth: 800,
   },
 
   projectDetails: {
@@ -399,7 +399,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 2,
     width: '100%',
-    maxWidth: 800, 
+    maxWidth: 800,
   },
   buttonText: {
     color: '#fff',
