@@ -17,6 +17,7 @@ const fetchProjects = async () => {
       projectName: assessment.project.title,
       studentName: assessment.project.students.map((student: any) => student.name).join(', '),
       hasResponse: assessment.has_response,
+      type: assessment.project.type,
     }));
   } catch (error) {
     console.error('Erro:', error);
@@ -44,32 +45,39 @@ export default function Index() {
     router.push(`/questionnaire/${id}`);
   };
 
-  const renderItem = ({ item }) => (
-    <TouchableOpacity onPress={() => handlePress(item.id)} style={styles.itemContainer}>
-      <View style={styles.iconContainer}>
-        <Image
-          source={{
-            uri: 'https://img.icons8.com/ios-filled/50/ffffff/user.png',
-          }}
-          style={styles.icon}
-        />
-      </View>
-
-      <View>
-        <Text style={styles.projectName}>{item.projectName} (ID: {item.id})</Text>
-        <Text style={styles.studentName}>{item.studentName}</Text>
-      </View>
-
-      <View style={styles.assessmentButtonContainer}>
-        <Text style={[
-          styles.assessmentText,
-          item.hasResponse ? styles.hasResponse : styles.noResponse
-        ]}>
-          {item.hasResponse ? 'Avaliado' : 'Avaliar'}
-        </Text>
-      </View>
-    </TouchableOpacity>
-  );
+  const renderItem = ({ item }) => {
+    const iconUri = item.type == 'cientifico'
+      ? 'https://img.icons8.com/ios-filled/50/ffffff/microscope.png'
+      : 'https://img.icons8.com/ios-filled/50/ffffff/computer.png';
+  
+    return (
+      <TouchableOpacity onPress={() => handlePress(item.id)} style={styles.itemContainer}>
+        <View style={[styles.iconContainer, { backgroundColor: item.type == 'cientifico' ? '#56BA54' : '#036daa' }]}>
+          <Image
+            source={{
+              uri: iconUri,
+            }}
+            style={styles.icon}
+          />
+        </View>
+  
+        <View>
+          <Text style={styles.projectName}>{item.projectName} (ID: {item.id})</Text>
+          <Text style={styles.studentName}>{item.studentName}</Text>
+        </View>
+  
+        <View style={styles.assessmentButtonContainer}>
+          <Text style={[
+            styles.assessmentText,
+            item.hasResponse ? styles.hasResponse : styles.noResponse
+          ]}>
+            {item.hasResponse ? 'Avaliado' : 'Avaliar'}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+  
 
   return (
     <View style={styles.container}>
