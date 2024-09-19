@@ -30,18 +30,18 @@ const fetchProject = async (assessmentId) => {
   }
 };
 
-const fetchQuestions = async (assessmentId) => {
+const fetchQuestions = async () => {
   try {
-    const questionsResponse = await fetch('http://localhost/questions');
-    if (!questionsResponse.ok) {
-      throw new Error('Erro ao buscar as perguntas');
+    const response = await fetch('http://localhost/questions');
+
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
     }
 
-    const allQuestions = await questionsResponse.json();
-    return allQuestions.filter((q) => q.assessment_id === assessmentId);
+    const data = await response.json();
 
+    return data;
   } catch (error) {
-    console.error('Erro:', error);
     return [];
   }
 };
@@ -217,9 +217,9 @@ export default function Questionnaire() {
         </View>
       );
     }
-
+  
     const currentQuestion = questions[currentQuestionIndex];
-
+  
     if (currentQuestion.type === MULTIPLE_CHOICE_QUESTION) {
       return renderMultipleChoiceQuestionScreen();
     } else {
@@ -362,7 +362,7 @@ const styles = StyleSheet.create({
     marginBottom: 30,
     width: '100%',
   },
-  
+
   projectDetails: {
     flexDirection: 'row',
     marginBottom: 10,
