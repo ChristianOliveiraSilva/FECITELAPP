@@ -22,6 +22,7 @@ const fetchProject = async (assessmentId) => {
       studentNames: assessment.project.students.map((student: any) => student.name).join(', '),
       description: assessment.project.description,
       year: assessment.project.year,
+      type: assessment.project.type,
     };
 
   } catch (error) {
@@ -138,24 +139,28 @@ export default function Questionnaire() {
       <View style={styles.card}>
         <Text style={styles.title}>Detalhes do Projeto</Text>
         <View style={styles.projectDetails}>
-          <Text style={styles.label}>Título:</Text>
-          <Text style={styles.value}>{project.projectName}</Text>
-        </View>
-        <View style={styles.projectDetails}>
           <Text style={styles.label}>ID:</Text>
           <Text style={styles.value}>{project.id}</Text>
         </View>
         <View style={styles.projectDetails}>
-          <Text style={styles.label}>Estudante(s):</Text>
-          <Text style={styles.value}>{project.studentNames}</Text>
+          <Text style={styles.label}>Título:</Text>
+          <Text style={styles.value}>{project.projectName}</Text>
         </View>
         <View style={styles.projectDetails}>
-          <Text style={styles.label}>Descrição:</Text>
-          <Text style={styles.value}>{project.description}</Text>
+          <Text style={styles.label}>Tipo:</Text>
+          <Text style={styles.value}>{project.type == 'cientifico' ? 'Científico' : 'Tecnológico'}</Text>
         </View>
         <View style={styles.projectDetails}>
           <Text style={styles.label}>Ano:</Text>
           <Text style={styles.value}>{project.year}</Text>
+        </View>
+        <View style={styles.projectDetails}>
+          <Text style={styles.label}>Estudante(s):</Text>
+          <Text style={styles.value}>{project.studentNames}, {project.studentNames}, {project.studentNames}, {project.studentNames} </Text>
+        </View>
+        <View style={styles.projectDetails}>
+          <Text style={styles.label}>Descrição:</Text>
+          <Text style={styles.value}>{project.description}</Text>
         </View>
       </View>
       <TouchableOpacity style={styles.button} onPress={() => setIsReady(true)}>
@@ -346,7 +351,7 @@ const styles = StyleSheet.create({
   },
   readyContainer: {
     flex: 1,
-    justifyContent: 'center',
+    paddingTop: 80,
     alignItems: 'center',
     paddingHorizontal: 20,
     backgroundColor: '#F5FCFF',
@@ -354,13 +359,14 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: '#fff',
     padding: 20,
-    borderRadius: 10,
+    borderRadius: 6,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.3,
-    shadowRadius: 5,
+    shadowRadius: 2,
     marginBottom: 30,
     width: '100%',
+    maxWidth: 800, 
   },
 
   projectDetails: {
@@ -382,17 +388,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#56BA54',
     paddingVertical: 15,
     paddingHorizontal: 40,
-    borderRadius: 50,
+    borderRadius: 6,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.3,
-    shadowRadius: 5,
+    shadowRadius: 2,
+    width: '100%',
+    maxWidth: 800, 
   },
   buttonText: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: 17,
     textAlign: 'center',
-    fontWeight: 'bold',
+    fontWeight: '500',
   },
 });
 
