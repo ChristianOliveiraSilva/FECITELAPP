@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, TextInput, TouchableOpacity, View, Alert } from 'react-native';
+import { StyleSheet, Text, TextInput, TouchableOpacity, View, Alert, Image, } from 'react-native';
 
 const Index = () => {
   const [pin, setPin] = useState('');
 
   const handleLogin = () => {
-    console.log({pin})
+    console.log({ pin })
     if (pin === '1234') {
       Alert.alert('Login bem-sucedido!', 'Você foi autenticado com sucesso.');
     } else {
@@ -15,20 +15,26 @@ const Index = () => {
 
   return (
     <View style={styles.container}>
+      <Image
+        source={require('../assets/images/ifms-feira-de-ciencia.jpg')}
+        style={{ height: 230, marginBottom: 50, marginTop: 80}}
+        resizeMode="contain"
+      />
+
       <Text style={styles.title}>
         Faça login com o PIN fornecido
       </Text>
-      
+
       <TextInput
-        style={styles.input}
-        placeholder="Digite seu PIN"
+        style={[styles.input, { color: pin ? 'black' : 'grey' }]}
+        placeholder="PIN"
         keyboardType="numeric"
         secureTextEntry
         maxLength={4}
         value={pin}
         onChangeText={setPin}
       />
-      
+
       <TouchableOpacity style={styles.button} onPress={handleLogin}>
         <Text style={styles.buttonText}>Entrar</Text>
       </TouchableOpacity>
@@ -39,7 +45,6 @@ const Index = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#F5FCFF',
   },

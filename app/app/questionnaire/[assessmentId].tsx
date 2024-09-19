@@ -1,19 +1,47 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, FlatList, TextInput, ActivityIndicator  } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, FlatList, TextInput, ActivityIndicator } from 'react-native';
 
-const fetchQuestions = async () => {
+const fetchProject = async (assessmentId) => {
   try {
-    const response = await fetch('http://localhost/questions');
-
-    if (!response.ok) {
-      throw new Error('Network response was not ok');
+    const assessmentsResponse = await fetch('http://localhost/assessments');
+    if (!assessmentsResponse.ok) {
+      throw new Error('Erro ao buscar os assessments');
     }
 
-    const data = await response.json();
+    const assessmentsData = await assessmentsResponse.json();
+    const assessment = assessmentsData.find((a) => a.id == assessmentId);
 
-    return data;
+    if (!assessment) {
+      throw new Error('Assessment não encontrado');
+    }
+
+    return {
+      id: assessment.id,
+      projectName: assessment.project.title,
+      studentNames: assessment.project.students.map((student: any) => student.name).join(', '),
+      description: assessment.project.description,
+      year: assessment.project.year,
+    };
+
   } catch (error) {
+    console.error('Erro:', error);
+    return {};
+  }
+};
+
+const fetchQuestions = async (assessmentId) => {
+  try {
+    const questionsResponse = await fetch('http://localhost/questions');
+    if (!questionsResponse.ok) {
+      throw new Error('Erro ao buscar as perguntas');
+    }
+
+    const allQuestions = await questionsResponse.json();
+    return allQuestions.filter((q) => q.assessment_id === assessmentId);
+
+  } catch (error) {
+    console.error('Erro:', error);
     return [];
   }
 };
@@ -22,28 +50,39 @@ const MULTIPLE_CHOICE_QUESTION = 1;
 
 export default function Questionnaire() {
   const { assessmentId } = useLocalSearchParams();
-
   const router = useRouter();
 
   const [questions, setQuestions] = useState([]);
+  const [project, setProject] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState([]);
   const [isReady, setIsReady] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [showResults, setShowResults] = useState(false);
   const [answer, setAnswer] = useState('');
 
   useEffect(() => {
-    const loadQuestions = async () => {
-      const data = await fetchQuestions();
-      setQuestions(data);
+    const loadProjectAndQuestions = async () => {
+      try {
+        setIsLoading(true);
+        const projectData = await fetchProject(assessmentId);
+        setProject(projectData);
+
+        const questionsData = await fetchQuestions(assessmentId);
+        setQuestions(questionsData);
+      } catch (error) {
+        console.error('Erro ao carregar os dados:', error);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
-    loadQuestions();
-  }, []);
+    loadProjectAndQuestions();
+  }, [assessmentId]);
 
   const handleAnswer = (value) => {
     const newAnswers = [...answers];
-    newAnswers[currentQuestionIndex] = { 
+    newAnswers[currentQuestionIndex] = {
       question_id: questions[currentQuestionIndex].id,
       value,
       type: questions[currentQuestionIndex].type,
@@ -51,7 +90,7 @@ export default function Questionnaire() {
 
     setAnswers(newAnswers);
     setAnswer('');
-    
+
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
@@ -67,8 +106,8 @@ export default function Questionnaire() {
   };
 
   const handleRestart = () => {
-      setCurrentQuestionIndex(0);
-      setShowResults(false);
+    setCurrentQuestionIndex(0);
+    setShowResults(false);
   };
 
   const handleSave = async () => {
@@ -83,7 +122,7 @@ export default function Questionnaire() {
           assessment: assessmentId,
         }),
       });
-  
+
       if (response.ok) {
         router.replace('/list');
       } else {
@@ -96,9 +135,31 @@ export default function Questionnaire() {
 
   const renderReadyScreen = () => (
     <View style={styles.readyContainer}>
-      <Text style={styles.title}>Pronto(a) para começar a avaliação?</Text>
+      <View style={styles.card}>
+        <Text style={styles.title}>Detalhes do Projeto</Text>
+        <View style={styles.projectDetails}>
+          <Text style={styles.label}>Título:</Text>
+          <Text style={styles.value}>{project.projectName}</Text>
+        </View>
+        <View style={styles.projectDetails}>
+          <Text style={styles.label}>ID:</Text>
+          <Text style={styles.value}>{project.id}</Text>
+        </View>
+        <View style={styles.projectDetails}>
+          <Text style={styles.label}>Estudante(s):</Text>
+          <Text style={styles.value}>{project.studentNames}</Text>
+        </View>
+        <View style={styles.projectDetails}>
+          <Text style={styles.label}>Descrição:</Text>
+          <Text style={styles.value}>{project.description}</Text>
+        </View>
+        <View style={styles.projectDetails}>
+          <Text style={styles.label}>Ano:</Text>
+          <Text style={styles.value}>{project.year}</Text>
+        </View>
+      </View>
       <TouchableOpacity style={styles.button} onPress={() => setIsReady(true)}>
-        <Text style={styles.buttonText}>Começar</Text>
+        <Text style={styles.buttonText}>Começar Avaliação</Text>
       </TouchableOpacity>
     </View>
   );
@@ -141,7 +202,7 @@ export default function Questionnaire() {
       <View style={styles.navigationContainer}>
         {currentQuestionIndex > 0 && (
           <TouchableOpacity style={styles.navButton} onPress={handlePrevious}>
-            <Text style={styles.buttonText}>Voltar</Text>
+            <Text style={styles.navButtonText}>Voltar</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -156,9 +217,9 @@ export default function Questionnaire() {
         </View>
       );
     }
-  
+
     const currentQuestion = questions[currentQuestionIndex];
-  
+
     if (currentQuestion.type === MULTIPLE_CHOICE_QUESTION) {
       return renderMultipleChoiceQuestionScreen();
     } else {
@@ -171,10 +232,10 @@ export default function Questionnaire() {
       <Text style={styles.title}>Suas Respostas:</Text>
       {answers.map((answer, index) => (
         <Text key={index} style={styles.resultText}>
-          {index + 1}. {answer.text} Nota: {answer.value || '-'}
+          {index + 1}. {answer.value || '-'}
         </Text>
       ))}
-      
+
       <View style={styles.containerInline}>
         <TouchableOpacity style={styles.navButton} onPress={handleRestart}>
           <Text style={styles.navButtonText}>Refazer</Text>
@@ -186,6 +247,14 @@ export default function Questionnaire() {
     </View>
   );
 
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#56BA54" />
+      </View>
+    );
+  }
+
   if (!isReady) {
     return renderReadyScreen();
   } else if (showResults) {
@@ -196,11 +265,12 @@ export default function Questionnaire() {
 }
 
 const styles = StyleSheet.create({
-  readyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F5FCFF',
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    textAlign: 'center',
+    color: '#333',
   },
   container: {
     flex: 1,
@@ -214,11 +284,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  title: {
-    fontSize: 24,
-    marginBottom: 20,
-    textAlign: 'center',
   },
   question: {
     fontSize: 20,
@@ -243,42 +308,91 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   navButton: {
-    backgroundColor: '#FF6347',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    backgroundColor: '#56BA54',
+    padding: 10,
+    margin: 5,
     borderRadius: 5,
-    marginHorizontal: 10,
   },
   navButtonText: {
     color: '#fff',
     fontSize: 18,
   },
+  projectContainer: {
+    marginBottom: 30,
+    alignItems: 'center',
+  },
+  projectTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  projectStudents: {
+    fontSize: 18,
+  },
   resultText: {
-    fontSize: 18,
-    marginBottom: 10,
-  },
-  button: {
-    backgroundColor: '#56BA54',
-    paddingVertical: 15,
-    paddingHorizontal: 30,
-    borderRadius: 5,
-    marginTop: 20,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 18,
-  },
-  textInput: {
-    height: 40,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 4,
-    paddingHorizontal: 8,
-    marginBottom: 20,
+    fontSize: 16,
+    marginVertical: 5,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  textInput: {
+    borderColor: '#ccc',
+    borderWidth: 1,
+    padding: 10,
+    marginBottom: 20,
+    width: '100%',
+  },
+  readyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    backgroundColor: '#F5FCFF',
+  },
+  card: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    marginBottom: 30,
+    width: '100%',
+  },
+  
+  projectDetails: {
+    flexDirection: 'row',
+    marginBottom: 10,
+  },
+  label: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginRight: 5,
+    color: '#555',
+  },
+  value: {
+    flex: 1,
+    color: '#333',
+    fontSize: 18,
+  },
+  button: {
+    backgroundColor: '#56BA54',
+    paddingVertical: 15,
+    paddingHorizontal: 40,
+    borderRadius: 50,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 18,
+    textAlign: 'center',
+    fontWeight: 'bold',
+  },
 });
+

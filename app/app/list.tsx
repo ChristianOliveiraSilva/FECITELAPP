@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { FlatList, StyleSheet, Text, View, Image, TouchableOpacity } from 'react-native';
+import { FlatList, StyleSheet, Text, View, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
 
 const fetchProjects = async () => {
   try {
@@ -18,7 +18,6 @@ const fetchProjects = async () => {
       studentName: assessment.project.students.map((student: any) => student.name).join(', '),
       hasResponse: assessment.has_response,
     }));
-
   } catch (error) {
     console.error('Erro:', error);
     return [];
@@ -27,12 +26,15 @@ const fetchProjects = async () => {
 
 export default function Index() {
   const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
     const loadProjects = async () => {
+      setLoading(true);
       const data = await fetchProjects();
       setProjects(data);
+      setLoading(false);
     };
 
     loadProjects();
@@ -54,7 +56,7 @@ export default function Index() {
       </View>
 
       <View>
-        <Text style={styles.projectName}>{item.projectName}</Text>
+        <Text style={styles.projectName}>{item.projectName} (ID: {item.id})</Text>
         <Text style={styles.studentName}>{item.studentName}</Text>
       </View>
 
@@ -71,11 +73,18 @@ export default function Index() {
 
   return (
     <View style={styles.container}>
-      <FlatList
-        data={projects}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-      />
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#56BA54" />
+        </View>
+      ) : (
+        <FlatList
+          data={projects}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.flatListContent} 
+        />
+      )}
     </View>
   );
 }
@@ -85,6 +94,9 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     backgroundColor: '#F5FCFF',
+  },
+  flatListContent: {
+    flexGrow: 1, 
   },
   itemContainer: {
     flexDirection: 'row',
@@ -136,5 +148,10 @@ const styles = StyleSheet.create({
   },
   noResponse: {
     color: 'red',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
