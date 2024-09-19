@@ -61,16 +61,26 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     textAlign: 'center',
     fontSize: 18,
+    maxWidth: 500, 
   },
   button: {
     backgroundColor: '#56BA54',
-    paddingVertical: 10,
-    paddingHorizontal: 30,
-    borderRadius: 5,
+    paddingVertical: 15,
+    paddingHorizontal: 40,
+    borderRadius: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.3,
+    shadowRadius: 2,
+    width: '80%',
+    maxWidth: 500,
+
   },
   buttonText: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: 17,
+    textAlign: 'center',
+    fontWeight: '500',
   },
 });
 

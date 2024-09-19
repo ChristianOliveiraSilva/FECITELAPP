@@ -400,7 +400,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 17,
     textAlign: 'center',
-    fontWeight: 'bold',
+    fontWeight: '500',
   },
 });
 
