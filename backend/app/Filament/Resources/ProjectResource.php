@@ -35,14 +35,21 @@ class ProjectResource extends Resource
                     ->label('Ano')
                     ->default(date('Y'))
                     ->numeric(),
-                // Forms\Components\TextInput::make('student.name')
-                //     ->label('Estudante')
-                //     ->required()
-                //     ->numeric(),
-                // Forms\Components\TextInput::make('category.name')
-                //     ->label('Categoria')
-                //     ->required()
-                //     ->numeric(),
+
+                Forms\Components\Select::make('category_id')
+                    ->label('Categoria')
+                    ->relationship('category', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->required(),
+
+                Forms\Components\Select::make('students')
+                    ->label('Estudantes')
+                    ->relationship('students', 'name')
+                    ->multiple()
+                    ->preload()
+                    ->required()
+                    ->columnSpanFull(),
             ]);
     }
 
