@@ -14,7 +14,6 @@ const fetchProjects = async () => {
       projectArea: assessment.project.area,
       studentName: assessment.project.students.map(student => student.name).join(', '),
       hasResponse: assessment.has_response,
-      area: assessment.project.area,
     }));
   } catch (error) {
     console.error('Erro:', error);
@@ -23,13 +22,13 @@ const fetchProjects = async () => {
 };
 
 const ProjectItem = ({ item, onPress }) => {
-  const iconUri = item.area == 2
+  const iconUri = item.projectArea == 2
     ? 'https://img.icons8.com/ios-filled/50/ffffff/microscope.png'
     : 'https://img.icons8.com/ios-filled/50/ffffff/computer.png';
 
   return (
     <TouchableOpacity onPress={() => onPress(item.id)} style={styles.itemContainer}>
-      <View style={[styles.iconContainer, { backgroundColor: item.area == 2 ? '#56BA54' : '#036daa' }]}>
+      <View style={[styles.iconContainer, { backgroundColor: item.projectArea == 2 ? '#56BA54' : '#036daa' }]}>
         <Image source={{ uri: iconUri }} style={styles.icon} />
       </View>
       
@@ -37,7 +36,7 @@ const ProjectItem = ({ item, onPress }) => {
         <Text style={styles.projecID}>({item.id})</Text>
         <Text style={styles.projectName} numberOfLines={2} ellipsizeMode="tail">{item.projectName}</Text>
         <Text style={styles.studentName} numberOfLines={2} ellipsizeMode="tail">Estudante(s): {item.studentName}</Text>
-        <Text style={styles.studentName}>Área: {item.projectArea == 1 ? 'Tecnológico' : 'Científico'}</Text>
+        <Text style={styles.studentName}>Tipo: {item.projectArea == 1 ? 'Tecnológico' : 'Científico'}</Text>
       </View>
 
       <View style={styles.assessmentButtonContainer}>

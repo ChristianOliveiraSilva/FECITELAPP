@@ -44,7 +44,7 @@ const fetchQuestions = async (assessmentId:number) => {
 
     return data;
   } catch (error) {
-    console.error(error)
+    console.error(error);
     return [];
   }
 };
@@ -156,37 +156,40 @@ export default function Questionnaire() {
       <View style={styles.readyContainer}>
         <View style={styles.card}>
           <Text style={styles.title}>Detalhes do Projeto</Text>
-          <View style={styles.projectDetails}>
+          <View style={[styles.projectDetails, {flexDirection: 'row'}]}>
             <Text style={styles.label}>ID:</Text>
             <Text style={styles.value}>{project.id}</Text>
           </View>
-          <View style={styles.projectDetails}>
+          <View style={[styles.projectDetails, {flexDirection: 'column'}]}>
             <Text style={styles.label}>Título:</Text>
             <Text style={styles.value}>{project.projectName}</Text>
           </View>
-          <View style={styles.projectDetails}>
+          <View style={[styles.projectDetails, {flexDirection: 'row'}]}>
             <Text style={styles.label}>Tipo:</Text>
             <Text style={styles.value}>{project.type == 'cientifico' ? 'Científico' : 'Tecnológico'}</Text>
           </View>
-          <View style={styles.projectDetails}>
+          <View style={[styles.projectDetails, {flexDirection: 'column'}]}>
             <Text style={styles.label}>Categoria:</Text>
             <Text style={styles.value}>{project.category}</Text>
           </View>
-          <View style={styles.projectDetails}>
+          <View style={[styles.projectDetails, {flexDirection: 'row'}]}>
             <Text style={styles.label}>Ano:</Text>
             <Text style={styles.value}>{project.year}</Text>
           </View>
-          <View style={styles.projectDetails}>
+          <View style={[styles.projectDetails, {flexDirection: 'column'}]}>
             <Text style={styles.label}>Estudante(s):</Text>
             <Text style={styles.value}>{project.studentNames}</Text>
           </View>
-          <View style={styles.projectDetails}>
+          <View style={[styles.projectDetails, {flexDirection: 'column'}]}>
             <Text style={styles.label}>Descrição:</Text>
             <Text style={styles.value}>{project.description}</Text>
           </View>
         </View>
         <TouchableOpacity style={styles.button} onPress={() => setIsReady(true)}>
-          <Text style={styles.buttonText}>Começar Avaliação</Text>
+          <Text style={styles.buttonText}>Iniciar Avaliação</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.button, {backgroundColor: '#BEC0C2', marginTop: 10}]} onPress={() => router.replace('/list')}>
+          <Text style={styles.buttonText}>Cancelar</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -325,7 +328,7 @@ export default function Questionnaire() {
       </View>
     </ScrollView>
   );
-
+  
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -419,6 +422,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#F5FCFF', 
   },
   textInput: {
     borderColor: '#ccc',
@@ -433,9 +437,8 @@ const styles = StyleSheet.create({
   },
   readyContainer: {
     flex: 1,
-    paddingTop: 80,
+    paddingTop: 50,
     alignItems: 'center',
-    paddingHorizontal: 20,
     backgroundColor: '#F5FCFF',
   },
   card: {
@@ -451,7 +454,6 @@ const styles = StyleSheet.create({
     maxWidth: 800,
   },
   projectDetails: {
-    flexDirection: 'row',
     marginBottom: 10,
   },
   label: {
@@ -517,4 +519,3 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
 });
-
