@@ -23,7 +23,7 @@ const fetchProject = async (assessmentId) => {
       description: assessment.project.description,
       year: assessment.project.year,
       type: assessment.project.type,
-      category: assessment.project.category_id,
+      category: assessment.project.category.name,
     };
 
   } catch (error) {
@@ -32,9 +32,9 @@ const fetchProject = async (assessmentId) => {
   }
 };
 
-const fetchQuestions = async () => {
+const fetchQuestions = async (assessmentId:number) => {
   try {
-    const response = await fetch('http://localhost/questions');
+    const response = await fetch(`http://localhost/questions/${assessmentId}`);
 
     if (!response.ok) {
       throw new Error('Network response was not ok');
@@ -44,6 +44,7 @@ const fetchQuestions = async () => {
 
     return data;
   } catch (error) {
+    console.error(error)
     return [];
   }
 };

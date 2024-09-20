@@ -1,21 +1,18 @@
 import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { FlatList, StyleSheet, Text, View, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
 
 const fetchProjects = async () => {
   try {
     const response = await fetch('http://localhost/assessments');
-
-    if (!response.ok) {
-      throw new Error('Erro ao buscar os assessments');
-    }
-
+    if (!response.ok) throw new Error('Erro ao buscar os assessments');
+    
     const data = await response.json();
-
-    return data.map((assessment: any) => ({
+    return data.map((assessment) => ({
       id: assessment.id,
       projectName: assessment.project.title,
-      studentName: assessment.project.students.map((student: any) => student.name).join(', '),
+      projectArea: assessment.project.area,
+      studentName: assessment.project.students.map(student => student.name).join(', '),
       hasResponse: assessment.has_response,
       area: assessment.project.area,
     }));
@@ -25,60 +22,52 @@ const fetchProjects = async () => {
   }
 };
 
+const ProjectItem = ({ item, onPress }) => {
+  const iconUri = item.area == 2
+    ? 'https://img.icons8.com/ios-filled/50/ffffff/microscope.png'
+    : 'https://img.icons8.com/ios-filled/50/ffffff/computer.png';
+
+  return (
+    <TouchableOpacity onPress={() => onPress(item.id)} style={styles.itemContainer}>
+      <View style={[styles.iconContainer, { backgroundColor: item.area == 2 ? '#56BA54' : '#036daa' }]}>
+        <Image source={{ uri: iconUri }} style={styles.icon} />
+      </View>
+      
+      <View style={styles.textContainer}>
+        <Text style={styles.projecID}>({item.id})</Text>
+        <Text style={styles.projectName} numberOfLines={2} ellipsizeMode="tail">{item.projectName}</Text>
+        <Text style={styles.studentName} numberOfLines={2} ellipsizeMode="tail">Estudante(s): {item.studentName}</Text>
+        <Text style={styles.studentName}>Área: {item.projectArea == 1 ? 'Tecnológico' : 'Científico'}</Text>
+      </View>
+
+      <View style={styles.assessmentButtonContainer}>
+        <Text style={[styles.assessmentText, item.hasResponse ? styles.hasResponse : styles.noResponse]}>
+          {item.hasResponse ? 'Avaliado' : 'Avaliar'}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
+};
+
 export default function Index() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  useEffect(() => {
-    const loadProjects = async () => {
-      setLoading(true);
-      const data = await fetchProjects();
-      setProjects(data);
-      setLoading(false);
-    };
-
-    loadProjects();
+  const loadProjects = useCallback(async () => {
+    setLoading(true);
+    const data = await fetchProjects();
+    setProjects(data);
+    setLoading(false);
   }, []);
 
-  const handlePress = (id: string) => {
-    router.push(`/questionnaire/${id}`);
-  };
+  useEffect(() => {
+    loadProjects();
+  }, [loadProjects]);
 
-  const renderItem = ({ item }) => {
-    const iconUri = item.area == 2
-      ? 'https://img.icons8.com/ios-filled/50/ffffff/microscope.png'
-      : 'https://img.icons8.com/ios-filled/50/ffffff/computer.png';
-  
-    return (
-      <TouchableOpacity onPress={() => handlePress(item.id)} style={styles.itemContainer}>
-        <View style={[styles.iconContainer, { backgroundColor: item.area == 2 ? '#56BA54' : '#036daa' }]}>
-          <Image
-            source={{
-              uri: iconUri,
-            }}
-            style={styles.icon}
-          />
-        </View>
-  
-        <View>
-          <Text style={styles.projecID}>({item.id})</Text>
-          <Text style={styles.projectName}>{item.projectName}</Text>
-          <Text style={styles.studentName}>{item.studentName}</Text>
-        </View>
-  
-        <View style={styles.assessmentButtonContainer}>
-          <Text style={[
-            styles.assessmentText,
-            item.hasResponse ? styles.hasResponse : styles.noResponse
-          ]}>
-            {item.hasResponse ? 'Avaliado' : 'Avaliar'}
-          </Text>
-        </View>
-      </TouchableOpacity>
-    );
-  };
-  
+  const handlePress = useCallback((id) => {
+    router.push(`/questionnaire/${id}`);
+  }, [router]);
 
   return (
     <View style={styles.container}>
@@ -89,9 +78,9 @@ export default function Index() {
       ) : (
         <FlatList
           data={projects}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.flatListContent} 
+          renderItem={({ item }) => <ProjectItem item={item} onPress={handlePress} />}
+          keyExtractor={(item) => item.id.toString()}
+          contentContainerStyle={styles.flatListContent}
         />
       )}
     </View>
@@ -105,13 +94,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5FCFF',
   },
   flatListContent: {
-    flexGrow: 1, 
+    flexGrow: 1,
   },
   itemContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 10,
     padding: 10,
     marginVertical: 5,
     backgroundColor: '#fff',
@@ -126,18 +113,16 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#56BA54',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 15,
   },
-  assessmentButtonContainer: {
-    alignItems: 'flex-end',
-    flex: 1,
-  },
   icon: {
     width: 20,
     height: 20,
+  },
+  textContainer: {
+    flex: 1,
   },
   projecID: {
     fontSize: 17,
@@ -151,10 +136,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#555',
   },
+  assessmentButtonContainer: {
+    justifyContent: 'center',
+  },
   assessmentText: {
     fontSize: 16,
     fontWeight: 'bold',
-    marginRight: 5,
   },
   hasResponse: {
     color: '#56BA54',
