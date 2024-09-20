@@ -29,7 +29,7 @@ export default function RootLayout() {
       <Stack.Screen name="list" />
       <Stack.Screen name="login" options={{ headerShown: false }}/>
       <Stack.Screen name="qr" />
-      <Stack.Screen name="questionnaire" />
+      <Stack.Screen name="questionnaire"/>
     </Stack>
   );
 }

@@ -62,7 +62,8 @@ export default function Index() {
         </View>
   
         <View>
-          <Text style={styles.projectName}>{item.projectName} (ID: {item.id})</Text>
+          <Text style={styles.projecID}>({item.id})</Text>
+          <Text style={styles.projectName}>{item.projectName}</Text>
           <Text style={styles.studentName}>{item.studentName}</Text>
         </View>
   
@@ -137,6 +138,10 @@ const styles = StyleSheet.create({
   icon: {
     width: 20,
     height: 20,
+  },
+  projecID: {
+    fontSize: 17,
+    fontWeight: 'bold',
   },
   projectName: {
     fontSize: 16,
