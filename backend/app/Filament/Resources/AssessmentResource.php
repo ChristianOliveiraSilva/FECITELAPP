@@ -76,6 +76,11 @@ class AssessmentResource extends Resource
         ];
     }
 
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->whereHas('responses');
+    }
+
     public static function getPages(): array
     {
         return [

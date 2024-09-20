@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources;
 
+use App\Enum\AreaEnum;
+use App\Enum\QuestionTypeEnum;
 use App\Filament\Resources\QuestionResource\Pages;
 use App\Filament\Resources\QuestionResource\RelationManagers;
 use App\Models\Question;
@@ -12,6 +14,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Tables\Columns\SelectColumn;
 
 class QuestionResource extends Resource
 {
@@ -29,9 +32,16 @@ class QuestionResource extends Resource
                     ->label('Pergunta')
                     ->required()
                     ->columnSpanFull(),
-                Forms\Components\TextInput::make('type')
-                    ->required()
-                    ->numeric(),
+                Forms\Components\Select::make('type')
+                    ->label('Tipo')
+                    ->options(QuestionTypeEnum::class)
+                    ->default(QuestionTypeEnum::MULTIPLE_CHOICE)
+                    ->required(),
+                Forms\Components\Select::make('area')
+                    ->label('Área')
+                    ->options(AreaEnum::class)
+                    ->default(AreaEnum::TECHNICAL)
+                    ->required(),
             ]);
     }
 
@@ -43,7 +53,10 @@ class QuestionResource extends Resource
                     ->label('Pergunta')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('type')
-                    ->numeric()
+                    ->label('Tipo')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('area')
+                    ->label('Área')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Criado em')

@@ -28,23 +28,21 @@ class ProjectResource extends Resource
                 Forms\Components\TextInput::make('title')
                     ->label('Título')
                     ->required(),
-                Forms\Components\TextInput::make('qr_code')
-                    ->label('QR CODE')
-                    ->required(),
                 Forms\Components\Textarea::make('description')
                     ->label('Descrição')
                     ->columnSpanFull(),
                 Forms\Components\TextInput::make('year')
                     ->label('Ano')
+                    ->default(date('Y'))
                     ->numeric(),
-                Forms\Components\TextInput::make('student.name')
-                    ->label('Estudante')
-                    ->required()
-                    ->numeric(),
-                Forms\Components\TextInput::make('category.name')
-                    ->label('Categoria')
-                    ->required()
-                    ->numeric(),
+                // Forms\Components\TextInput::make('student.name')
+                //     ->label('Estudante')
+                //     ->required()
+                //     ->numeric(),
+                // Forms\Components\TextInput::make('category.name')
+                //     ->label('Categoria')
+                //     ->required()
+                //     ->numeric(),
             ]);
     }
 
@@ -55,20 +53,14 @@ class ProjectResource extends Resource
                 Tables\Columns\TextColumn::make('title')
                     ->label('Titulo')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('qr_code')
-                    ->label('Qr Code')
-                    ->searchable(),
                 Tables\Columns\TextColumn::make('year')
                     ->label('Ano')
-                    ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('student.name')
-                    ->label('Estudante')
-                    ->numeric()
+                Tables\Columns\TextColumn::make('students.name')
+                    ->label('Estudantes')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('category.name')
                     ->label('Categoria')
-                    ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Criado em')

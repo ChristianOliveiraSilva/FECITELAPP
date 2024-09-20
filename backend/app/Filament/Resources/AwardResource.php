@@ -19,7 +19,9 @@ class AwardResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-trophy';
 
-    protected static ?string $modelLabel = 'prêmio';
+    protected static ?string $modelLabel = 'premiação';
+
+    protected static ?string $pluralLabel = 'premiações';
 
     public static function form(Form $form): Form
     {

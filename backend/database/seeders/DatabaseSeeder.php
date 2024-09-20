@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enum\AreaEnum;
 use App\Enum\QuestionTypeEnum;
 use App\Models\Assessment;
 use App\Models\User;
@@ -50,16 +51,16 @@ class DatabaseSeeder extends Seeder
             Project::insert([
                 [
                     'title' => 'Pesquisa em IA',
-                    'qr_code' => 'QR1234',
                     'description' => 'Um projeto sobre inteligência artificial.',
                     'year' => 2024,
+                    'area' => AreaEnum::TECHNICAL,
                     'category_id' => 5,
                 ],
                 [
                     'title' => 'Computação Quântica',
-                    'qr_code' => 'QR5678',
                     'description' => 'Um projeto explorando conceitos de computação quântica.',
                     'year' => 2024,
+                    'area' => AreaEnum::SCIENTIFIC,
                     'category_id' => 5,
                 ],
             ]);
@@ -70,23 +71,21 @@ class DatabaseSeeder extends Seeder
             ]);
 
             Evaluator::insert([
-                ['PIN' => 1111, 'user_id' => 2],
-                ['PIN' => 2222, 'user_id' => 3],
+                ['PIN' => 1111, 'user_id' => 2, 'area' => AreaEnum::SCIENTIFIC],
+                ['PIN' => 2222, 'user_id' => 3, 'area' => AreaEnum::TECHNICAL],
             ]);
 
             Question::insert([
-                ['text' => 'Qual é a inovação do projeto?', 'type' => QuestionTypeEnum::MULTIPLE_CHOICE],
-                ['text' => 'Forneça comentários detalhados.', 'type' => QuestionTypeEnum::TEXT],
-                ['text' => 'De a nota da apresentação oral', 'type' => QuestionTypeEnum::MULTIPLE_CHOICE],
-                ['text' => 'De a nota do banner I', 'type' => QuestionTypeEnum::MULTIPLE_CHOICE],
-                ['text' => 'De a nota do banner II', 'type' => QuestionTypeEnum::MULTIPLE_CHOICE],
+                ['text' => 'Qual é a inovação do projeto?', 'type' => QuestionTypeEnum::MULTIPLE_CHOICE, 'area' => AreaEnum::SCIENTIFIC],
+                ['text' => 'Forneça comentários detalhados.', 'type' => QuestionTypeEnum::TEXT, 'area' => AreaEnum::SCIENTIFIC],
+                ['text' => 'De a nota da apresentação oral', 'type' => QuestionTypeEnum::MULTIPLE_CHOICE, 'area' => AreaEnum::SCIENTIFIC],
+                ['text' => 'De a nota do banner I', 'type' => QuestionTypeEnum::MULTIPLE_CHOICE, 'area' => AreaEnum::SCIENTIFIC],
+                ['text' => 'De a nota do banner II', 'type' => QuestionTypeEnum::MULTIPLE_CHOICE, 'area' => AreaEnum::SCIENTIFIC],
             ]);
 
             Assessment::insert([
-                [ 'project_id' => 1, 'evaluator_id' => 1, ],
-                [ 'project_id' => 2, 'evaluator_id' => 1, ],
-                [ 'project_id' => 1, 'evaluator_id' => 2, ],
-                [ 'project_id' => 2, 'evaluator_id' => 2, ],
+                [ 'project_id' => 1, 'evaluator_id' => 2 ],
+                [ 'project_id' => 2, 'evaluator_id' => 1 ],
             ]);
 
             Response::insert([

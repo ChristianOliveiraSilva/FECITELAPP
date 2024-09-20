@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enum\AreaEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -12,10 +13,14 @@ class Project extends Model
 
     protected $fillable = [
         'title',
-        'qr_code',
         'description',
         'year',
         'category_id',
+        'area',
+    ];
+
+    protected $casts = [
+        'area' => AreaEnum::class,
     ];
 
     public function students()

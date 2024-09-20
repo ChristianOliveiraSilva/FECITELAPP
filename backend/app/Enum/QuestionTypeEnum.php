@@ -1,8 +1,9 @@
 <?php
 
 namespace App\Enum;
+use Filament\Support\Contracts\HasLabel;
 
-enum QuestionTypeEnum: int
+enum QuestionTypeEnum: int implements HasLabel
 {
     case MULTIPLE_CHOICE = 1;
     case TEXT = 2;

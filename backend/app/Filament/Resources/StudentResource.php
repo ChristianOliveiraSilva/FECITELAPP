@@ -30,8 +30,12 @@ class StudentResource extends Resource
                     ->required(),
 
                 Forms\Components\TextInput::make('email')
+                    ->label('E-mail')
+                    ->autocomplete(false)
+                    ->required()
                     ->email()
-                    ->required(),
+                    ->unique(ignoreRecord: true)
+                    ->maxLength(255),
 
                 Forms\Components\Select::make('school_grade_id')
                     ->relationship('schoolGrade', 'name')
@@ -67,6 +71,7 @@ class StudentResource extends Resource
                 //
             ])
             ->actions([
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
@@ -88,6 +93,7 @@ class StudentResource extends Resource
         return [
             'index' => Pages\ListStudents::route('/'),
             'create' => Pages\CreateStudent::route('/create'),
+            'view' => Pages\ViewStudent::route('/{record}'),
             'edit' => Pages\EditStudent::route('/{record}/edit'),
         ];
     }

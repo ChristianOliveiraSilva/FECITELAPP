@@ -11,13 +11,13 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/assessments', function () {
     Auth::loginUsingId(2); # remover
+
     return Auth::user()?->evaluator->assessments()
         ->whereHas('project', function ($query) {
             $query->where('year', 2024);
         })
         ->with(['project.students', 'responses'])
         ->get();
-
 });
 
 Route::get('/questions', function () {

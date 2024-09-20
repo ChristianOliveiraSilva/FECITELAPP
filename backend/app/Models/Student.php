@@ -21,7 +21,7 @@ class Student extends Model
         return $this->belongsTo(SchoolGrade::class);
     }
 
-    public function students()
+    public function projects()
     {
         return $this->belongsToMany(Project::class, 'student_projects');
     }

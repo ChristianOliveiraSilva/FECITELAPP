@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enum\AreaEnum;
+use App\Enum\QuestionTypeEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -13,6 +15,12 @@ class Question extends Model
     protected $fillable = [
         'text',
         'type',
+        'area',
+    ];
+
+    protected $casts = [
+        'type' => QuestionTypeEnum::class,
+        'area' => AreaEnum::class,
     ];
 
     public function responses()

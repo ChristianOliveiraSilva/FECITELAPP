@@ -35,9 +35,9 @@ return new class extends Migration
         Schema::create('projects', function (Blueprint $table) {
             $table->id();
             $table->string('title');
-            $table->string('qr_code');
             $table->text('description')->nullable();
-            $table->integer('year')->nullable();
+            $table->integer('year');
+            $table->integer('area');
             $table->foreignId('category_id')->constrained('categories')->onDelete('cascade');
             $table->timestamps();
             $table->softDeletes();
@@ -53,7 +53,8 @@ return new class extends Migration
 
         Schema::create('evaluators', function (Blueprint $table) {
             $table->id();
-            $table->integer('PIN')->nullable();
+            $table->integer('PIN');
+            $table->integer('area');
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('cascade');
             $table->timestamps();
             $table->softDeletes();
@@ -70,7 +71,8 @@ return new class extends Migration
         Schema::create('questions', function (Blueprint $table) {
             $table->id();
             $table->text('text');
-            $table->integer('type'); // 1 para texto, 2 para escolha
+            $table->integer('type');
+            $table->integer('area');
             $table->timestamps();
             $table->softDeletes();
         });
@@ -113,7 +115,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('evaluator_id');
             $table->dropSoftDeletes();
         });
 

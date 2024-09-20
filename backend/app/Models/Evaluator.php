@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enum\AreaEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -13,6 +14,11 @@ class Evaluator extends Model
     protected $fillable = [
         'user_id',
         'PIN',
+        'area',
+    ];
+
+    protected $casts = [
+        'area' => AreaEnum::class,
     ];
 
     public function assessments()
