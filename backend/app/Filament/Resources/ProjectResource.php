@@ -28,9 +28,11 @@ class ProjectResource extends Resource
                 Forms\Components\TextInput::make('title')
                     ->label('Título')
                     ->required(),
+
                 Forms\Components\Textarea::make('description')
                     ->label('Descrição')
                     ->columnSpanFull(),
+
                 Forms\Components\TextInput::make('year')
                     ->label('Ano')
                     ->default(date('Y'))

@@ -30,4 +30,14 @@ class Evaluator extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public static function generateRandomPin() {
+        do {
+            $pin = rand(1111, 9999);
+
+            $pinExists = self::where('PIN', $pin)->exists();
+        } while ($pinExists);
+
+        return $pin;
+    }
 }

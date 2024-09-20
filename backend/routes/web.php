@@ -16,12 +16,12 @@ Route::get('/assessments', function () {
         ->whereHas('project', function ($query) {
             $query->where('year', 2024);
         })
-        ->with(['project.students', 'responses'])
+        ->with(['project.students', 'project.category', 'responses'])
         ->get();
 });
 
-Route::get('/questions', function () {
-    return Question::all();
+Route::get('/questions/{assessment}', function (Assessment $assessment) {
+    return Question::where('area', $assessment->project->area)->get();
 });
 
 Route::post('/responses', function () {

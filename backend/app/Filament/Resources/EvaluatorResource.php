@@ -2,15 +2,18 @@
 
 namespace App\Filament\Resources;
 
+use App\Enum\AreaEnum;
 use App\Filament\Resources\EvaluatorResource\Pages;
 use App\Filament\Resources\EvaluatorResource\RelationManagers;
 use App\Models\Evaluator;
+use App\Models\Project;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class EvaluatorResource extends Resource
@@ -27,31 +30,38 @@ class EvaluatorResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('user_id')
-                    ->relationship('user', 'name')
-                    ->label('Usuário')
-                    ->createOptionForm([
-                        Forms\Components\TextInput::make('name')
-                            ->label('Nome')
-                            ->required()
-                            ->maxLength(255),
-                        Forms\Components\TextInput::make('email')
-                            ->label('Email')
-                            ->email()
-                            ->required()
-                            ->maxLength(255),
-                        Forms\Components\TextInput::make('password')
-                            ->label('Senha')
-                            ->password()
-                            ->required()
-                            ->maxLength(255),
-                    ])
-                    ->required(),
+                Forms\Components\TextInput::make('name')
+                    ->label('Nome')
+                    ->required()
+                    ->maxLength(255),
+
+                Forms\Components\TextInput::make('email')
+                    ->label('Email')
+                    ->email()
+                    ->unique(ignoreRecord: true)
+                    ->required()
+                    ->maxLength(255),
 
                 Forms\Components\TextInput::make('PIN')
                     ->label('PIN')
                     ->numeric()
+                    ->unique(ignoreRecord: true)
+                    ->default(Evaluator::generateRandomPin())
                     ->required(),
+
+                Forms\Components\Select::make('area')
+                    ->label('Área')
+                    ->options(AreaEnum::class)
+                    ->default(AreaEnum::TECHNICAL)
+                    ->required(),
+
+                Forms\Components\Select::make('project_id')
+                    ->label('Projetos')
+                    ->options(Project::all()->pluck('title', 'id'))
+                    ->multiple()
+                    ->preload()
+                    ->required()
+                    ->columnSpanFull(),
             ]);
     }
 
