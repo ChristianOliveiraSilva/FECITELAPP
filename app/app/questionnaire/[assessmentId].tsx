@@ -95,21 +95,23 @@ export default function Questionnaire() {
       type: questions[currentQuestionIndex].type,
     };
 
+    setSelectedOption(value);
     setAnswers(newAnswers);
     setAnswer('');
-
-    if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-    } else {
-      setShowResults(true);
-    }
   };
 
   const handleNext = () => {
     if (currentQuestionIndex < questions.length - 1) {
       setSelectedOption(null);
       setCurrentQuestionIndex(currentQuestionIndex + 1);
+    } else {
+      setShowResults(true);
     }
+  };
+
+  const handleNextAndAnswer = (value) => {
+    handleAnswer(value);
+    handleNext();
   };
 
   const handlePrevious = () => {
@@ -123,11 +125,6 @@ export default function Questionnaire() {
   const handleRestart = () => {
     setCurrentQuestionIndex(0);
     setShowResults(false);
-  };
-
-  const handlePreviousWithAnswer = () => {
-    handleAnswer(answer);
-    handlePrevious();
   };
 
   const handleSave = async () => {
@@ -208,7 +205,7 @@ export default function Questionnaire() {
                 styles.optionButton,
                 selectedOption === item && styles.selectedOptionButton
               ]}
-              onPress={() => handleOptionSelect(item)}>
+              onPress={() => handleAnswer(item)}>
               <Text style={styles.optionText}>{item}</Text>
             </TouchableOpacity>
           )}
@@ -220,7 +217,7 @@ export default function Questionnaire() {
                 styles.navButton,
                 { marginHorizontal: 5, width: currentQuestionIndex > 0 && currentQuestionIndex < questions.length - 1 ? '55%' : '100%' }
               ]}
-              onPress={handlePreviousWithAnswer}>
+              onPress={handlePrevious}>
               <Text style={styles.navButtonText}>Voltar</Text>
             </TouchableOpacity>
           )}
@@ -233,7 +230,7 @@ export default function Questionnaire() {
           ) : (
             <TouchableOpacity
               style={[styles.navButton, { marginHorizontal: 5, width: '55%' }]}
-              onPress={() => handleAnswer(selectedOption)}>
+              onPress={handleNext}>
               <Text style={styles.navButtonText}>Finalizar</Text>
             </TouchableOpacity>
           )}
@@ -262,20 +259,20 @@ export default function Questionnaire() {
                 styles.navButton,
                 { marginHorizontal: 5, width: currentQuestionIndex > 0 && currentQuestionIndex < questions.length - 1 ? '55%' : '100%' }
               ]}
-              onPress={handlePreviousWithAnswer}>
+              onPress={handlePrevious}>
               <Text style={styles.navButtonText}>Voltar</Text>
             </TouchableOpacity>
           )}
           {currentQuestionIndex < questions.length - 1 ? (
             <TouchableOpacity
               style={[styles.navButton, { marginHorizontal: 5, width: '55%' }]}
-              onPress={handleNext}>
+              onPress={() => handleNextAndAnswer(answer)}>
               <Text style={styles.navButtonText}>Avançar</Text>
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
               style={[styles.navButton, { marginHorizontal: 5, width: '55%' }]}
-              onPress={() => handleAnswer(answer)}>
+              onPress={() => handleNextAndAnswer(answer)}>
               <Text style={styles.navButtonText}>Finalizar</Text>
             </TouchableOpacity>
           )}
@@ -306,27 +303,27 @@ export default function Questionnaire() {
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={styles.container}>
         <Text style={styles.title}>Suas Respostas:</Text>
-        {answers.map((answer, index) => (
-          <Text key={index} style={styles.resultText}>
-            {index + 1}. {answer.value || '-'}
-          </Text>
-        ))}
+        {answers.map((answer, index) => {
+          const questionText = questions.find((q) => q.id === answer.question_id)?.text || 'Pergunta não encontrada';
+          return (
+            <View key={index} style={styles.answerContainer}>
+              <Text style={styles.questionText}>{index + 1}. {questionText}</Text>
+              <Text style={styles.answerText}>{answer.value || '-'}</Text>
+            </View>
+          );
+        })}
 
         <View style={styles.containerInline}>
-          <TouchableOpacity style={styles.navButton} onPress={handleRestart}>
+          <TouchableOpacity style={[styles.navButton, { marginHorizontal: 5, width: '55%' }]} onPress={handleRestart}>
             <Text style={styles.navButtonText}>Refazer</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.navButton} onPress={handleSave}>
+          <TouchableOpacity style={[styles.navButton, { marginHorizontal: 5, width: '55%' }]} onPress={handleSave}>
             <Text style={styles.navButtonText}>Salvar</Text>
           </TouchableOpacity>
         </View>
       </View>
     </ScrollView>
   );
-
-  const handleOptionSelect = (item) => {
-    setSelectedOption(item);
-  };
 
   if (isLoading) {
     return (
@@ -497,6 +494,26 @@ const styles = StyleSheet.create({
     fontSize: 17,
     textAlign: 'center',
     fontWeight: '500',
+  },
+  answerContainer: {
+    marginBottom: 15,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    backgroundColor: '#f9f9f9',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  questionText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 5,
+    color: '#333',
+  },
+  answerText: {
+    fontSize: 16,
+    color: '#555',
+    lineHeight: 22,
   },
 });
 
