@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, FlatList, TextInput, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, FlatList, TextInput, ActivityIndicator, Dimensions } from 'react-native';
 
 const fetchProject = async (assessmentId) => {
   try {
@@ -62,6 +62,10 @@ export default function Questionnaire() {
   const [isLoading, setIsLoading] = useState(true);
   const [showResults, setShowResults] = useState(false);
   const [answer, setAnswer] = useState('');
+
+  const screenWidth = Dimensions.get('window').width;
+  const numColumns = screenWidth < 400 ? 5 : 7;
+  const [selectedOption, setSelectedOption] = useState(null);
 
   useEffect(() => {
     const loadProjectAndQuestions = async () => {
@@ -179,10 +183,15 @@ export default function Questionnaire() {
       <Text style={styles.question}>{questions[currentQuestionIndex].text}</Text>
       <FlatList
         data={[...Array(21).keys()]}
-        numColumns={7}
+        numColumns={numColumns}
         keyExtractor={(item) => item.toString()}
         renderItem={({ item }) => (
-          <TouchableOpacity style={styles.optionButton} onPress={() => handleAnswer(item)}>
+          <TouchableOpacity
+            style={[
+              styles.optionButton,
+              selectedOption === item && styles.selectedOptionButton
+            ]}
+            onPress={() => handleOptionSelect(item)}>
             <Text style={styles.optionText}>{item}</Text>
           </TouchableOpacity>
         )}
@@ -193,9 +202,15 @@ export default function Questionnaire() {
             <Text style={styles.navButtonText}>Voltar</Text>
           </TouchableOpacity>
         )}
+        {currentQuestionIndex < questions.length - 1 && (
+          <TouchableOpacity style={styles.navButton} onPress={handleNext}>
+            <Text style={styles.navButtonText}>Avançar</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
+
 
   const renderOpenEndedQuestionScreen = () => (
     <View style={styles.container}>
@@ -257,6 +272,22 @@ export default function Questionnaire() {
     </View>
   );
 
+  const handleNext = () => {
+    if (currentQuestionIndex < questions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+    }
+  };
+
+  // const handlePrevious = () => {
+  //   if (currentQuestionIndex > 0) {
+  //     setCurrentQuestionIndex(currentQuestionIndex - 1);
+  //   }
+  // };
+
+  const handleOptionSelect = (item) => {
+    setSelectedOption(item);
+  };
+
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -297,35 +328,34 @@ const styles = StyleSheet.create({
   },
   question: {
     fontSize: 20,
+    marginTop: 60,
     marginBottom: 30,
     textAlign: 'center',
   },
   optionButton: {
-    backgroundColor: '#1E90FF',
+    backgroundColor: '#BEC0C2',
     padding: 10,
     margin: 5,
     borderRadius: 5,
-    width: 50,
+    width: 60,
+    height: 60,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  selectedOptionButton: {
+    backgroundColor: '#4CAF50',
+  },
   optionText: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: 19,
+    fontWeight: '500',
   },
   navigationContainer: {
     flexDirection: 'row',
     marginTop: 20,
-  },
-  navButton: {
-    backgroundColor: '#56BA54',
-    padding: 10,
-    margin: 5,
-    borderRadius: 5,
-  },
-  navButtonText: {
-    color: '#fff',
-    fontSize: 18,
+    width: '100%',
+    justifyContent: 'center',
+    maxWidth: 800,
   },
   projectContainer: {
     marginBottom: 30,
@@ -371,9 +401,8 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     marginBottom: 30,
     width: '100%',
-    maxWidth: 800,
+    maxWidth: 500,
   },
-
   projectDetails: {
     flexDirection: 'row',
     marginBottom: 10,
@@ -402,6 +431,20 @@ const styles = StyleSheet.create({
     maxWidth: 800,
   },
   buttonText: {
+    color: '#fff',
+    fontSize: 17,
+    textAlign: 'center',
+    fontWeight: '500',
+  },
+  navButton: {
+    backgroundColor: '#56BA54',
+    paddingVertical: 15,
+    paddingHorizontal: 40,
+    borderRadius: 6,
+    width: '100%',
+    maxWidth: 500,
+  },
+  navButtonText: {
     color: '#fff',
     fontSize: 17,
     textAlign: 'center',
