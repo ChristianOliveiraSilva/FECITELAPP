@@ -10,10 +10,10 @@ class ViewAssessment extends ViewRecord
 {
     protected static string $resource = AssessmentResource::class;
 
-    protected function getHeaderActions(): array
+    public function getRelationManagers(): array
     {
         return [
-            Actions\EditAction::make(),
+            RelationManagers\NoteRelationManager::class,
         ];
     }
 }

@@ -90,16 +90,16 @@ class DatabaseSeeder extends Seeder
 
             Response::insert([
                 [
-                    'question_id' => 1,
+                    'question_id' => 3,
                     'assessment_id' => 1,
                     'response' => null,
                     'score' => 8,
                 ],
                 [
-                    'question_id' => 2,
+                    'question_id' => 3,
                     'assessment_id' => 2,
-                    'response' => 'Excelente trabalho!',
-                    'score' => null,
+                    'response' => null,
+                    'score' => 5,
                 ],
             ]);
 

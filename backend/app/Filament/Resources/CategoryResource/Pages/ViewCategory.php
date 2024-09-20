@@ -10,10 +10,10 @@ class ViewCategory extends ViewRecord
 {
     protected static string $resource = CategoryResource::class;
 
-    protected function getHeaderActions(): array
+    public function getRelationManagers(): array
     {
         return [
-            Actions\EditAction::make(),
+            RelationManagers\SubCategoryRelationManager::class,
         ];
     }
 }

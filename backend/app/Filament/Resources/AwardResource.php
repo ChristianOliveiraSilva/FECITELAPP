@@ -63,6 +63,7 @@ class AwardResource extends Resource
                 //
             ])
             ->actions([
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
@@ -84,6 +85,7 @@ class AwardResource extends Resource
         return [
             'index' => Pages\ListAwards::route('/'),
             'create' => Pages\CreateAward::route('/create'),
+            'view' => Pages\ViewAward::route('/{record}'),
             'edit' => Pages\EditAward::route('/{record}/edit'),
         ];
     }
