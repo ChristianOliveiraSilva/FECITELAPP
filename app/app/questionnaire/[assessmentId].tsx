@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, FlatList, TextInput, ActivityIndicator, Dimensions } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, FlatList, TextInput, ActivityIndicator, Dimensions, ScrollView } from 'react-native';
 
 const fetchProject = async (assessmentId) => {
   try {
@@ -71,6 +71,7 @@ export default function Questionnaire() {
     const loadProjectAndQuestions = async () => {
       try {
         setIsLoading(true);
+        setSelectedOption(null);
         const projectData = await fetchProject(assessmentId);
         setProject(projectData);
 
@@ -104,8 +105,16 @@ export default function Questionnaire() {
     }
   };
 
+  const handleNext = () => {
+    if (currentQuestionIndex < questions.length - 1) {
+      setSelectedOption(null);
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+    }
+  };
+
   const handlePrevious = () => {
     if (currentQuestionIndex > 0) {
+      setSelectedOption(null);
       setCurrentQuestionIndex(currentQuestionIndex - 1);
       setShowResults(false);
     }
@@ -114,6 +123,11 @@ export default function Questionnaire() {
   const handleRestart = () => {
     setCurrentQuestionIndex(0);
     setShowResults(false);
+  };
+
+  const handlePreviousWithAnswer = () => {
+    handleAnswer(answer);
+    handlePrevious();
   };
 
   const handleSave = async () => {
@@ -140,98 +154,134 @@ export default function Questionnaire() {
   };
 
   const renderReadyScreen = () => (
-    <View style={styles.readyContainer}>
-      <View style={styles.card}>
-        <Text style={styles.title}>Detalhes do Projeto</Text>
-        <View style={styles.projectDetails}>
-          <Text style={styles.label}>ID:</Text>
-          <Text style={styles.value}>{project.id}</Text>
+    <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <View style={styles.readyContainer}>
+        <View style={styles.card}>
+          <Text style={styles.title}>Detalhes do Projeto</Text>
+          <View style={styles.projectDetails}>
+            <Text style={styles.label}>ID:</Text>
+            <Text style={styles.value}>{project.id}</Text>
+          </View>
+          <View style={styles.projectDetails}>
+            <Text style={styles.label}>Título:</Text>
+            <Text style={styles.value}>{project.projectName}</Text>
+          </View>
+          <View style={styles.projectDetails}>
+            <Text style={styles.label}>Tipo:</Text>
+            <Text style={styles.value}>{project.type == 'cientifico' ? 'Científico' : 'Tecnológico'}</Text>
+          </View>
+          <View style={styles.projectDetails}>
+            <Text style={styles.label}>Categoria:</Text>
+            <Text style={styles.value}>{project.category}</Text>
+          </View>
+          <View style={styles.projectDetails}>
+            <Text style={styles.label}>Ano:</Text>
+            <Text style={styles.value}>{project.year}</Text>
+          </View>
+          <View style={styles.projectDetails}>
+            <Text style={styles.label}>Estudante(s):</Text>
+            <Text style={styles.value}>{project.studentNames}</Text>
+          </View>
+          <View style={styles.projectDetails}>
+            <Text style={styles.label}>Descrição:</Text>
+            <Text style={styles.value}>{project.description}</Text>
+          </View>
         </View>
-        <View style={styles.projectDetails}>
-          <Text style={styles.label}>Título:</Text>
-          <Text style={styles.value}>{project.projectName}</Text>
-        </View>
-        <View style={styles.projectDetails}>
-          <Text style={styles.label}>Tipo:</Text>
-          <Text style={styles.value}>{project.type == 'cientifico' ? 'Científico' : 'Tecnológico'}</Text>
-        </View>
-        <View style={styles.projectDetails}>
-          <Text style={styles.label}>Categoria:</Text>
-          <Text style={styles.value}>{project.category}</Text>
-        </View>
-        <View style={styles.projectDetails}>
-          <Text style={styles.label}>Ano:</Text>
-          <Text style={styles.value}>{project.year}</Text>
-        </View>
-        <View style={styles.projectDetails}>
-          <Text style={styles.label}>Estudante(s):</Text>
-          <Text style={styles.value}>{project.studentNames}</Text>
-        </View>
-        <View style={styles.projectDetails}>
-          <Text style={styles.label}>Descrição:</Text>
-          <Text style={styles.value}>{project.description}</Text>
-        </View>
+        <TouchableOpacity style={styles.button} onPress={() => setIsReady(true)}>
+          <Text style={styles.buttonText}>Começar Avaliação</Text>
+        </TouchableOpacity>
       </View>
-      <TouchableOpacity style={styles.button} onPress={() => setIsReady(true)}>
-        <Text style={styles.buttonText}>Começar Avaliação</Text>
-      </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 
   const renderMultipleChoiceQuestionScreen = () => (
-    <View style={styles.container}>
-      <Text style={styles.question}>{questions[currentQuestionIndex].text}</Text>
-      <FlatList
-        data={[...Array(21).keys()]}
-        numColumns={numColumns}
-        keyExtractor={(item) => item.toString()}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[
-              styles.optionButton,
-              selectedOption === item && styles.selectedOptionButton
-            ]}
-            onPress={() => handleOptionSelect(item)}>
-            <Text style={styles.optionText}>{item}</Text>
-          </TouchableOpacity>
-        )}
-      />
-      <View style={styles.navigationContainer}>
-        {currentQuestionIndex > 0 && (
-          <TouchableOpacity style={styles.navButton} onPress={handlePrevious}>
-            <Text style={styles.navButtonText}>Voltar</Text>
-          </TouchableOpacity>
-        )}
-        {currentQuestionIndex < questions.length - 1 && (
-          <TouchableOpacity style={styles.navButton} onPress={handleNext}>
-            <Text style={styles.navButtonText}>Avançar</Text>
-          </TouchableOpacity>
-        )}
+    <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <View style={styles.container}>
+        <Text style={styles.question}>{questions[currentQuestionIndex].text}</Text>
+        <FlatList
+          data={[...Array(21).keys()]}
+          numColumns={numColumns}
+          keyExtractor={(item) => item.toString()}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={[
+                styles.optionButton,
+                selectedOption === item && styles.selectedOptionButton
+              ]}
+              onPress={() => handleOptionSelect(item)}>
+              <Text style={styles.optionText}>{item}</Text>
+            </TouchableOpacity>
+          )}
+        />
+        <View style={styles.navigationContainer}>
+          {currentQuestionIndex > 0 && (
+            <TouchableOpacity
+              style={[
+                styles.navButton,
+                { marginHorizontal: 5, width: currentQuestionIndex > 0 && currentQuestionIndex < questions.length - 1 ? '55%' : '100%' }
+              ]}
+              onPress={handlePreviousWithAnswer}>
+              <Text style={styles.navButtonText}>Voltar</Text>
+            </TouchableOpacity>
+          )}
+          {currentQuestionIndex < questions.length - 1 ? (
+            <TouchableOpacity
+              style={[styles.navButton, { marginHorizontal: 5, width: '55%' }]}
+              onPress={handleNext}>
+              <Text style={styles.navButtonText}>Avançar</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={[styles.navButton, { marginHorizontal: 5, width: '55%' }]}
+              onPress={() => handleAnswer(selectedOption)}>
+              <Text style={styles.navButtonText}>Finalizar</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
-    </View>
+    </ScrollView>
   );
 
-
   const renderOpenEndedQuestionScreen = () => (
-    <View style={styles.container}>
-      <Text style={styles.question}>{questions[currentQuestionIndex].text}</Text>
-      <TextInput
-        style={styles.textInput}
-        placeholder='Digite a sua resposta'
-        value={answer}
-        onChangeText={setAnswer}
-      />
-      <TouchableOpacity style={styles.optionButton} onPress={() => handleAnswer(answer)}>
-        <Text style={styles.optionText}>Salvar</Text>
-      </TouchableOpacity>
-      <View style={styles.navigationContainer}>
-        {currentQuestionIndex > 0 && (
-          <TouchableOpacity style={styles.navButton} onPress={handlePrevious}>
-            <Text style={styles.navButtonText}>Voltar</Text>
-          </TouchableOpacity>
-        )}
+    <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <View style={styles.container}>
+        <Text style={styles.question}>{questions[currentQuestionIndex].text}</Text>
+        <TextInput
+          style={styles.textInput}
+          placeholder="Digite a sua resposta"
+          value={answer}
+          onChangeText={setAnswer}
+          multiline
+          numberOfLines={10}
+          textAlignVertical="top"
+        />
+        <View style={styles.navigationContainer}>
+          {currentQuestionIndex > 0 && (
+            <TouchableOpacity
+              style={[
+                styles.navButton,
+                { marginHorizontal: 5, width: currentQuestionIndex > 0 && currentQuestionIndex < questions.length - 1 ? '55%' : '100%' }
+              ]}
+              onPress={handlePreviousWithAnswer}>
+              <Text style={styles.navButtonText}>Voltar</Text>
+            </TouchableOpacity>
+          )}
+          {currentQuestionIndex < questions.length - 1 ? (
+            <TouchableOpacity
+              style={[styles.navButton, { marginHorizontal: 5, width: '55%' }]}
+              onPress={handleNext}>
+              <Text style={styles.navButtonText}>Avançar</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={[styles.navButton, { marginHorizontal: 5, width: '55%' }]}
+              onPress={() => handleAnswer(answer)}>
+              <Text style={styles.navButtonText}>Finalizar</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
-    </View>
+    </ScrollView>
   );
 
   const renderQuestionScreen = () => {
@@ -253,36 +303,26 @@ export default function Questionnaire() {
   };
 
   const renderResultsScreen = () => (
-    <View style={styles.container}>
-      <Text style={styles.title}>Suas Respostas:</Text>
-      {answers.map((answer, index) => (
-        <Text key={index} style={styles.resultText}>
-          {index + 1}. {answer.value || '-'}
-        </Text>
-      ))}
+    <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <View style={styles.container}>
+        <Text style={styles.title}>Suas Respostas:</Text>
+        {answers.map((answer, index) => (
+          <Text key={index} style={styles.resultText}>
+            {index + 1}. {answer.value || '-'}
+          </Text>
+        ))}
 
-      <View style={styles.containerInline}>
-        <TouchableOpacity style={styles.navButton} onPress={handleRestart}>
-          <Text style={styles.navButtonText}>Refazer</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navButton} onPress={handleSave}>
-          <Text style={styles.navButtonText}>Salvar</Text>
-        </TouchableOpacity>
+        <View style={styles.containerInline}>
+          <TouchableOpacity style={styles.navButton} onPress={handleRestart}>
+            <Text style={styles.navButtonText}>Refazer</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.navButton} onPress={handleSave}>
+            <Text style={styles.navButtonText}>Salvar</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
+    </ScrollView>
   );
-
-  const handleNext = () => {
-    if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-    }
-  };
-
-  // const handlePrevious = () => {
-  //   if (currentQuestionIndex > 0) {
-  //     setCurrentQuestionIndex(currentQuestionIndex - 1);
-  //   }
-  // };
 
   const handleOptionSelect = (item) => {
     setSelectedOption(item);
@@ -306,6 +346,12 @@ export default function Questionnaire() {
 }
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    padding: 20,
+    backgroundColor: '#F5FCFF',
+  },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
@@ -315,10 +361,8 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    padding: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F5FCFF',
   },
   containerInline: {
     flex: 1,
@@ -356,6 +400,7 @@ const styles = StyleSheet.create({
     width: '100%',
     justifyContent: 'center',
     maxWidth: 800,
+    paddingHorizontal: 20,
   },
   projectContainer: {
     marginBottom: 30,
@@ -383,6 +428,10 @@ const styles = StyleSheet.create({
     padding: 10,
     marginBottom: 20,
     width: '100%',
+    height: 400,
+    borderRadius: 6,
+    maxWidth: 800,
+    fontSize: 16,
   },
   readyContainer: {
     flex: 1,
@@ -401,7 +450,7 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     marginBottom: 30,
     width: '100%',
-    maxWidth: 500,
+    maxWidth: 800,
   },
   projectDetails: {
     flexDirection: 'row',
@@ -441,7 +490,6 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     paddingHorizontal: 40,
     borderRadius: 6,
-    width: '100%',
     maxWidth: 500,
   },
   navButtonText: {
