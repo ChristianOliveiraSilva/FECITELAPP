@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, FlatList, TextInput, ActivityIndicator, Dimensions, ScrollView } from 'react-native';
+import Header from './header';
 
 const fetchProject = async (assessmentId) => {
   try {
@@ -19,6 +20,7 @@ const fetchProject = async (assessmentId) => {
     return {
       id: assessment.id,
       projectName: assessment.project.title,
+      projectId: assessment.project.id,
       studentNames: assessment.project.students.map((student: any) => student.name).join(', '),
       description: assessment.project.description,
       year: assessment.project.year,
@@ -32,7 +34,7 @@ const fetchProject = async (assessmentId) => {
   }
 };
 
-const fetchQuestions = async (assessmentId:number) => {
+const fetchQuestions = async (assessmentId: number) => {
   try {
     const response = await fetch(`http://localhost/questions/${assessmentId}`);
 
@@ -67,6 +69,7 @@ export default function Questionnaire() {
   const screenWidth = Dimensions.get('window').width;
   const numColumns = screenWidth < 400 ? 5 : 7;
   const [selectedOption, setSelectedOption] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     const loadProjectAndQuestions = async () => {
@@ -102,6 +105,15 @@ export default function Questionnaire() {
   };
 
   const handleNext = () => {
+    const currentQuestion = questions[currentQuestionIndex];
+
+    if (currentQuestion.type === MULTIPLE_CHOICE_QUESTION) {
+      if (!answers[currentQuestionIndex]?.value) {
+        alert('Esta pergunta é obrigatória.');
+        return;
+      }
+    }
+
     if (currentQuestionIndex < questions.length - 1) {
       setSelectedOption(null);
       setCurrentQuestionIndex(currentQuestionIndex + 1);
@@ -110,17 +122,36 @@ export default function Questionnaire() {
     }
   };
 
-  const handleNextAndAnswer = (value) => {
-    handleAnswer(value);
-    handleNext();
-  };
-
   const handlePrevious = () => {
     if (currentQuestionIndex > 0) {
       setSelectedOption(null);
       setCurrentQuestionIndex(currentQuestionIndex - 1);
       setShowResults(false);
+      const previousAnswer = answers[currentQuestionIndex - 1];
+      if (previousAnswer && previousAnswer.type === MULTIPLE_CHOICE_QUESTION) {
+        setSelectedOption(previousAnswer.value);
+      } else if (previousAnswer && previousAnswer.type !== MULTIPLE_CHOICE_QUESTION) {
+        setAnswer(previousAnswer.value);
+      }
     }
+  };
+
+  const handleNextAndAnswer = (value) => {
+    const currentQuestion = questions[currentQuestionIndex];
+
+    if (currentQuestion.type === MULTIPLE_CHOICE_QUESTION) {
+      handleAnswer(value);
+    } else {
+      const newAnswers = [...answers];
+      newAnswers[currentQuestionIndex] = {
+        question_id: currentQuestion.id,
+        value,
+        type: currentQuestion.type,
+      };
+      setAnswers(newAnswers);
+    }
+
+    handleNext();
   };
 
   const handleRestart = () => {
@@ -129,6 +160,7 @@ export default function Questionnaire() {
   };
 
   const handleSave = async () => {
+    setIsSaving(true);
     try {
       const response = await fetch('http://localhost/responses', {
         method: 'POST',
@@ -148,6 +180,8 @@ export default function Questionnaire() {
       }
     } catch (error) {
       console.error('Erro ao enviar resposta:', error);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -156,31 +190,31 @@ export default function Questionnaire() {
       <View style={styles.readyContainer}>
         <View style={styles.card}>
           <Text style={styles.title}>Detalhes do Projeto</Text>
-          <View style={[styles.projectDetails, {flexDirection: 'row'}]}>
+          <View style={[styles.projectDetails, { flexDirection: 'row' }]}>
             <Text style={styles.label}>ID:</Text>
-            <Text style={styles.value}>{project.id}</Text>
+            <Text style={styles.value}>{project.projectId}</Text>
           </View>
-          <View style={[styles.projectDetails, {flexDirection: 'column'}]}>
+          <View style={[styles.projectDetails, { flexDirection: 'column' }]}>
             <Text style={styles.label}>Título:</Text>
             <Text style={styles.value}>{project.projectName}</Text>
           </View>
-          <View style={[styles.projectDetails, {flexDirection: 'row'}]}>
+          <View style={[styles.projectDetails, { flexDirection: 'row' }]}>
             <Text style={styles.label}>Tipo:</Text>
             <Text style={styles.value}>{project.type == 'cientifico' ? 'Científico' : 'Tecnológico'}</Text>
           </View>
-          <View style={[styles.projectDetails, {flexDirection: 'column'}]}>
+          <View style={[styles.projectDetails, { flexDirection: 'column' }]}>
             <Text style={styles.label}>Categoria:</Text>
             <Text style={styles.value}>{project.category}</Text>
           </View>
-          <View style={[styles.projectDetails, {flexDirection: 'row'}]}>
+          <View style={[styles.projectDetails, { flexDirection: 'row' }]}>
             <Text style={styles.label}>Ano:</Text>
             <Text style={styles.value}>{project.year}</Text>
           </View>
-          <View style={[styles.projectDetails, {flexDirection: 'column'}]}>
+          <View style={[styles.projectDetails, { flexDirection: 'column' }]}>
             <Text style={styles.label}>Estudante(s):</Text>
             <Text style={styles.value}>{project.studentNames}</Text>
           </View>
-          <View style={[styles.projectDetails, {flexDirection: 'column'}]}>
+          <View style={[styles.projectDetails, { flexDirection: 'column' }]}>
             <Text style={styles.label}>Descrição:</Text>
             <Text style={styles.value}>{project.description}</Text>
           </View>
@@ -188,7 +222,7 @@ export default function Questionnaire() {
         <TouchableOpacity style={styles.button} onPress={() => setIsReady(true)}>
           <Text style={styles.buttonText}>Iniciar Avaliação</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.button, {backgroundColor: '#BEC0C2', marginTop: 10}]} onPress={() => router.replace('/list')}>
+        <TouchableOpacity style={[styles.button, { backgroundColor: '#BEC0C2', marginTop: 10 }]} onPress={() => router.replace('/list')}>
           <Text style={styles.buttonText}>Cancelar</Text>
         </TouchableOpacity>
       </View>
@@ -197,6 +231,7 @@ export default function Questionnaire() {
 
   const renderMultipleChoiceQuestionScreen = () => (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <Header project={project} />
       <View style={styles.container}>
         <Text style={styles.question}>{questions[currentQuestionIndex].text}</Text>
         <FlatList
@@ -219,7 +254,7 @@ export default function Questionnaire() {
             <TouchableOpacity
               style={[
                 styles.navButton,
-                { marginHorizontal: 5, width: currentQuestionIndex > 0 && currentQuestionIndex < questions.length - 1 ? '55%' : '100%' }
+                { marginHorizontal: 5, width: '55%' }
               ]}
               onPress={handlePrevious}>
               <Text style={styles.navButtonText}>Voltar</Text>
@@ -245,6 +280,7 @@ export default function Questionnaire() {
 
   const renderOpenEndedQuestionScreen = () => (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <Header project={project} />
       <View style={styles.container}>
         <Text style={styles.question}>{questions[currentQuestionIndex].text}</Text>
         <TextInput
@@ -259,10 +295,7 @@ export default function Questionnaire() {
         <View style={styles.navigationContainer}>
           {currentQuestionIndex > 0 && (
             <TouchableOpacity
-              style={[
-                styles.navButton,
-                { marginHorizontal: 5, width: currentQuestionIndex > 0 && currentQuestionIndex < questions.length - 1 ? '55%' : '100%' }
-              ]}
+              style={[styles.navButton, { marginHorizontal: 5, width: '55%' }]}
               onPress={handlePrevious}>
               <Text style={styles.navButtonText}>Voltar</Text>
             </TouchableOpacity>
@@ -303,10 +336,20 @@ export default function Questionnaire() {
     }
   };
 
+
+  if (isSaving) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#56BA54" />
+      </View>
+    );
+  }
+
   const renderResultsScreen = () => (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <Header project={project} />
       <View style={styles.container}>
-        <Text style={styles.title}>Suas Respostas:</Text>
+        <Text style={[styles.title, { marginTop: 40 }]}>Suas Respostas:</Text>
         {answers.map((answer, index) => {
           const questionText = questions.find((q) => q.id === answer.question_id)?.text || 'Pergunta não encontrada';
           return (
@@ -317,18 +360,20 @@ export default function Questionnaire() {
           );
         })}
 
-        <View style={styles.containerInline}>
+        <View style={styles.navigationContainer}>
           <TouchableOpacity style={[styles.navButton, { marginHorizontal: 5, width: '55%' }]} onPress={handleRestart}>
             <Text style={styles.navButtonText}>Refazer</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.navButton, { marginHorizontal: 5, width: '55%' }]} onPress={handleSave}>
+          <TouchableOpacity
+            style={[styles.navButton, { marginHorizontal: 5, width: '55%' }]}
+            onPress={handleSave}>
             <Text style={styles.navButtonText}>Salvar</Text>
           </TouchableOpacity>
         </View>
       </View>
     </ScrollView>
   );
-  
+
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -373,7 +418,7 @@ const styles = StyleSheet.create({
   },
   question: {
     fontSize: 20,
-    marginTop: 60,
+    marginTop: 40,
     marginBottom: 30,
     textAlign: 'center',
   },
@@ -422,7 +467,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F5FCFF', 
   },
   textInput: {
     borderColor: '#ccc',
@@ -499,13 +543,14 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   answerContainer: {
-    marginBottom: 15,
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    backgroundColor: '#f9f9f9',
-    borderRadius: 8,
+    marginBottom: 12,
+    padding: 10,
     borderWidth: 1,
     borderColor: '#ddd',
+    borderRadius: 4,
+    backgroundColor: '#f9f9f9',
+    width: '100%',
+    maxWidth: 800,
   },
   questionText: {
     fontSize: 16,

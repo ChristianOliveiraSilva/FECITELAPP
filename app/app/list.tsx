@@ -12,6 +12,7 @@ const fetchProjects = async () => {
       id: assessment.id,
       projectName: assessment.project.title,
       projectArea: assessment.project.area,
+      projectId: assessment.project.id,
       studentName: assessment.project.students.map(student => student.name).join(', '),
       hasResponse: assessment.has_response,
     }));
@@ -33,7 +34,7 @@ const ProjectItem = ({ item, onPress }) => {
       </View>
       
       <View style={styles.textContainer}>
-        <Text style={styles.projecID}>({item.id})</Text>
+        <Text style={styles.projecID}>({item.projectId})</Text>
         <Text style={styles.projectName} numberOfLines={2} ellipsizeMode="tail">{item.projectName}</Text>
         <Text style={styles.studentName} numberOfLines={2} ellipsizeMode="tail">Estudante(s): {item.studentName}</Text>
         <Text style={styles.studentName}>Tipo: {item.projectArea == 1 ? 'Tecnológico' : 'Científico'}</Text>
