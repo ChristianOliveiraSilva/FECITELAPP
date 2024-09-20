@@ -17,7 +17,7 @@ const fetchProjects = async () => {
       projectName: assessment.project.title,
       studentName: assessment.project.students.map((student: any) => student.name).join(', '),
       hasResponse: assessment.has_response,
-      type: assessment.project.type,
+      area: assessment.project.area,
     }));
   } catch (error) {
     console.error('Erro:', error);
@@ -46,13 +46,13 @@ export default function Index() {
   };
 
   const renderItem = ({ item }) => {
-    const iconUri = item.type == 'cientifico'
+    const iconUri = item.area == 2
       ? 'https://img.icons8.com/ios-filled/50/ffffff/microscope.png'
       : 'https://img.icons8.com/ios-filled/50/ffffff/computer.png';
   
     return (
       <TouchableOpacity onPress={() => handlePress(item.id)} style={styles.itemContainer}>
-        <View style={[styles.iconContainer, { backgroundColor: item.type == 'cientifico' ? '#56BA54' : '#036daa' }]}>
+        <View style={[styles.iconContainer, { backgroundColor: item.area == 2 ? '#56BA54' : '#036daa' }]}>
           <Image
             source={{
               uri: iconUri,
