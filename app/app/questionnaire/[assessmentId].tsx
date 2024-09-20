@@ -71,6 +71,9 @@ export default function Questionnaire() {
   const [selectedOption, setSelectedOption] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
 
+  const currentQuestion = questions[currentQuestionIndex];
+  const currentAnswer = answers[currentQuestionIndex]?.value || '';
+
   useEffect(() => {
     const loadProjectAndQuestions = async () => {
       try {
@@ -106,35 +109,35 @@ export default function Questionnaire() {
 
   const handleNext = () => {
     const currentQuestion = questions[currentQuestionIndex];
-
+  
     if (currentQuestion.type === MULTIPLE_CHOICE_QUESTION) {
       if (!answers[currentQuestionIndex]?.value) {
         alert('Esta pergunta é obrigatória.');
         return;
       }
     }
-
+  
     if (currentQuestionIndex < questions.length - 1) {
-      setSelectedOption(null);
       setCurrentQuestionIndex(currentQuestionIndex + 1);
+      setSelectedOption(answers[currentQuestionIndex + 1]?.value || null);
     } else {
       setShowResults(true);
     }
   };
-
+  
   const handlePrevious = () => {
     if (currentQuestionIndex > 0) {
-      setSelectedOption(null);
       setCurrentQuestionIndex(currentQuestionIndex - 1);
       setShowResults(false);
+      
       const previousAnswer = answers[currentQuestionIndex - 1];
-      if (previousAnswer && previousAnswer.type === MULTIPLE_CHOICE_QUESTION) {
+      if (previousAnswer) {
         setSelectedOption(previousAnswer.value);
-      } else if (previousAnswer && previousAnswer.type !== MULTIPLE_CHOICE_QUESTION) {
         setAnswer(previousAnswer.value);
       }
     }
   };
+  
 
   const handleNextAndAnswer = (value) => {
     const currentQuestion = questions[currentQuestionIndex];
@@ -152,6 +155,18 @@ export default function Questionnaire() {
     }
 
     handleNext();
+  };
+
+  const handleAnswerChange = (value) => {
+    const newAnswers = [...answers];
+    newAnswers[currentQuestionIndex] = {
+      question_id: questions[currentQuestionIndex].id,
+      value, 
+      type: questions[currentQuestionIndex].type,
+    };
+  
+    setAnswers(newAnswers); 
+    setAnswer(value); 
   };
 
   const handleRestart = () => {
@@ -276,47 +291,47 @@ export default function Questionnaire() {
         </View>
       </View>
     </ScrollView>
-  );
+  );  
 
   const renderOpenEndedQuestionScreen = () => (
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <Header project={project} />
-      <View style={styles.container}>
-        <Text style={styles.question}>{questions[currentQuestionIndex].text}</Text>
-        <TextInput
-          style={styles.textInput}
-          placeholder="Digite a sua resposta"
-          value={answer}
-          onChangeText={setAnswer}
-          multiline
-          numberOfLines={10}
-          textAlignVertical="top"
-        />
-        <View style={styles.navigationContainer}>
-          {currentQuestionIndex > 0 && (
-            <TouchableOpacity
-              style={[styles.navButton, { marginHorizontal: 5, width: '55%' }]}
-              onPress={handlePrevious}>
-              <Text style={styles.navButtonText}>Voltar</Text>
-            </TouchableOpacity>
-          )}
-          {currentQuestionIndex < questions.length - 1 ? (
-            <TouchableOpacity
-              style={[styles.navButton, { marginHorizontal: 5, width: '55%' }]}
-              onPress={() => handleNextAndAnswer(answer)}>
-              <Text style={styles.navButtonText}>Avançar</Text>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity
-              style={[styles.navButton, { marginHorizontal: 5, width: '55%' }]}
-              onPress={() => handleNextAndAnswer(answer)}>
-              <Text style={styles.navButtonText}>Finalizar</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+  <ScrollView contentContainerStyle={styles.scrollContainer}>
+    <Header project={project} />
+    <View style={styles.container}>
+      <Text style={styles.question}>{currentQuestion.text}</Text>
+      <TextInput
+        style={styles.textInput}
+        placeholder="Digite a sua resposta"
+        value={currentAnswer}
+        onChangeText={(value) => handleAnswerChange(value)} 
+        multiline
+        numberOfLines={10}
+        textAlignVertical="top"
+      />
+      <View style={styles.navigationContainer}>
+        {currentQuestionIndex > 0 && (
+          <TouchableOpacity
+            style={[styles.navButton, { marginHorizontal: 5, width: '55%' }]}
+            onPress={handlePrevious}>
+            <Text style={styles.navButtonText}>Voltar</Text>
+          </TouchableOpacity>
+        )}
+        {currentQuestionIndex < questions.length - 1 ? (
+          <TouchableOpacity
+            style={[styles.navButton, { marginHorizontal: 5, width: '55%' }]}
+            onPress={() => handleNextAndAnswer(currentAnswer)}>
+            <Text style={styles.navButtonText}>Avançar</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={[styles.navButton, { marginHorizontal: 5, width: '55%' }]}
+            onPress={() => handleNextAndAnswer(currentAnswer)}>
+            <Text style={styles.navButtonText}>Finalizar</Text>
+          </TouchableOpacity>
+        )}
       </View>
-    </ScrollView>
-  );
+    </View>
+  </ScrollView>
+);
 
   const renderQuestionScreen = () => {
     if (!questions || questions.length === 0 || currentQuestionIndex >= questions.length) {
