@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, FlatList, TextInput, ActivityIndicator, Dimensions, ScrollView } from 'react-native';
 import Header from './header';
 
+const MULTIPLE_CHOICE_QUESTION = 1;
+
 const fetchProject = async (assessmentId) => {
   try {
     const assessmentsResponse = await fetch('http://localhost/assessments');
@@ -50,8 +52,6 @@ const fetchQuestions = async (assessmentId: number) => {
     return [];
   }
 };
-
-const MULTIPLE_CHOICE_QUESTION = 1;
 
 export default function Questionnaire() {
   const { assessmentId } = useLocalSearchParams();
@@ -248,7 +248,7 @@ export default function Questionnaire() {
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <Header project={project} />
       <View style={styles.container}>
-        <Text style={styles.question}>{questions[currentQuestionIndex].text}</Text>
+        <Text style={styles.question}>{currentQuestionIndex+1}. {questions[currentQuestionIndex].text}</Text>
         <FlatList
           data={[...Array(21).keys()]}
           numColumns={numColumns}
@@ -297,7 +297,7 @@ export default function Questionnaire() {
   <ScrollView contentContainerStyle={styles.scrollContainer}>
     <Header project={project} />
     <View style={styles.container}>
-      <Text style={styles.question}>{currentQuestion.text}</Text>
+      <Text style={styles.question}>{currentQuestionIndex+1}. {currentQuestion.text}</Text>
       <TextInput
         style={styles.textInput}
         placeholder="Digite a sua resposta"

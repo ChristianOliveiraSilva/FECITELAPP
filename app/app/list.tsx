@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState, useCallback } from 'react';
-import { FlatList, StyleSheet, Text, View, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { FlatList, StyleSheet, Text, View, Image, TouchableOpacity, ActivityIndicator, Button } from 'react-native';
 
 const fetchProjects = async () => {
   try {
@@ -74,6 +74,11 @@ export default function Index() {
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#56BA54" />
+        </View>
+      ) : projects.length === 0 ? (
+        <View style={styles.noProjectsContainer}>
+          <Text style={[styles.noProjectsText, {marginBottom: 20}]}>Não há projetos para serem avaliados</Text>
+          <Button title="Tentar Novamente" onPress={loadProjects} color="#56BA54" />
         </View>
       ) : (
         <FlatList
@@ -153,5 +158,14 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  noProjectsContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  noProjectsText: {
+    fontSize: 18,
+    color: '#666',
   },
 });
