@@ -21,7 +21,7 @@ class ProjectRelationManager extends RelationManager
                 TextColumn::make('description')->label('Descrição'),
                 TextColumn::make('year')->label('ano'),
                 TextColumn::make('category.name')->label('Categoria'),
-                TextColumn::make('area')->label('Área'),
+                TextColumn::make('area')->label('Tipo de projeto'),
             ])
             ->filters([
                 //

@@ -49,10 +49,11 @@ class EvaluatorResource extends Resource
                     ->default(Evaluator::generateRandomPin())
                     ->required(),
 
-                Forms\Components\Select::make('area')
+                Forms\Components\Select::make('categories')
                     ->label('Área')
-                    ->options(AreaEnum::class)
-                    ->default(AreaEnum::TECHNICAL)
+                    ->relationship('categories', 'name')
+                    ->multiple()
+                    ->preload()
                     ->required(),
 
                 Forms\Components\Select::make('project_id')
@@ -71,13 +72,20 @@ class EvaluatorResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('user.name')
                     ->label('Nome')
+                    ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('user.email')
                     ->label('Email')
+                    ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('PIN')
                     ->label('PIN')
-                    ->sortable(),
+                    ->sortable()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('categories.name')
+                    ->label('Área')
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Criado em')
                     ->dateTime()

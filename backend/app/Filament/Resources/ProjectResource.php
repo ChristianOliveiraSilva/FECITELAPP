@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Enum\AreaEnum;
 use App\Filament\Resources\ProjectResource\Pages;
 use App\Filament\Resources\ProjectResource\RelationManagers;
 use App\Models\Project;
@@ -29,6 +30,10 @@ class ProjectResource extends Resource
                     ->label('Título')
                     ->required(),
 
+                Forms\Components\TextInput::make('external_id')
+                    ->label('ID do projeto')
+                    ->required(),
+
                 Forms\Components\Textarea::make('description')
                     ->label('Descrição')
                     ->columnSpanFull(),
@@ -38,8 +43,14 @@ class ProjectResource extends Resource
                     ->default(date('Y'))
                     ->numeric(),
 
+                Forms\Components\Select::make('area')
+                    ->label('Tipo de projeto')
+                    ->options(AreaEnum::class)
+                    ->default(AreaEnum::TECHNICAL)
+                    ->required(),
+
                 Forms\Components\Select::make('category_id')
-                    ->label('Categoria')
+                    ->label('Área')
                     ->relationship('category', 'name')
                     ->searchable()
                     ->preload()
@@ -59,18 +70,30 @@ class ProjectResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('external_id')
+                    ->label('ID do projeto')
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('title')
                     ->label('Titulo')
+                    ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('year')
                     ->label('Ano')
-                    ->sortable(),
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('students.name')
                     ->label('Estudantes')
-                    ->sortable(),
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('category.name')
-                    ->label('Categoria')
-                    ->sortable(),
+                    ->label('Área')
+                    ->sortable()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('area')
+                    ->label('Tipo de projeto')
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Criado em')
                     ->dateTime()

@@ -33,7 +33,14 @@ class AwardResource extends Resource
 
                 Forms\Components\Select::make('school_grade_id')
                     ->relationship('schoolGrade', 'name')
-                    ->label('Grau de escolaridade')
+                    ->label('Grau de Escolaridade')
+                    ->required(),
+
+                Forms\Components\Select::make('questions')
+                    ->label('Perguntas')
+                    ->relationship('questions', 'text')
+                    ->multiple()
+                    ->preload()
                     ->required(),
             ]);
     }
@@ -44,9 +51,11 @@ class AwardResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->label('Nome')
+                    ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('schoolGrade.name')
-                    ->label('Grau de escolaridade')
+                    ->label('Grau de Escolaridade')
+                    ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Criado em')

@@ -34,16 +34,24 @@ class AssessmentResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('evaluator.user.name')
                     ->label('Avaliador')
-                    ->numeric()
-                    ->sortable(),
+                    ->sortable()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('project.external_id')
+                    ->label('ID do Projeto')
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('project.title')
                     ->label('Projeto')
-                    ->numeric()
-                    ->sortable(),
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('project.students.name')
                     ->label('Estudante')
-                    ->numeric()
-                    ->sortable(),
+                    ->sortable()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('note')
+                    ->label('Nota Final')
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Criado em')
                     ->dateTime()

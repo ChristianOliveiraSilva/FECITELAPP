@@ -23,7 +23,7 @@ class Award extends Model
 
     public function questions()
     {
-        return $this->belongsToMany(Question::class)->withPivot('weight');
+        return $this->belongsToMany(Question::class);
     }
 
     public function getWinnerAttribute()

@@ -14,11 +14,6 @@ class Evaluator extends Model
     protected $fillable = [
         'user_id',
         'PIN',
-        'area',
-    ];
-
-    protected $casts = [
-        'area' => AreaEnum::class,
     ];
 
     public function assessments()
@@ -29,6 +24,11 @@ class Evaluator extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function categories()
+    {
+        return $this->belongsToMany(Category::class, 'evaluator_categories');
     }
 
     public static function generateRandomPin() {

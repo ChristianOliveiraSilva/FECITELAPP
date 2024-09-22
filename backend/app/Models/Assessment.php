@@ -38,4 +38,16 @@ class Assessment extends Model
     {
         return $this->responses()->exists();
     }
+
+    public function getNoteAttribute()
+    {
+        $responses = $this->responses->whereNotNull('score');
+        $sum = $responses->sum('score');
+
+        if ($responses->count() == 0) {
+            return 0;
+        }
+
+        return round($sum / $responses->count(), 2);
+    }
 }

@@ -50,11 +50,12 @@ class DatabaseSeeder extends Seeder
 
             Project::insert([
                 [
-                    'title' => 'Pesquisa em IA',
+                    'title' => 'Pesquisa em IA: asdjaskjdkjas jasdkjaskjdasdkjs jkasdkjasdkjkjasd kjasasdkjasdkjdkj askj akjdd kjjaskjasdkj',
                     'description' => 'Um projeto sobre inteligência artificial.',
                     'year' => 2024,
                     'area' => AreaEnum::TECHNICAL,
                     'category_id' => 5,
+                    'external_id' => 65494
                 ],
                 [
                     'title' => 'Computação Quântica',
@@ -62,6 +63,7 @@ class DatabaseSeeder extends Seeder
                     'year' => 2024,
                     'area' => AreaEnum::SCIENTIFIC,
                     'category_id' => 5,
+                    'external_id' => 65495
                 ],
             ]);
 
@@ -71,16 +73,16 @@ class DatabaseSeeder extends Seeder
             ]);
 
             Evaluator::insert([
-                ['PIN' => 1111, 'user_id' => 2, 'area' => AreaEnum::SCIENTIFIC],
-                ['PIN' => 2222, 'user_id' => 3, 'area' => AreaEnum::TECHNICAL],
+                ['PIN' => 1111, 'user_id' => 2],
+                ['PIN' => 2222, 'user_id' => 3],
             ]);
 
             Question::insert([
-                ['text' => 'Qual é a inovação do projeto?', 'type' => QuestionTypeEnum::MULTIPLE_CHOICE, 'area' => AreaEnum::SCIENTIFIC],
-                ['text' => 'Forneça comentários detalhados.', 'type' => QuestionTypeEnum::TEXT, 'area' => AreaEnum::SCIENTIFIC],
-                ['text' => 'De a nota da apresentação oral', 'type' => QuestionTypeEnum::MULTIPLE_CHOICE, 'area' => AreaEnum::SCIENTIFIC],
-                ['text' => 'De a nota do banner I', 'type' => QuestionTypeEnum::MULTIPLE_CHOICE, 'area' => AreaEnum::SCIENTIFIC],
-                ['text' => 'De a nota do banner II', 'type' => QuestionTypeEnum::MULTIPLE_CHOICE, 'area' => AreaEnum::SCIENTIFIC],
+                ['text' => 'Qual é a inovação do projeto?', 'type' => QuestionTypeEnum::MULTIPLE_CHOICE, 'area' => AreaEnum::SCIENTIFIC, 'number_alternatives' => 20],
+                ['text' => 'Forneça comentários detalhados.', 'type' => QuestionTypeEnum::TEXT, 'area' => AreaEnum::SCIENTIFIC, 'number_alternatives' => 20],
+                ['text' => 'De a nota da apresentação oral', 'type' => QuestionTypeEnum::MULTIPLE_CHOICE, 'area' => AreaEnum::SCIENTIFIC, 'number_alternatives' => 20],
+                ['text' => 'De a nota do banner I', 'type' => QuestionTypeEnum::MULTIPLE_CHOICE, 'area' => AreaEnum::SCIENTIFIC, 'number_alternatives' => 20],
+                ['text' => 'De a nota do banner II', 'type' => QuestionTypeEnum::MULTIPLE_CHOICE, 'area' => AreaEnum::SCIENTIFIC, 'number_alternatives' => 20],
             ]);
 
             Assessment::insert([
@@ -96,6 +98,12 @@ class DatabaseSeeder extends Seeder
                     'score' => 8,
                 ],
                 [
+                    'question_id' => 4,
+                    'assessment_id' => 1,
+                    'response' => null,
+                    'score' => 7,
+                ],
+                [
                     'question_id' => 3,
                     'assessment_id' => 2,
                     'response' => null,
@@ -108,10 +116,15 @@ class DatabaseSeeder extends Seeder
                 ['name' => 'Melhor Banner', 'school_grade_id' => $elementarySchool->id],
             ]);
 
+            DB::table('evaluator_categories')->insert([
+                ['evaluator_id' => 1, 'category_id' => 3],
+                ['evaluator_id' => 2, 'category_id' => 5],
+            ]);
+
             DB::table('award_question')->insert([
-                ['award_id' => 1, 'question_id' => 3, 'weight' => 10],
-                ['award_id' => 2, 'question_id' => 4, 'weight' => 5],
-                ['award_id' => 2, 'question_id' => 5, 'weight' => 5],
+                ['award_id' => 1, 'question_id' => 3],
+                ['award_id' => 2, 'question_id' => 4],
+                ['award_id' => 2, 'question_id' => 5],
             ]);
         }
 

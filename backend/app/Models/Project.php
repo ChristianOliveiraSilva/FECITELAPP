@@ -17,6 +17,7 @@ class Project extends Model
         'year',
         'category_id',
         'area',
+        'external_id',
     ];
 
     protected $casts = [

@@ -38,9 +38,13 @@ class QuestionResource extends Resource
                     ->default(QuestionTypeEnum::MULTIPLE_CHOICE)
                     ->required(),
                 Forms\Components\Select::make('area')
-                    ->label('Área')
+                    ->label('Tipo de projeto')
                     ->options(AreaEnum::class)
                     ->default(AreaEnum::TECHNICAL)
+                    ->required(),
+                Forms\Components\TextInput::make('number_alternatives')
+                    ->label('Número de Alternativas')
+                    ->numeric()
                     ->required(),
             ]);
     }
@@ -51,13 +55,16 @@ class QuestionResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('text')
                     ->label('Pergunta')
+                    ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('type')
                     ->label('Tipo')
-                    ->sortable(),
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('area')
-                    ->label('Área')
-                    ->sortable(),
+                    ->label('Tipo de projeto')
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Criado em')
                     ->dateTime()

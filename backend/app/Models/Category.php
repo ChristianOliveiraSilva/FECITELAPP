@@ -20,6 +20,11 @@ class Category extends Model
         return $this->hasMany(Project::class);
     }
 
+    public function evaluators()
+    {
+        return $this->belongsToMany(Evaluator::class, 'evaluator_categories');
+    }
+
     public function mainCategory()
     {
         return $this->belongsTo(Category::class, 'main_category_id');
