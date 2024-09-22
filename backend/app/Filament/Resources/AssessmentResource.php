@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\AssessmentResource\Pages;
 use App\Filament\Resources\AssessmentResource\RelationManagers;
+use App\Helper;
 use App\Models\Assessment;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -42,10 +43,14 @@ class AssessmentResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('project.title')
                     ->label('Projeto')
+                    ->limit(50)
+                    ->tooltip(Helper::getTooltipFunction())
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('project.students.name')
                     ->label('Estudante')
+                    ->limit(50)
+                    ->tooltip(Helper::getTooltipFunction())
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('note')
@@ -64,7 +69,7 @@ class AssessmentResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),

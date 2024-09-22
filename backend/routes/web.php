@@ -21,7 +21,7 @@ Route::get('/assessments', function () {
 });
 
 Route::get('/questions/{assessment}', function (Assessment $assessment) {
-    return Question::where('area', $assessment->project->area)->get();
+    return Question::where('area', $assessment->project->area->value)->get();
 });
 
 Route::post('/responses', function () {

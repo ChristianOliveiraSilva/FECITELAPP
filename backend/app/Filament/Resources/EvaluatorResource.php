@@ -5,12 +5,15 @@ namespace App\Filament\Resources;
 use App\Enum\AreaEnum;
 use App\Filament\Resources\EvaluatorResource\Pages;
 use App\Filament\Resources\EvaluatorResource\RelationManagers;
+use App\Helper;
+use App\Models\Category;
 use App\Models\Evaluator;
 use App\Models\Project;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -84,6 +87,8 @@ class EvaluatorResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('categories.name')
                     ->label('Área')
+                    ->limit(100)
+                    ->tooltip(Helper::getTooltipFunction())
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('created_at')
@@ -98,7 +103,11 @@ class EvaluatorResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                SelectFilter::make('categories')
+                    ->relationship('category', 'name', fn (Builder $query) => $query->whereNull('main_category_id'))
+                    ->label('Área')
+                    ->searchable()
+                    ->preload()
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

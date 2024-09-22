@@ -5,11 +5,18 @@ namespace App\Filament\Resources;
 use App\Enum\AreaEnum;
 use App\Filament\Resources\ProjectResource\Pages;
 use App\Filament\Resources\ProjectResource\RelationManagers;
+use App\Helper;
+use App\Models\Category;
 use App\Models\Project;
+use App\Models\SchoolGrade;
 use Filament\Forms;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -75,7 +82,9 @@ class ProjectResource extends Resource
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('title')
-                    ->label('Titulo')
+                    ->label('Título')
+                    ->limit(50)
+                    ->tooltip(Helper::getTooltipFunction())
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('year')
@@ -84,6 +93,8 @@ class ProjectResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('students.name')
                     ->label('Estudantes')
+                    ->limit(50)
+                    ->tooltip(Helper::getTooltipFunction())
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('category.name')
@@ -106,7 +117,11 @@ class ProjectResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                SelectFilter::make('category')
+                    ->label('Área')
+                    ->relationship('category', 'name', fn (Builder $query) => $query->whereNull('main_category_id'))
+                    ->searchable()
+                    ->preload(),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

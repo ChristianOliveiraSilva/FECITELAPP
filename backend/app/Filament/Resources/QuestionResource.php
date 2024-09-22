@@ -15,6 +15,8 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Tables\Columns\SelectColumn;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
 
 class QuestionResource extends Resource
 {
@@ -59,6 +61,7 @@ class QuestionResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('type')
                     ->label('Tipo')
+                    ->limit(50)
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('area')
@@ -77,7 +80,14 @@ class QuestionResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                SelectFilter::make('type')
+                    ->label('Tipo')
+                    ->options(fn (): array => QuestionTypeEnum::getValues())
+                    ->attribute('type'),
+                SelectFilter::make('area')
+                    ->label('Tipo de projeto')
+                    ->options(fn (): array => AreaEnum::getValues())
+                    ->attribute('area'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
