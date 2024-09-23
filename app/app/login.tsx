@@ -3,13 +3,14 @@ import { StyleSheet, Text, TextInput, TouchableOpacity, View, Alert, Image, } fr
 
 const Index = () => {
   const [pin, setPin] = useState('');
+  const [msg, setMsg] = useState(null);
 
   const handleLogin = () => {
     console.log({ pin })
     if (pin === '1234') {
-      Alert.alert('Login bem-sucedido!', 'Você foi autenticado com sucesso.');
+      setMsg('Login bem-sucedido! Você foi autenticado com sucesso.');
     } else {
-      Alert.alert('Erro', 'PIN incorreto. Tente novamente.');
+      setMsg('Erro: PIN incorreto. Tente novamente.');
     }
   };
 
@@ -24,6 +25,8 @@ const Index = () => {
       <Text style={styles.title}>
         Faça login com o PIN fornecido
       </Text>
+
+      {msg && <Text style={styles.textMsg}>{msg}</Text>}
 
       <TextInput
         style={[styles.input, { color: pin ? 'black' : 'grey' }]}
@@ -61,7 +64,13 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     textAlign: 'center',
     fontSize: 18,
-    maxWidth: 500, 
+    maxWidth: 500,
+    outlineStyle: 'none',
+  },
+  textMsg: {
+    color: 'red',
+    fontSize: 16,
+    marginBottom: 30,
   },
   button: {
     backgroundColor: '#56BA54',

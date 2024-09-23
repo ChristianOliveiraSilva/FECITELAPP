@@ -1,5 +1,6 @@
 import { Stack } from "expo-router";
-import { Image } from 'react-native';
+import { Image, Text, TouchableOpacity, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 export default function RootLayout() {
   return (
@@ -17,18 +18,25 @@ export default function RootLayout() {
             resizeMode="contain"
           />
         ),
-        headerRight: () => (
-          <Image
-            source={require('../assets/images/cossoftware-logo.png')}
-            style={{ width: 50, height: 40, marginRight: 15 }}
-            resizeMode="contain"
-          />
-        ),
+        headerRight: () => {
+          const navigation = useNavigation();
+          return (
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 15 }}>
+              <Text style={{ marginRight: 10 }}>André</Text>
+              <TouchableOpacity onPress={() => navigation.navigate('/logout')}>
+                <Text style={{ color: 'white' }}>Sair</Text>
+              </TouchableOpacity>
+              <Image
+                source={require('../assets/images/cossoftware-logo.png')}
+                style={{ width: 50, height: 40, marginLeft: 15 }}
+                resizeMode="contain"
+              />
+            </View>
+          );
+        },
       }}>
-      <Stack.Screen name="index" />
       <Stack.Screen name="list" />
       <Stack.Screen name="login" options={{ headerShown: false }}/>
-      <Stack.Screen name="qr" />
       <Stack.Screen name="questionnaire"/>
     </Stack>
   );
