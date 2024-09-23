@@ -5,7 +5,7 @@ import Header from './header';
 
 const MULTIPLE_CHOICE_QUESTION = 1;
 
-const fetchProject = async (assessmentId) => {
+const fetchAssessment = async (assessmentId: number) => {
   try {
     const assessmentsResponse = await fetch('http://localhost/assessments');
     if (!assessmentsResponse.ok) {
@@ -13,7 +13,7 @@ const fetchProject = async (assessmentId) => {
     }
 
     const assessmentsData = await assessmentsResponse.json();
-    const assessment = assessmentsData.find((a) => a.id == assessmentId);
+    const assessment = assessmentsData.find((a: any) => a.id == assessmentId);
 
     if (!assessment) {
       throw new Error('Assessment não encontrado');
@@ -58,32 +58,24 @@ export default function Questionnaire() {
   const router = useRouter();
 
   const [questions, setQuestions] = useState([]);
-  const [project, setProject] = useState([]);
+  const [assessment, setAssessment] = useState([]);
+
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState([]);
-  const [isReady, setIsReady] = useState(false);
+
   const [isLoading, setIsLoading] = useState(true);
-  const [showResults, setShowResults] = useState(false);
-  const [answer, setAnswer] = useState('');
-
-  const screenWidth = Dimensions.get('window').width;
-  const numColumns = screenWidth < 400 ? 5 : 7;
-  const [selectedOption, setSelectedOption] = useState(null);
-  const [isSaving, setIsSaving] = useState(false);
-
-  const currentQuestion = questions[currentQuestionIndex];
-  const currentAnswer = answers[currentQuestionIndex]?.value || '';
+  const [screen, setScreen] = useState(0);
+  const [msg, setMsg] = useState(null);
 
   useEffect(() => {
     const loadProjectAndQuestions = async () => {
       try {
         setIsLoading(true);
-        setSelectedOption(null);
 
-        const projectData = await fetchProject(assessmentId);
-        setProject(projectData);
+        const assessmentData: any = await fetchAssessment(assessmentId);
+        setAssessment(assessmentData);
 
-        const questionsData = await fetchQuestions(assessmentId);
+        const questionsData: any = await fetchQuestions(assessmentId);
         setQuestions(questionsData);
       } catch (error) {
         console.error('Erro ao carregar os dados:', error);
@@ -95,88 +87,65 @@ export default function Questionnaire() {
     loadProjectAndQuestions();
   }, [assessmentId]);
 
-  const handleAnswer = (value) => {
+  const alertMsg = (msg) => {
+    setMsg(msg)
+
+    setTimeout(() => {
+      setMsg(null)
+    }, 2500);
+  }
+
+  const handleAnswer = (value: any) => {
+    const currentQuestion = questions[currentQuestionIndex];
+
     const newAnswers = [...answers];
+    console.log({value});
+    
     newAnswers[currentQuestionIndex] = {
-      question_id: questions[currentQuestionIndex].id,
+      question_id: currentQuestion.id,
       value,
-      type: questions[currentQuestionIndex].type,
+      type: currentQuestion.type,
     };
 
-    setSelectedOption(value);
     setAnswers(newAnswers);
-    setAnswer('');
   };
 
   const handleNext = () => {
     const currentQuestion = questions[currentQuestionIndex];
-  
-    if (currentQuestion.type === MULTIPLE_CHOICE_QUESTION) {
-      if (answers[currentQuestionIndex]?.value == null) {
-        alert('Esta pergunta é obrigatória.');
-        return;
-      }
+    const answerQuestion = answers[currentQuestionIndex];
+    
+    if (currentQuestion.type === MULTIPLE_CHOICE_QUESTION && answerQuestion == null) {
+      alertMsg('Esta pergunta é obrigatória.');
+      return;
     }
   
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
-      setSelectedOption(answers[currentQuestionIndex + 1]?.value || null);
     } else {
-      setShowResults(true);
+      nextScreen()
     }
   };
   
   const handlePrevious = () => {
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(currentQuestionIndex - 1);
-      setShowResults(false);
-      
-      const previousAnswer = answers[currentQuestionIndex - 1];
-      if (previousAnswer) {
-        setSelectedOption(previousAnswer.value);
-        setAnswer(previousAnswer.value);
-      }
     }
   };
   
-
-  const handleNextAndAnswer = (value) => {
-    const currentQuestion = questions[currentQuestionIndex];
-
-    if (currentQuestion.type === MULTIPLE_CHOICE_QUESTION) {
-      handleAnswer(value);
-    } else {
-      const newAnswers = [...answers];
-      newAnswers[currentQuestionIndex] = {
-        question_id: currentQuestion.id,
-        value,
-        type: currentQuestion.type,
-      };
-      setAnswers(newAnswers);
-    }
-
+  const handleNextAndAnswer = (value: any) => {
+    handleAnswer(value);
     handleNext();
-  };
-
-  const handleAnswerChange = (value) => {
-    const newAnswers = [...answers];
-    newAnswers[currentQuestionIndex] = {
-      question_id: questions[currentQuestionIndex].id,
-      value, 
-      type: questions[currentQuestionIndex].type,
-    };
-  
-    setAnswers(newAnswers); 
-    setAnswer(value); 
   };
 
   const handleRestart = () => {
     setCurrentQuestionIndex(0);
-    setShowResults(false);
+    setAnswers([])
+    setScreen(0);
+    setMsg(null);
   };
 
   const handleSave = async () => {
-    setIsSaving(true);
+    setIsLoading(true);
     try {
       const response = await fetch('http://localhost/responses', {
         method: 'POST',
@@ -197,45 +166,49 @@ export default function Questionnaire() {
     } catch (error) {
       console.error('Erro ao enviar resposta:', error);
     } finally {
-      setIsSaving(false);
+      setIsLoading(false);
     }
   };
 
-  const renderReadyScreen = () => (
+  const nextScreen = () => {
+    setScreen(screen + 1)
+  }
+
+  const renderIsReadyScreen = () => (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={styles.readyContainer}>
         <View style={styles.card}>
           <Text style={styles.title}>Detalhes do Projeto</Text>
           <View style={[styles.projectDetails, { flexDirection: 'row' }]}>
             <Text style={styles.label}>ID:</Text>
-            <Text style={styles.value}>{project.projectId}</Text>
+            <Text style={styles.value}>{assessment.projectId}</Text>
           </View>
           <View style={[styles.projectDetails, { flexDirection: 'column' }]}>
             <Text style={styles.label}>Título:</Text>
-            <Text style={styles.value}>{project.projectName}</Text>
+            <Text style={styles.value}>{assessment.projectName}</Text>
           </View>
           <View style={[styles.projectDetails, { flexDirection: 'row' }]}>
-            <Text style={styles.label}>Tipo:</Text>
-            <Text style={styles.value}>{project.type == 'cientifico' ? 'Científico' : 'Tecnológico'}</Text>
+            <Text style={styles.label}>Tipo de projeto:</Text>
+            <Text style={styles.value}>{assessment.type == 2 ? 'Científico' : 'Tecnológico'}</Text>
           </View>
           <View style={[styles.projectDetails, { flexDirection: 'column' }]}>
             <Text style={styles.label}>Categoria:</Text>
-            <Text style={styles.value}>{project.category}</Text>
+            <Text style={styles.value}>{assessment.category}</Text>
           </View>
           <View style={[styles.projectDetails, { flexDirection: 'row' }]}>
             <Text style={styles.label}>Ano:</Text>
-            <Text style={styles.value}>{project.year}</Text>
+            <Text style={styles.value}>{assessment.year}</Text>
           </View>
           <View style={[styles.projectDetails, { flexDirection: 'column' }]}>
             <Text style={styles.label}>Estudante(s):</Text>
-            <Text style={styles.value}>{project.studentNames}</Text>
+            <Text style={styles.value}>{assessment.studentNames}</Text>
           </View>
           <View style={[styles.projectDetails, { flexDirection: 'column' }]}>
             <Text style={styles.label}>Descrição:</Text>
-            <Text style={styles.value}>{project.description}</Text>
+            <Text style={styles.value}>{assessment.description}</Text>
           </View>
         </View>
-        <TouchableOpacity style={styles.button} onPress={() => setIsReady(true)}>
+        <TouchableOpacity style={styles.button} onPress={nextScreen}>
           <Text style={styles.buttonText}>Iniciar Avaliação</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.button, { backgroundColor: '#BEC0C2', marginTop: 10 }]} onPress={() => router.replace('/list')}>
@@ -245,102 +218,109 @@ export default function Questionnaire() {
     </ScrollView>
   );
 
-  const renderMultipleChoiceQuestionScreen = () => (
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <Header project={project} />
-      <View style={styles.container}>
-        <Text style={styles.question}>{currentQuestionIndex+1}. {questions[currentQuestionIndex].text}</Text>
-        <FlatList
-          data={[...Array(questions[currentQuestionIndex].number_alternatives + 1).keys()]}
-          numColumns={numColumns}
-          keyExtractor={(item) => item.toString()}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={[
-                styles.optionButton,
-                selectedOption === item && styles.selectedOptionButton
-              ]}
-              onPress={() => handleAnswer(item)}>
-              <Text style={styles.optionText}>{item}</Text>
-            </TouchableOpacity>
-          )}
-        />
-        <View style={styles.navigationContainer}>
-          {currentQuestionIndex > 0 && (
-            <TouchableOpacity
-              style={[
-                styles.navBackButton,
-                { marginHorizontal: 5, width: '55%' }
-              ]}
-              onPress={handlePrevious}>
-              <Text style={styles.navButtonText}>Voltar</Text>
-            </TouchableOpacity>
-          )}
-          {currentQuestionIndex < questions.length - 1 ? (
-            <TouchableOpacity
-              style={[styles.navButton, { marginHorizontal: 5, width: '55%' }]}
-              onPress={handleNext}>
-              <Text style={styles.navButtonText}>Avançar</Text>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity
-              style={[styles.navButton, { marginHorizontal: 5, width: '55%' }]}
-              onPress={handleNext}>
-              <Text style={styles.navButtonText}>Finalizar</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
-    </ScrollView>
-  );  
+  const renderMultipleChoiceQuestionScreen = () => {
+    const currentQuestion = questions[currentQuestionIndex]
 
-  const renderOpenEndedQuestionScreen = () => (
-  <ScrollView contentContainerStyle={styles.scrollContainer}>
-    <Header project={project} />
-    <View style={styles.container}>
-      <Text style={styles.question}>{currentQuestionIndex+1}. {currentQuestion.text}</Text>
-      <TextInput
-        style={styles.textInput}
-        placeholder="Digite a sua resposta"
-        value={currentAnswer}
-        onChangeText={(value) => handleAnswerChange(value)} 
-        multiline
-        numberOfLines={10}
-        textAlignVertical="top"
-      />
-      <View style={styles.navigationContainer}>
-        {currentQuestionIndex > 0 && (
-          <TouchableOpacity
-            style={[styles.navBackButton, { marginHorizontal: 5, width: '55%' }]}
-            onPress={handlePrevious}>
-            <Text style={styles.navButtonText}>Voltar</Text>
-          </TouchableOpacity>
-        )}
-        {currentQuestionIndex < questions.length - 1 ? (
-          <TouchableOpacity
-            style={[styles.navButton, { marginHorizontal: 5, width: '55%' }]}
-            onPress={() => handleNextAndAnswer(currentAnswer)}>
-            <Text style={styles.navButtonText}>Avançar</Text>
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity
-            style={[styles.navButton, { marginHorizontal: 5, width: '55%' }]}
-            onPress={() => handleNextAndAnswer(currentAnswer)}>
-            <Text style={styles.navButtonText}>Finalizar</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-    </View>
-  </ScrollView>
-);
+    return (
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <Header project={assessment} />
+        <View style={styles.container}>
+          <Text style={styles.question}>{currentQuestionIndex + 1}. {currentQuestion.text}</Text>
+          <FlatList
+            data={[...Array(currentQuestion.number_alternatives + 1).keys()]}
+            numColumns={5}
+            keyExtractor={(item) => item.toString()}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={[
+                  styles.optionButton,
+                  answers[currentQuestionIndex]?.value === item && styles.selectedOptionButton
+                ]}
+                onPress={() => handleAnswer(item)}>
+                <Text style={styles.optionText}>{item}</Text>
+              </TouchableOpacity>
+            )}
+          />
+          {msg && <Text>{msg}</Text>}
+          <View style={styles.navigationContainer}>
+            {currentQuestionIndex > 0 && (
+              <TouchableOpacity
+                style={[
+                  styles.navBackButton,
+                  { marginHorizontal: 5, width: '55%' }
+                ]}
+                onPress={handlePrevious}>
+                <Text style={styles.navButtonText}>Voltar</Text>
+              </TouchableOpacity>
+            )}
+            {currentQuestionIndex < questions.length - 1 ? (
+              <TouchableOpacity
+                style={[styles.navButton, { marginHorizontal: 5, width: '55%' }]}
+                onPress={handleNext}>
+                <Text style={styles.navButtonText}>Avançar</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={[styles.navButton, { marginHorizontal: 5, width: '55%' }]}
+                onPress={handleNext}>
+                <Text style={styles.navButtonText}>Finalizar</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+      </ScrollView>
+    );
+  }
+
+  const renderOpenEndedQuestionScreen = () => {
+    const currentQuestion = questions[currentQuestionIndex]
+
+    return (
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <Header project={assessment} />
+        <View style={styles.container}>
+          <Text style={styles.question}>{currentQuestionIndex + 1}. {currentQuestion.text}</Text>
+          <TextInput
+            style={styles.textInput}
+            placeholder="Digite a sua resposta"
+            value={answers[currentQuestionIndex]?.value}
+            onChangeText={(value: string) => handleAnswer(value)} 
+            multiline
+            numberOfLines={10}
+            textAlignVertical="top"
+          />
+          <View style={styles.navigationContainer}>
+            {currentQuestionIndex > 0 && (
+              <TouchableOpacity
+                style={[styles.navBackButton, { marginHorizontal: 5, width: '55%' }]}
+                onPress={handlePrevious}>
+                <Text style={styles.navButtonText}>Voltar</Text>
+              </TouchableOpacity>
+            )}
+            {currentQuestionIndex < questions.length - 1 ? (
+              <TouchableOpacity
+                style={[styles.navButton, { marginHorizontal: 5, width: '55%' }]}
+                onPress={() => handleNextAndAnswer(answers[currentQuestionIndex]?.value)}>
+                <Text style={styles.navButtonText}>Avançar</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={[styles.navButton, { marginHorizontal: 5, width: '55%' }]}
+                onPress={() => handleNextAndAnswer(answers[currentQuestionIndex]?.value)}>
+                <Text style={styles.navButtonText}>Finalizar</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+      </ScrollView>
+    )
+  };
 
   const renderQuestionScreen = () => {
-    console.log(!questions, questions.length === 0, currentQuestionIndex >= questions.length);
-    
-    if (!questions || questions.length === 0 || currentQuestionIndex >= questions.length) {
+    if (questions && questions.length === 0) {
       return (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#56BA54" />
+          <Text>Sem perguntas? 😄 Contate um administrador</Text>
         </View>
       );
     }
@@ -354,18 +334,9 @@ export default function Questionnaire() {
     }
   };
 
-
-  if (isSaving) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#56BA54" />
-      </View>
-    );
-  }
-
   const renderResultsScreen = () => (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <Header project={project} />
+      <Header project={assessment} />
       <View style={styles.container}>
         <Text style={[styles.title, { marginTop: 40 }]}>Suas Respostas:</Text>
         {answers.map((answer, index) => {
@@ -400,13 +371,19 @@ export default function Questionnaire() {
     );
   }
 
-  if (!isReady) {
-    return renderReadyScreen();
-  } else if (showResults) {
-    return renderResultsScreen();
-  } else {
-    return renderQuestionScreen();
+  const pages = [
+    renderIsReadyScreen,
+    renderQuestionScreen,
+    renderResultsScreen,
+  ];
+
+  const currentPage = pages[screen]
+  
+  if (currentPage) {
+    return currentPage();
   }
+
+  return <Text>Falha</Text>
 }
 
 const styles = StyleSheet.create({
