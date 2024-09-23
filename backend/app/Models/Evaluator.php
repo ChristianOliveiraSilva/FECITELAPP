@@ -40,4 +40,8 @@ class Evaluator extends Model
 
         return $pin;
     }
+
+    public function getTotalProjectsAttribute() {
+        return $this->assessments->count();
+    }
 }

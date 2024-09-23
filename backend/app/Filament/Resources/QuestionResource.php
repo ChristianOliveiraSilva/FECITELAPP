@@ -9,6 +9,7 @@ use App\Filament\Resources\QuestionResource\RelationManagers;
 use App\Models\Question;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -34,20 +35,25 @@ class QuestionResource extends Resource
                     ->label('Pergunta')
                     ->required()
                     ->columnSpanFull(),
+
                 Forms\Components\Select::make('type')
                     ->label('Tipo')
                     ->options(QuestionTypeEnum::class)
                     ->default(QuestionTypeEnum::MULTIPLE_CHOICE)
+                    ->live()
                     ->required(),
+
                 Forms\Components\Select::make('area')
                     ->label('Tipo de projeto')
                     ->options(AreaEnum::class)
                     ->default(AreaEnum::TECHNICAL)
                     ->required(),
+
                 Forms\Components\TextInput::make('number_alternatives')
                     ->label('Número de Alternativas')
+                    ->default(20)
                     ->numeric()
-                    ->required(),
+                    ->hidden(fn (Get $get) => $get('type') != QuestionTypeEnum::MULTIPLE_CHOICE),
             ]);
     }
 

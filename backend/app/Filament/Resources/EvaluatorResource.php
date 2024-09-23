@@ -54,7 +54,7 @@ class EvaluatorResource extends Resource
 
                 Forms\Components\Select::make('categories')
                     ->label('Área')
-                    ->relationship('categories', 'name')
+                    ->relationship('categories', 'name', fn (Builder $query) => $query->whereNull('main_category_id'))
                     ->multiple()
                     ->preload()
                     ->required(),
@@ -77,17 +77,17 @@ class EvaluatorResource extends Resource
                     ->label('Nome')
                     ->sortable()
                     ->searchable(),
-                Tables\Columns\TextColumn::make('user.email')
-                    ->label('Email')
-                    ->sortable()
-                    ->searchable(),
                 Tables\Columns\TextColumn::make('PIN')
                     ->label('PIN')
                     ->sortable()
                     ->searchable(),
+                Tables\Columns\TextColumn::make('total_projects')
+                    ->label('Quantidade de projetos')
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('categories.name')
                     ->label('Área')
-                    ->limit(100)
+                    ->limit(50)
                     ->tooltip(Helper::getTooltipFunction())
                     ->sortable()
                     ->searchable(),
@@ -104,7 +104,7 @@ class EvaluatorResource extends Resource
             ])
             ->filters([
                 SelectFilter::make('categories')
-                    ->relationship('category', 'name', fn (Builder $query) => $query->whereNull('main_category_id'))
+                    ->relationship('categories', 'name', fn (Builder $query) => $query->whereNull('main_category_id'))
                     ->label('Área')
                     ->searchable()
                     ->preload()

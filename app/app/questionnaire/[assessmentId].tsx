@@ -22,7 +22,7 @@ const fetchProject = async (assessmentId) => {
     return {
       id: assessment.id,
       projectName: assessment.project.title,
-      projectId: assessment.project.id,
+      projectId: assessment.project.external_id,
       studentNames: assessment.project.students.map((student: any) => student.name).join(', '),
       description: assessment.project.description,
       year: assessment.project.year,
@@ -79,6 +79,7 @@ export default function Questionnaire() {
       try {
         setIsLoading(true);
         setSelectedOption(null);
+
         const projectData = await fetchProject(assessmentId);
         setProject(projectData);
 
@@ -111,7 +112,7 @@ export default function Questionnaire() {
     const currentQuestion = questions[currentQuestionIndex];
   
     if (currentQuestion.type === MULTIPLE_CHOICE_QUESTION) {
-      if (!answers[currentQuestionIndex]?.value) {
+      if (answers[currentQuestionIndex]?.value == null) {
         alert('Esta pergunta é obrigatória.');
         return;
       }
@@ -250,7 +251,7 @@ export default function Questionnaire() {
       <View style={styles.container}>
         <Text style={styles.question}>{currentQuestionIndex+1}. {questions[currentQuestionIndex].text}</Text>
         <FlatList
-          data={[...Array(21).keys()]}
+          data={[...Array(questions[currentQuestionIndex].number_alternatives + 1).keys()]}
           numColumns={numColumns}
           keyExtractor={(item) => item.toString()}
           renderItem={({ item }) => (
@@ -268,7 +269,7 @@ export default function Questionnaire() {
           {currentQuestionIndex > 0 && (
             <TouchableOpacity
               style={[
-                styles.navButton,
+                styles.navBackButton,
                 { marginHorizontal: 5, width: '55%' }
               ]}
               onPress={handlePrevious}>
@@ -310,7 +311,7 @@ export default function Questionnaire() {
       <View style={styles.navigationContainer}>
         {currentQuestionIndex > 0 && (
           <TouchableOpacity
-            style={[styles.navButton, { marginHorizontal: 5, width: '55%' }]}
+            style={[styles.navBackButton, { marginHorizontal: 5, width: '55%' }]}
             onPress={handlePrevious}>
             <Text style={styles.navButtonText}>Voltar</Text>
           </TouchableOpacity>
@@ -334,6 +335,8 @@ export default function Questionnaire() {
 );
 
   const renderQuestionScreen = () => {
+    console.log(!questions, questions.length === 0, currentQuestionIndex >= questions.length);
+    
     if (!questions || questions.length === 0 || currentQuestionIndex >= questions.length) {
       return (
         <View style={styles.loadingContainer}>
@@ -370,13 +373,13 @@ export default function Questionnaire() {
           return (
             <View key={index} style={styles.answerContainer}>
               <Text style={styles.questionText}>{index + 1}. {questionText}</Text>
-              <Text style={styles.answerText}>{answer.value || '-'}</Text>
+              <Text style={styles.answerText}>{answer.value != null ? answer.value : '-'}</Text>
             </View>
           );
         })}
 
         <View style={styles.navigationContainer}>
-          <TouchableOpacity style={[styles.navButton, { marginHorizontal: 5, width: '55%' }]} onPress={handleRestart}>
+          <TouchableOpacity style={[styles.navBackButton, { marginHorizontal: 5, width: '55%' }]} onPress={handleRestart}>
             <Text style={styles.navButtonText}>Refazer</Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -546,6 +549,13 @@ const styles = StyleSheet.create({
   },
   navButton: {
     backgroundColor: '#56BA54',
+    paddingVertical: 15,
+    paddingHorizontal: 40,
+    borderRadius: 6,
+    maxWidth: 500,
+  },
+  navBackButton: {
+    backgroundColor: '#BEC0C2',
     paddingVertical: 15,
     paddingHorizontal: 40,
     borderRadius: 6,

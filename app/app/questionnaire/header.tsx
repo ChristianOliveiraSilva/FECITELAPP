@@ -4,7 +4,7 @@ import { View, Text, StyleSheet } from 'react-native';
 const Header = ({ project }) => {
   return (
     <View style={styles.header}>
-      <Text style={styles.headerText} numberOfLines={2} ellipsizeMode="tail">({project.projectId}) {project.projectName}</Text>
+      <Text style={styles.headerText} numberOfLines={2} ellipsizeMode="tail">{project.projectId} - {project.projectName}</Text>
       <Text style={styles.subHeaderText} numberOfLines={2} ellipsizeMode="tail">Estudante(s): {project.studentNames}</Text>
     </View>
   );

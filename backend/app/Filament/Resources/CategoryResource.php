@@ -30,7 +30,7 @@ class CategoryResource extends Resource
                     ->required(),
 
                 Forms\Components\Select::make('main_category_id')
-                    ->relationship('mainCategory', 'name')
+                    ->relationship('mainCategory', 'name', fn (Builder $query) => $query->whereNull('main_category_id'))
                     ->label('Área Pai'),
             ]);
     }

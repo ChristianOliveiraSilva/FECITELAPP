@@ -2,20 +2,35 @@ import { useRouter } from 'expo-router';
 import React, { useEffect, useState, useCallback } from 'react';
 import { FlatList, StyleSheet, Text, View, Image, TouchableOpacity, ActivityIndicator, Button } from 'react-native';
 
+const SCIENTIFIC = 2;
+
 const fetchProjects = async () => {
   try {
     const response = await fetch('http://localhost/assessments');
     if (!response.ok) throw new Error('Erro ao buscar os assessments');
     
     const data = await response.json();
-    return data.map((assessment) => ({
-      id: assessment.id,
-      projectName: assessment.project.title,
-      projectArea: assessment.project.area,
-      projectId: assessment.project.id,
-      studentName: assessment.project.students.map(student => student.name).join(', '),
-      hasResponse: assessment.has_response,
-    }));
+
+    const groupedByCategory = data.reduce((acc, assessment) => {
+      const categoryName = assessment.project.category.name;
+    
+      if (!acc[categoryName]) {
+        acc[categoryName] = [];
+      }
+    
+      acc[categoryName].push({
+        id: assessment.id,
+        projectName: assessment.project.title,
+        projectArea: assessment.project.area,
+        projectId: assessment.project.external_id,
+        studentName: assessment.project.students.map(student => student.name).join(', '),
+        hasResponse: assessment.has_response,
+      });
+    
+      return acc;
+    }, {});
+    
+    return groupedByCategory;
   } catch (error) {
     console.error('Erro:', error);
     return [];
@@ -23,34 +38,33 @@ const fetchProjects = async () => {
 };
 
 const ProjectItem = ({ item, onPress }) => {
-  const iconUri = item.projectArea == 2
+  const iconUri = item.projectArea == SCIENTIFIC
     ? 'https://img.icons8.com/ios-filled/50/ffffff/microscope.png'
     : 'https://img.icons8.com/ios-filled/50/ffffff/computer.png';
 
-  return (
-    <TouchableOpacity onPress={() => onPress(item.id)} style={styles.itemContainer}>
-      <View style={[styles.iconContainer, { backgroundColor: item.projectArea == 2 ? '#56BA54' : '#036daa' }]}>
-        <Image source={{ uri: iconUri }} style={styles.icon} />
-      </View>
-      
-      <View style={styles.textContainer}>
-        <Text style={styles.projecID}>({item.projectId})</Text>
-        <Text style={styles.projectName} numberOfLines={2} ellipsizeMode="tail">{item.projectName}</Text>
-        <Text style={styles.studentName} numberOfLines={2} ellipsizeMode="tail">Estudante(s): {item.studentName}</Text>
-        <Text style={styles.studentName}>Tipo: {item.projectArea == 1 ? 'Tecnológico' : 'Científico'}</Text>
-      </View>
+    return (
+      <TouchableOpacity key={item.id} onPress={() => onPress(item.id)} style={styles.itemContainer}>
+        <View style={[styles.iconContainer, { backgroundColor: item.projectArea == SCIENTIFIC ? '#56BA54' : '#036daa' }]}>
+          <Image source={{ uri: iconUri }} style={styles.icon} />
+        </View>
+        
+        <View style={styles.textContainer}>
+          <Text style={styles.projectName} numberOfLines={2} ellipsizeMode="tail">{item.projectId} - {item.projectName}</Text>
+          <Text style={styles.studentName} numberOfLines={2} ellipsizeMode="tail">Estudante(s): {item.studentName}</Text>
+          <Text style={styles.studentName}>{item.projectArea == SCIENTIFIC ? 'Científico' : 'Tecnológico'}</Text>
+        </View>
 
-      <View style={styles.assessmentButtonContainer}>
-        <Text style={[styles.assessmentText, item.hasResponse ? styles.hasResponse : styles.noResponse]}>
-          {item.hasResponse ? 'Avaliado' : 'Avaliar'}
-        </Text>
-      </View>
-    </TouchableOpacity>
-  );
+        <View style={styles.assessmentButtonContainer}>
+          <Text style={[styles.assessmentText, item.hasResponse ? styles.hasResponse : styles.noResponse]}>
+            {item.hasResponse ? 'Avaliado' : 'Avaliar'}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    );
 };
 
 export default function Index() {
-  const [projects, setProjects] = useState([]);
+  const [projects, setProjects] = useState();
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -75,18 +89,29 @@ export default function Index() {
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#56BA54" />
         </View>
-      ) : projects.length === 0 ? (
+      ) : Object.entries(projects).length == 0 ? (
         <View style={styles.noProjectsContainer}>
           <Text style={[styles.noProjectsText, {marginBottom: 20}]}>Não há projetos para serem avaliados</Text>
           <Button title="Tentar Novamente" onPress={loadProjects} color="#56BA54" />
         </View>
       ) : (
-        <FlatList
-          data={projects}
-          renderItem={({ item }) => <ProjectItem item={item} onPress={handlePress} />}
-          keyExtractor={(item) => item.id.toString()}
-          contentContainerStyle={styles.flatListContent}
-        />
+        <>
+          {
+            Object.keys(projects).map((group, index) => (
+              <View key={index}>
+                <Text style={styles.groupTitle}>{group}</Text>
+
+                {projects[group].map((item) => (
+                  <ProjectItem 
+                    key={item.id} 
+                    item={item} 
+                    onPress={handlePress} 
+                  />
+                ))}
+              </View>
+            ))
+          }
+        </>
       )}
     </View>
   );
@@ -121,6 +146,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 15,
+  },
+  groupTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginVertical: 10,
+    color: '#333',
+    textAlign: 'left',
+    paddingLeft: 10,
   },
   icon: {
     width: 20,
