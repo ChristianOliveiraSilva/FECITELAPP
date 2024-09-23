@@ -2,6 +2,12 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Widgets\EvaluatedProjects;
+use App\Filament\Widgets\ProjectToBeEvaluated;
+use App\Filament\Widgets\WorksMissing1Evaluation;
+use App\Filament\Widgets\MissingEvaluations;
+use App\Filament\Widgets\WorksMissing3Evaluation;
+use App\Filament\Widgets\WorksMissingAllEvaluation;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
@@ -37,8 +43,9 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
-                Widgets\AccountWidget::class,
-                Widgets\FilamentInfoWidget::class,
+                EvaluatedProjects::class,
+                ProjectToBeEvaluated::class,
+                MissingEvaluations::class,
             ])
             ->middleware([
                 EncryptCookies::class,
