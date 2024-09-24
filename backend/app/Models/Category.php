@@ -25,6 +25,11 @@ class Category extends Model
         return $this->belongsToMany(Evaluator::class, 'evaluator_categories');
     }
 
+    public static function mainCategories()
+    {
+        return self::whereNull('main_category_id')->get();
+    }
+
     public function mainCategory()
     {
         return $this->belongsTo(Category::class, 'main_category_id');

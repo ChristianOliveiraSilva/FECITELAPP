@@ -24,9 +24,18 @@ class MissingEvaluations extends BaseWidget
         })->count();
     
         return [
-            Stat::make('Trabalhos que faltam 1 avaliação', $project1),
-            Stat::make('Trabalhos que faltam 2 avaliações', $project2),
-            Stat::make('Trabalhos que faltam 3 avaliações', $project3),
+            Stat::make('Trabalhos que faltam 1 avaliação', $project1)
+                ->extraAttributes([
+                    'class' => 'mb-5 mt-6',
+                ]),
+            Stat::make('Trabalhos que faltam 2 avaliações', $project2)
+                ->extraAttributes([
+                    'class' => 'mb-5 mt-6',
+                ]),
+            Stat::make('Trabalhos que faltam 3 avaliações', $project3)
+                ->extraAttributes([
+                    'class' => 'mb-5 mt-6',
+                ]),
         ];
     }
     

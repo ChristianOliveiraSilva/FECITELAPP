@@ -38,4 +38,9 @@ class Project extends Model
     {
         return $this->hasMany(Assessment::class);
     }
+
+    public function getSchoolGradeIdAttribute()
+    {
+        return $this->students[0]->school_grade_id;
+    }
 }
