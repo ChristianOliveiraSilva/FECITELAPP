@@ -43,6 +43,16 @@ class AwardResource extends Resource
                     ->multiple()
                     ->preload()
                     ->required(),
+
+                Forms\Components\TextInput::make('total_positions')
+                    ->label('Total de posições')
+                    ->required(),
+
+                Forms\Components\Checkbox::make('use_school_grades')
+                    ->label('Usar Grau de escolaridade'),
+
+                Forms\Components\Checkbox::make('use_categories')
+                    ->label('Usar Categorias'),
             ]);
     }
 
@@ -54,15 +64,35 @@ class AwardResource extends Resource
                     ->label('Nome')
                     ->sortable()
                     ->searchable(),
+
                 Tables\Columns\TextColumn::make('schoolGrade.name')
                     ->label('Grau de Escolaridade')
                     ->sortable()
                     ->searchable(),
+
+                Tables\Columns\TextColumn::make('total_positions')
+                    ->label('Total de posições')
+                    ->sortable()
+                    ->searchable(),
+
+                Tables\Columns\IconColumn::make('use_school_grades')
+                    ->label('Usar Graus de escolaridade?')
+                    ->boolean()
+                    ->sortable()
+                    ->searchable(),
+
+                Tables\Columns\IconColumn::make('use_categories')
+                    ->label('Usar Categorias?')
+                    ->boolean()
+                    ->sortable()
+                    ->searchable(),
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Criado em')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+
                 Tables\Columns\TextColumn::make('updated_at')
                     ->label('Atualizado em')
                     ->dateTime()
@@ -77,7 +107,6 @@ class AwardResource extends Resource
                     ->preload()
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
@@ -99,7 +128,6 @@ class AwardResource extends Resource
         return [
             'index' => Pages\ListAwards::route('/'),
             'create' => Pages\CreateAward::route('/create'),
-            'view' => Pages\ViewAward::route('/{record}'),
             'edit' => Pages\EditAward::route('/{record}/edit'),
         ];
     }

@@ -46,6 +46,7 @@ class DatabaseSeeder extends Seeder
             Student::insert([
                 ['name' => 'Ana Souza', 'email' => 'ana.souza@example.com', 'school_grade_id' => $elementarySchool->id],
                 ['name' => 'Carlos Silva', 'email' => 'carlos.silva@example.com', 'school_grade_id' => $highSchool->id],
+                ['name' => 'Ana Souza 2', 'email' => 'ana.souza2@example.com', 'school_grade_id' => $elementarySchool->id],
             ]);
 
             Project::insert([
@@ -65,11 +66,20 @@ class DatabaseSeeder extends Seeder
                     'category_id' => 5,
                     'external_id' => 65495
                 ],
+                [
+                    'title' => 'Pesquisa em IA 2',
+                    'description' => 'Um projeto sobre inteligência artificial.',
+                    'year' => 2024,
+                    'area' => AreaEnum::TECHNICAL,
+                    'category_id' => 5,
+                    'external_id' => 61194
+                ],
             ]);
 
             DB::table('student_projects')->insert([
                 ['project_id' => 1, 'student_id' => 1],
                 ['project_id' => 2, 'student_id' => 2],
+                ['project_id' => 3, 'student_id' => 3],
             ]);
 
             Evaluator::insert([
@@ -88,6 +98,7 @@ class DatabaseSeeder extends Seeder
             Assessment::insert([
                 [ 'project_id' => 1, 'evaluator_id' => 2 ],
                 [ 'project_id' => 2, 'evaluator_id' => 1 ],
+                [ 'project_id' => 3, 'evaluator_id' => 1 ],
             ]);
 
             Response::insert([
@@ -109,11 +120,35 @@ class DatabaseSeeder extends Seeder
                     'response' => null,
                     'score' => 5,
                 ],
+                [
+                    'question_id' => 3,
+                    'assessment_id' => 3,
+                    'response' => null,
+                    'score' => 8,
+                ],
+                [
+                    'question_id' => 4,
+                    'assessment_id' => 3,
+                    'response' => null,
+                    'score' => 7,
+                ],
             ]);
 
             Award::insert([
-                ['name' => 'Apresentação Oral', 'school_grade_id' => $elementarySchool->id],
-                ['name' => 'Melhor Banner', 'school_grade_id' => $elementarySchool->id],
+                [
+                    'name' => 'Apresentação Oral',
+                    'school_grade_id' => $elementarySchool->id,
+                    'total_positions' => 3,
+                    'use_school_grades' => false,
+                    'use_categories' => true,
+                ],
+                [
+                    'name' => 'Melhor Banner',
+                    'school_grade_id' => $elementarySchool->id,
+                    'total_positions' => 1,
+                    'use_school_grades' => true,
+                    'use_categories' => false,
+                ],
             ]);
 
             DB::table('evaluator_categories')->insert([

@@ -6,6 +6,7 @@ use App\Filament\Widgets\EvaluatedProjects;
 use App\Filament\Widgets\ProjectToBeEvaluated;
 use App\Filament\Widgets\WorksMissing1Evaluation;
 use App\Filament\Widgets\MissingEvaluations;
+use App\Filament\Widgets\ProjectsPerCategories;
 use App\Filament\Widgets\WorksMissing3Evaluation;
 use App\Filament\Widgets\WorksMissingAllEvaluation;
 use Filament\Http\Middleware\Authenticate;
@@ -45,6 +46,7 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 EvaluatedProjects::class,
                 MissingEvaluations::class,
+                ProjectsPerCategories::class,
             ])
             ->middleware([
                 EncryptCookies::class,

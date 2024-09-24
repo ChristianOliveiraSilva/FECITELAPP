@@ -12,15 +12,15 @@ class MissingEvaluations extends BaseWidget
     protected function getStats(): array
     {
         $project1 = Project::whereHas('assessments', function($query) {
-            $query->has('responses', '=', 1);
-        })->count();
-    
-        $project2 = Project::whereHas('assessments', function($query) {
             $query->has('responses', '=', 2);
         })->count();
     
+        $project2 = Project::whereHas('assessments', function($query) {
+            $query->has('responses', '=', 1);
+        })->count();
+
         $project3 = Project::whereHas('assessments', function($query) {
-            $query->has('responses', '=', 3);
+            $query->has('responses', '=', 0);
         })->count();
     
         return [

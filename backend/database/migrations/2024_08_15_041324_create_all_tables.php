@@ -92,6 +92,9 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->foreignId('school_grade_id')->constrained('school_grades')->onDelete('cascade');
+            $table->integer('total_positions');
+            $table->boolean('use_school_grades');
+            $table->boolean('use_categories');
             $table->timestamps();
             $table->softDeletes();
         });
