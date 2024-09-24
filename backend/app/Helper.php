@@ -6,6 +6,11 @@ use Filament\Tables\Columns\TextColumn;
 
 class Helper
 {
+    public static function getMinimumNumberAssessmentsPerProject(): int
+    {
+        return env('MINIMUM_NUMBER_OF_ASSESSMENTS_PER_PROJECT', 3);
+    }
+
     public static function getTooltipFunction()
     {
         return function (TextColumn $column): ?string {
