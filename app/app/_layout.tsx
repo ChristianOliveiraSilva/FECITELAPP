@@ -1,8 +1,9 @@
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { Image, Text, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 export default function RootLayout() {
+
   return (
     <Stack
       screenOptions={{
@@ -19,11 +20,25 @@ export default function RootLayout() {
           />
         ),
         headerRight: () => {
-          const navigation = useNavigation();
+          const router = useRouter();
+
+          const handleLogout = async () => {
+              const response = await fetch('http://localhost/logout', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+            });
+
+            localStorage.removeItem('key')
+
+            router.push('/login')
+          }
+
           return (
             <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 15 }}>
               <Text style={{ marginRight: 10 }}>André</Text>
-              <TouchableOpacity onPress={() => navigation.navigate('/logout')}>
+              <TouchableOpacity onPress={handleLogout}>
                 <Text style={{ color: 'white' }}>Sair</Text>
               </TouchableOpacity>
               <Image

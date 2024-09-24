@@ -1,16 +1,42 @@
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View, Alert, Image, } from 'react-native';
 
 const Index = () => {
   const [pin, setPin] = useState('');
-  const [msg, setMsg] = useState(null);
+  const [msg, setMsg] = useState('');
+  const router = useRouter();
 
-  const handleLogin = () => {
-    console.log({ pin })
-    if (pin === '1234') {
-      setMsg('Login bem-sucedido! Você foi autenticado com sucesso.');
-    } else {
+  const handleLogin = async () => {
+
+    if (pin.length < 4) {
       setMsg('Erro: PIN incorreto. Tente novamente.');
+      return false
+    }
+    
+    try {
+      const response = await fetch('http://localhost/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          PIN: pin
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (data.status === true) {
+        localStorage.setItem('key', data.data.plainTextToken)
+        router.push('/list');
+      } else {
+        setMsg(data.message);
+      }
+    } catch (error) {
+      setMsg(error.message);
+      console.error('Erro:', error);
+      return false;
     }
   };
 

@@ -53,7 +53,7 @@ class DatabaseSeeder extends Seeder
                 [
                     'title' => 'Pesquisa em IA: asdjaskjdkjas jasdkjaskjdasdkjs jkasdkjasdkjkjasd kjasasdkjasdkjdkj askj akjdd kjjaskjasdkj',
                     'description' => 'Um projeto sobre inteligência artificial.',
-                    'year' => 2024,
+                    'year' => date('Y'),
                     'area' => AreaEnum::TECHNICAL,
                     'category_id' => 5,
                     'external_id' => 65494
@@ -61,7 +61,7 @@ class DatabaseSeeder extends Seeder
                 [
                     'title' => 'Computação Quântica',
                     'description' => 'Um projeto explorando conceitos de computação quântica.',
-                    'year' => 2024,
+                    'year' => date('Y'),
                     'area' => AreaEnum::SCIENTIFIC,
                     'category_id' => 5,
                     'external_id' => 65495
@@ -69,7 +69,7 @@ class DatabaseSeeder extends Seeder
                 [
                     'title' => 'Pesquisa em IA 2',
                     'description' => 'Um projeto sobre inteligência artificial.',
-                    'year' => 2024,
+                    'year' => date('Y'),
                     'area' => AreaEnum::TECHNICAL,
                     'category_id' => 5,
                     'external_id' => 61194
