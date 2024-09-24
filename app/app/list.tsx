@@ -6,7 +6,14 @@ const SCIENTIFIC = 2;
 
 const fetchProjects = async () => {
   try {
-    const response = await fetch('http://localhost/assessments');
+    const response = await fetch('http://localhost/assessments', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('key')}`,
+        'Content-Type': 'application/json',
+      }
+    });
+
     if (!response.ok) throw new Error('Erro ao buscar os assessments');
     
     const data = await response.json();

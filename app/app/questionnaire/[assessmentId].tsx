@@ -7,7 +7,14 @@ const MULTIPLE_CHOICE_QUESTION = 1;
 
 const fetchAssessment = async (assessmentId: number) => {
   try {
-    const assessmentsResponse = await fetch('http://localhost/assessments');
+    const assessmentsResponse = await fetch('http://localhost/assessments', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('key')}`,
+        'Content-Type': 'application/json',
+      }
+    });
+
     if (!assessmentsResponse.ok) {
       throw new Error('Erro ao buscar os assessments');
     }
@@ -38,7 +45,13 @@ const fetchAssessment = async (assessmentId: number) => {
 
 const fetchQuestions = async (assessmentId: number) => {
   try {
-    const response = await fetch(`http://localhost/questions/${assessmentId}`);
+    const response = await fetch(`http://localhost/questions/${assessmentId}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('key')}`,
+        'Content-Type': 'application/json',
+      }
+    });
 
     if (!response.ok) {
       throw new Error('Network response was not ok');
@@ -151,6 +164,7 @@ export default function Questionnaire() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('key')}`,
         },
         body: JSON.stringify({
           responses: answers,
