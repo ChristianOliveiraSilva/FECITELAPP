@@ -27,7 +27,7 @@
                                             <td class="px-4 py-2 border border-gray-200">{{ $i + 1 }}º {{ $award->name }} {{ $school_grade }} {{ $category->name }}</td>
                                             <td class="px-4 py-2 border border-gray-200">{{ $award->schoolGrade->name }}</td>
                                             <td class="px-4 py-2 border border-gray-200">{{ $award->getWinner($i, $school_grade, $category->id) }}</td>
-                                            <td class="px-4 py-2 border border-gray-200">{{ $award->winner_score }}</td>
+                                            <td class="px-4 py-2 border border-gray-200">{{ $award->getWinnerScore($i) }}</td>
                                         </tr>
                                     @endforeach
                                 @else
@@ -35,7 +35,7 @@
                                         <td class="px-4 py-2 border border-gray-200">{{ $i + 1 }}º {{ $award->name }} {{ $school_grade }}</td>
                                         <td class="px-4 py-2 border border-gray-200">{{ $award->schoolGrade->name }}</td>
                                         <td class="px-4 py-2 border border-gray-200">{{ $award->getWinner($i, $school_grade) }}</td>
-                                        <td class="px-4 py-2 border border-gray-200">{{ $award->winner_score }}</td>
+                                        <td class="px-4 py-2 border border-gray-200">{{ $award->getWinnerScore($i) }}</td>
                                     </tr>
                                 @endif
                             @endforeach
@@ -45,7 +45,7 @@
                                     <td class="px-4 py-2 border border-gray-200">{{ $i + 1 }}º {{ $award->name }} {{ $category->name }}</td>
                                     <td class="px-4 py-2 border border-gray-200">{{ $award->schoolGrade->name }}</td>
                                     <td class="px-4 py-2 border border-gray-200">{{ $award->getWinner($i, null, $category->id) }}</td>
-                                    <td class="px-4 py-2 border border-gray-200">{{ $award->winner_score }}</td>
+                                    <td class="px-4 py-2 border border-gray-200">{{ $award->getWinnerScore($i) }}</td>
                                 </tr>
                             @endforeach
                         @else
@@ -53,7 +53,7 @@
                                 <td class="px-4 py-2 border border-gray-200">{{ $i + 1 }}º {{ $award->name }}</td>
                                 <td class="px-4 py-2 border border-gray-200">{{ $award->schoolGrade->name }}</td>
                                 <td class="px-4 py-2 border border-gray-200">{{ $award->getWinner($i) }}</td>
-                                <td class="px-4 py-2 border border-gray-200">{{ $award->winner_score }}</td>
+                                <td class="px-4 py-2 border border-gray-200">{{ $award->getWinnerScore($i) }}</td>
                             </tr>
                         @endif
                     @endfor

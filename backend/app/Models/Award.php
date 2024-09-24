@@ -28,64 +28,32 @@ class Award extends Model
     {
         return $this->belongsToMany(Question::class);
     }
-
-    public function getWinner($position = null, $school = null, $categoryId = null)
+    
+    public function getWinner($position = null, $school = null, $categoryId = null) 
     {
         $questions = $this->questions->where('type', QuestionTypeEnum::MULTIPLE_CHOICE);
 
-        $validResponses = $questions->flatMap(fn ($question) => $question->responses)
-            ->filter(function ($response) use($school, $categoryId) {
-                if (!$categoryId && !$school) {
-                    return $response;
-                }
+        $scores = $questions->flatMap(function ($question) {
+            return $question->responses;
+        })->sortByDesc('score');
 
-                $schoolId = $school == 'Ensino Fundamental' ? 1 : 2;
-                $categoryCondition = $response->assessment->project->category_id == $categoryId;
-                $schoolCondition = $response->assessment->project->school_grade_id == $schoolId;
+        $score = $scores[$position - 1] ?? null;
 
-                if ($categoryId && $school) {
-                    return $categoryCondition && $schoolCondition;
-                }
-                
-                if ($categoryId) {
-                    return $categoryCondition;
-                }
-                
-                return $schoolCondition;
-            });
-
-        if ($validResponses->count() == 0) {
-            return 'Não houve competidor';
+        if (!$score) {
+            return 'Não houve competidor';        
         }
 
-        // $highScore = $validResponses->max('score');
-        // $topResponses = $validResponses->where('score', $highScore);
-        dd($this);
-        $orderedResponses = dd($validResponses->sortByDesc('score'));
-        $scores = [];
-
-        foreach ($orderedResponses as $response) {
-            $scores[$response->score][] = $response;
-        }
-
-
-        dd($scores);
-
-        // $studentNames = $targetResponses->flatMap(function ($response) {
-        //     return $response->assessment->project->students;
-        // })->pluck('name')->implode(', ');
-
-        // return $studentNames;
+        return $score?->assessment?->project?->students[0]?->name ?? 'Não houve competidor';        
     }
 
-    public function getWinnerScoreAttribute()
+    public function getWinnerScore($position)
     {
         $questions = $this->questions->where('type', QuestionTypeEnum::MULTIPLE_CHOICE);
 
-        $maxScore = $questions->flatMap(function ($question) {
+        $scores = $questions->flatMap(function ($question) {
             return $question->responses;
-        })->max('score');
+        })->sortByDesc('score');
 
-        return $maxScore;
+        return $scores[$position - 1]->score ?? '-';
     }
 }
