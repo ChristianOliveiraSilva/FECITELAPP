@@ -1,6 +1,6 @@
-import { useRouter } from 'expo-router';
 import React, { useEffect, useState, useCallback } from 'react';
 import { FlatList, StyleSheet, Text, View, Image, TouchableOpacity, ActivityIndicator, Button } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 const fetchProjects = async () => {
   try {
@@ -49,10 +49,10 @@ const ProjectItem = ({ item, onPress }) => {
   );
 };
 
-export default function Index() {
+export default function List() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
+  const navigation = useNavigation();
 
   const loadProjects = useCallback(async () => {
     setLoading(true);
@@ -66,8 +66,8 @@ export default function Index() {
   }, [loadProjects]);
 
   const handlePress = useCallback((id) => {
-    router.push(`/questionnaire/${id}`);
-  }, [router]);
+    navigation.navigate('questionnaire/[assessmentId]', { assessmentId: id });
+  }, [navigation]);
 
   return (
     <View style={styles.container}>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View, Alert, Image, } from 'react-native';
 
-const Index = () => {
+const Login = () => {
   const [pin, setPin] = useState('');
 
   const handleLogin = () => {
@@ -84,4 +84,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Index;
+export default Login;

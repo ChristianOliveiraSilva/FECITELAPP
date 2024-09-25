@@ -53,8 +53,8 @@ const fetchQuestions = async (assessmentId: number) => {
   }
 };
 
-export default function Questionnaire() {
-  const { assessmentId } = useLocalSearchParams();
+export default function Questionnaire({ route }) {
+  const { assessmentId } = route.params;
   const router = useRouter();
 
   const [questions, setQuestions] = useState([]);
