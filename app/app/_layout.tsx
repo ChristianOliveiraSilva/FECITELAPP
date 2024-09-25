@@ -42,7 +42,7 @@ export default function RootLayout({ user }) {
             drawerContent={props => <CustomDrawerContent {...props} user={user} />}
             screenOptions={({ navigation }) => ({
                 drawerPosition: "right",
-                drawerType: 'front', 
+                drawerType: 'front',
                 headerStyle: {
                     backgroundColor: '#56BA54',
                 },
@@ -73,7 +73,7 @@ export default function RootLayout({ user }) {
             <Drawer.Screen name="list" component={List} />
             <Drawer.Screen name="qr" component={QR} />
             <Drawer.Screen name="login" component={Login} options={{ headerShown: false }} />
-            <Drawer.Screen name="questionnaire/[assessmentId]" component={Questionnaire} options={{ headerShown: false }}/>
+            <Drawer.Screen name="questionnaire/[assessmentId]" component={Questionnaire} options={{ headerShown: false }} />
         </Drawer.Navigator>
     );
 }
