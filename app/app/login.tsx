@@ -1,15 +1,42 @@
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View, Alert, Image, } from 'react-native';
 
 const Login = () => {
   const [pin, setPin] = useState('');
+  const [msg, setMsg] = useState('');
+  const router = useRouter();
 
-  const handleLogin = () => {
-    console.log({ pin })
-    if (pin === '1234') {
-      Alert.alert('Login bem-sucedido!', 'Você foi autenticado com sucesso.');
-    } else {
-      Alert.alert('Erro', 'PIN incorreto. Tente novamente.');
+  const handleLogin = async () => {
+
+    if (pin.length < 4) {
+      setMsg('Erro: PIN incorreto. Tente novamente.');
+      return false
+    }
+    
+    try {
+      const response = await fetch('http://localhost/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          PIN: pin
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (data.status === true) {
+        localStorage.setItem('key', data.data.plainTextToken)
+        router.push('/list');
+      } else {
+        setMsg(data.message);
+      }
+    } catch (error) {
+      setMsg(error.message);
+      console.error('Erro:', error);
+      return false;
     }
   };
 
@@ -24,6 +51,8 @@ const Login = () => {
       <Text style={styles.title}>
         Faça login com o PIN fornecido
       </Text>
+
+      {msg && <Text style={styles.textMsg}>{msg}</Text>}
 
       <TextInput
         style={[styles.input, { color: pin ? 'black' : 'grey' }]}
@@ -61,7 +90,13 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     textAlign: 'center',
     fontSize: 18,
-    maxWidth: 500, 
+    maxWidth: 500,
+    outlineStyle: 'none',
+  },
+  textMsg: {
+    color: 'red',
+    fontSize: 16,
+    marginBottom: 30,
   },
   button: {
     backgroundColor: '#56BA54',
