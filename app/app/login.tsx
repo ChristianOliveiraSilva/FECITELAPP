@@ -6,7 +6,7 @@ const Login = () => {
   const [pin, setPin] = useState('');
   const [msg, setMsg] = useState('');
   const router = useRouter();
-  const [loading, setLoading] = useState(false); // Inicialmente, loading é false
+  const [loading, setLoading] = useState(false); 
 
   const handleLogin = async () => {
     if (pin.length < 4) {
@@ -14,7 +14,7 @@ const Login = () => {
       return;
     }
 
-    setLoading(true); // Inicia o carregamento
+    setLoading(true); 
     try {
       const response = await fetch('http://localhost/login', {
         method: 'POST',
@@ -38,7 +38,7 @@ const Login = () => {
       setMsg(error.message);
       console.error('Erro:', error);
     } finally {
-      setLoading(false); // Finaliza o carregamento independentemente do resultado
+      setLoading(false);
     }
   };
 
