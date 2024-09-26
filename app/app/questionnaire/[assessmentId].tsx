@@ -2,6 +2,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, FlatList, TextInput, ActivityIndicator, Dimensions, ScrollView } from 'react-native';
 import Header from './header';
+import { useNavigation } from '@react-navigation/native';
 
 const MULTIPLE_CHOICE_QUESTION = 1;
 
@@ -80,6 +81,8 @@ export default function Questionnaire({ route }) {
   const [screen, setScreen] = useState(0);
   const [msg, setMsg] = useState(null);
 
+  const navigation = useNavigation();
+
   useEffect(() => {
     const loadProjectAndQuestions = async () => {
       try {
@@ -112,7 +115,6 @@ export default function Questionnaire({ route }) {
     const currentQuestion = questions[currentQuestionIndex];
 
     const newAnswers = [...answers];
-    console.log({value});
     
     newAnswers[currentQuestionIndex] = {
       question_id: currentQuestion.id,
@@ -173,7 +175,7 @@ export default function Questionnaire({ route }) {
       });
 
       if (response.ok) {
-        router.replace('/list');
+        navigation.navigate('list');
       } else {
         console.error('Erro ao enviar resposta:', await response.text());
       }

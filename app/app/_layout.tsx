@@ -5,9 +5,20 @@ import List from './list';
 import QR from './qr';
 import Login from './login';
 import Questionnaire from './questionnaire/[assessmentId]';
+import { useRouter } from 'expo-router';
 
-const handleLogout = () => {
-};
+const router = useRouter();
+
+const handleLogout = async () => {
+    const response = await fetch('http://localhost/logout', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
+    localStorage.removeItem('key')
+    router.push('/login')                                                   
+}
 
 const CustomDrawerContent = ({ user }) => {
     return (
