@@ -15,16 +15,16 @@ const fetchProjects = async () => {
     });
 
     if (!response.ok) throw new Error('Erro ao buscar os assessments');
-    
+
     const data = await response.json();
 
     const groupedByCategory = data.reduce((acc, assessment) => {
       const categoryName = assessment.project.category.name;
-    
+
       if (!acc[categoryName]) {
         acc[categoryName] = [];
       }
-    
+
       acc[categoryName].push({
         id: assessment.id,
         projectName: assessment.project.title,
@@ -33,10 +33,10 @@ const fetchProjects = async () => {
         studentName: assessment.project.students.map(student => student.name).join(', '),
         hasResponse: assessment.has_response,
       });
-    
+
       return acc;
     }, {});
-    
+
     return groupedByCategory;
   } catch (error) {
     console.error('Erro:', error);
@@ -49,25 +49,25 @@ const ProjectItem = ({ item, onPress }) => {
     ? 'https://img.icons8.com/ios-filled/50/ffffff/microscope.png'
     : 'https://img.icons8.com/ios-filled/50/ffffff/computer.png';
 
-    return (
-      <TouchableOpacity key={item.id} onPress={() => onPress(item.id)} style={styles.itemContainer}>
-        <View style={[styles.iconContainer, { backgroundColor: item.projectArea == SCIENTIFIC ? '#56BA54' : '#036daa' }]}>
-          <Image source={{ uri: iconUri }} style={styles.icon} />
-        </View>
-        
-        <View style={styles.textContainer}>
-          <Text style={styles.projectName} numberOfLines={2} ellipsizeMode="tail">{item.projectId} - {item.projectName}</Text>
-          <Text style={styles.studentName} numberOfLines={2} ellipsizeMode="tail">Estudante(s): {item.studentName}</Text>
-          <Text style={styles.studentName}>{item.projectArea == SCIENTIFIC ? 'Científico' : 'Tecnológico'}</Text>
-        </View>
+  return (
+    <TouchableOpacity key={item.id} onPress={() => onPress(item.id)} style={styles.itemContainer}>
+      <View style={[styles.iconContainer, { backgroundColor: item.projectArea == SCIENTIFIC ? '#56BA54' : '#036daa' }]}>
+        <Image source={{ uri: iconUri }} style={styles.icon} />
+      </View>
 
-        <View style={styles.assessmentButtonContainer}>
-          <Text style={[styles.assessmentText, item.hasResponse ? styles.hasResponse : styles.noResponse]}>
-            {item.hasResponse ? 'Avaliado' : 'Avaliar'}
-          </Text>
-        </View>
-      </TouchableOpacity>
-    );
+      <View style={styles.textContainer}>
+        <Text style={styles.projectName} numberOfLines={2} ellipsizeMode="tail">{item.projectId} - {item.projectName}</Text>
+        <Text style={styles.studentName} numberOfLines={2} ellipsizeMode="tail">Estudante(s): {item.studentName}</Text>
+        <Text style={styles.studentName}>{item.projectArea == SCIENTIFIC ? 'Científico' : 'Tecnológico'}</Text>
+      </View>
+
+      <View style={styles.assessmentButtonContainer}>
+        <Text style={[styles.assessmentText, item.hasResponse ? styles.hasResponse : styles.noResponse]}>
+          {item.hasResponse ? 'Avaliado' : 'Avaliar'}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
 };
 
 export default function List() {
@@ -98,7 +98,7 @@ export default function List() {
         </View>
       ) : Object.entries(projects).length == 0 ? (
         <View style={styles.noProjectsContainer}>
-          <Text style={[styles.noProjectsText, {marginBottom: 20}]}>Não há projetos para serem avaliados</Text>
+          <Text style={[styles.noProjectsText, { marginBottom: 20 }]}>Não há projetos para serem avaliados</Text>
           <Button title="Tentar Novamente" onPress={loadProjects} color="#56BA54" />
         </View>
       ) : (
@@ -109,10 +109,10 @@ export default function List() {
                 <Text style={styles.groupTitle}>{group}</Text>
 
                 {projects[group].map((item) => (
-                  <ProjectItem 
-                    key={item.id} 
-                    item={item} 
-                    onPress={handlePress} 
+                  <ProjectItem
+                    key={item.id}
+                    item={item}
+                    onPress={handlePress}
                   />
                 ))}
               </View>
