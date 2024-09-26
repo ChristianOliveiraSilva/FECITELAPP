@@ -115,7 +115,7 @@ export default function Questionnaire({ route }) {
     const currentQuestion = questions[currentQuestionIndex];
 
     const newAnswers = [...answers];
-    
+
     newAnswers[currentQuestionIndex] = {
       question_id: currentQuestion.id,
       value,
@@ -128,25 +128,25 @@ export default function Questionnaire({ route }) {
   const handleNext = () => {
     const currentQuestion = questions[currentQuestionIndex];
     const answerQuestion = answers[currentQuestionIndex];
-    
+
     if (currentQuestion.type === MULTIPLE_CHOICE_QUESTION && answerQuestion == null) {
       alertMsg('Esta pergunta é obrigatória.');
       return;
     }
-  
+
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
       nextScreen()
     }
   };
-  
+
   const handlePrevious = () => {
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(currentQuestionIndex - 1);
     }
   };
-  
+
   const handleNextAndAnswer = (value: any) => {
     handleAnswer(value);
     handleNext();
@@ -300,7 +300,7 @@ export default function Questionnaire({ route }) {
             style={styles.textInput}
             placeholder="Digite a sua resposta"
             value={answers[currentQuestionIndex]?.value}
-            onChangeText={(value: string) => handleAnswer(value)} 
+            onChangeText={(value: string) => handleAnswer(value)}
             multiline
             numberOfLines={10}
             textAlignVertical="top"
@@ -394,7 +394,7 @@ export default function Questionnaire({ route }) {
   ];
 
   const currentPage = pages[screen]
-  
+
   if (currentPage) {
     return currentPage();
   }
@@ -406,7 +406,6 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
     justifyContent: 'center',
-    padding: 20,
     backgroundColor: '#F5FCFF',
   },
   title: {
@@ -420,6 +419,9 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingLeft: 20,
+    paddingRight: 20,
+    paddingBottom: 20,
   },
   containerInline: {
     flex: 1,
@@ -495,6 +497,9 @@ const styles = StyleSheet.create({
     paddingTop: 50,
     alignItems: 'center',
     backgroundColor: '#F5FCFF',
+    paddingLeft: 20,
+    paddingRight: 20,
+    paddingBottom: 20,
   },
   card: {
     backgroundColor: '#fff',
