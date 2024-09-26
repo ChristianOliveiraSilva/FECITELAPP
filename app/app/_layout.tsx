@@ -1,4 +1,5 @@
-import { Image, TouchableOpacity, View, Text, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { Image, TouchableOpacity, View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import Index from './index';
 import List from './list';
@@ -9,38 +10,56 @@ import { useRouter } from 'expo-router';
 
 const router = useRouter();
 
-const handleLogout = async () => {
-    const response = await fetch('http://localhost/logout', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    });
-    localStorage.removeItem('key')
-    router.push('/login')                                                   
-}
-
 const CustomDrawerContent = ({ user }) => {
+    const [loading, setLoading] = useState(false);
+
+    const handleLogout = async () => {
+        setLoading(true);
+        try {
+            const response = await fetch('http://localhost/logout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+            localStorage.removeItem('key');
+            router.push('/login');
+        } catch (error) {
+            console.error('Erro ao fazer logout:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
-        <View style={{ flex: 1, padding: 20, backgroundColor: '#fff' }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <View style={styles.drawerContainer}>
+            <View style={styles.headerSection}>
                 <View style={styles.userProfilePicture}>
                     <Image
                         source={{ uri: 'https://img.icons8.com/ios-filled/50/ffffff/user.png' }}
-                        style={{ width: 30, height: 35 }}
+                        style={styles.profileImage}
                     />
                 </View>
-                <Text style={{ marginLeft: 15, fontSize: 17 }}>Ana Clara</Text>
+                <Text style={styles.userName}>Usuário 1</Text>
+                <Text style={styles.userEmail}>loremipsum@gmail.com</Text>
             </View>
-            <TouchableOpacity onPress={handleLogout} style={{ marginTop: 40 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <Image
-                        source={{ uri: 'https://img.icons8.com/?size=100&id=22112&format=png&color=ff0000' }}
-                        style={{ width: 30, height: 30, marginRight: 15 }}
-                    />
-                    <Text style={{ color: '#FF0000', fontSize: 16, fontWeight: '500' }}>Sair</Text>
+            {loading ? (
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color="#56BA54" />
                 </View>
-            </TouchableOpacity>
+            ) : (
+                <>
+                    <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+                        <View style={styles.logoutRow}>
+                            <Image
+                                source={{ uri: 'https://img.icons8.com/?size=100&id=BdksXmxLaK8r&format=png&color=FF0000' }}
+                                style={styles.logoutIcon}
+                            />
+                            <Text style={styles.logoutText}>Sair</Text>
+                        </View>
+                    </TouchableOpacity>
+                </>
+            )}
         </View>
     );
 };
@@ -62,7 +81,7 @@ export default function RootLayout({ user }) {
                 headerLeft: () => (
                     <Image
                         source={require('../assets/images/fecitel-logo.png')}
-                        style={{ width: 150, height: 30, marginLeft: 15 }}
+                        style={styles.headerLogo}
                         resizeMode="contain"
                     />
                 ),
@@ -70,7 +89,7 @@ export default function RootLayout({ user }) {
                     <TouchableOpacity onPress={() => navigation.openDrawer()}>
                         <Image
                             source={{ uri: 'https://img.icons8.com/ios-filled/50/ffffff/menu.png' }}
-                            style={{ width: 25, height: 40, marginRight: 15 }}
+                            style={styles.menuIcon}
                             resizeMode="contain"
                         />
                     </TouchableOpacity>
@@ -90,12 +109,71 @@ export default function RootLayout({ user }) {
 }
 
 const styles = StyleSheet.create({
+    drawerContainer: {
+        flex: 1,
+        backgroundColor: '#fff',
+    },
+    headerSection: {
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        backgroundColor: '#56BA54',
+        paddingVertical: 20,
+        paddingHorizontal: 20,
+    },
     userProfilePicture: {
-        width: 50,
-        height: 50,
-        borderRadius: 25,
-        backgroundColor: '#94E092',
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        backgroundColor: 'lightgrey',
         justifyContent: 'center',
         alignItems: 'center',
     },
-})
+    profileImage: {
+        width: 40,
+        height: 45,
+    },
+    userName: {
+        fontSize: 20,
+        color: '#fff',
+        marginTop: 15,
+        fontWeight: '500',
+    },
+    userEmail: {
+        fontSize: 15,
+        color: '#fff',
+        marginTop: 2,
+    },
+    logoutButton: {
+        marginTop: 20,
+        paddingHorizontal: 20,
+    },
+    logoutRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    logoutIcon: {
+        width: 30,
+        height: 25,
+        marginRight: 20,
+    },
+    logoutText: {
+        color: '#FF0000',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    headerLogo: {
+        width: 150,
+        height: 30,
+        marginLeft: 15,
+    },
+    menuIcon: {
+        width: 25,
+        height: 40,
+        marginRight: 15,
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+});
