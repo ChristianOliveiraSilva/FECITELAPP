@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Image, TouchableOpacity, View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { Image, TouchableOpacity, View, Text, StyleSheet, ActivityIndicator, CommonActions } from 'react-native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import Index from './index';
 import List from './list';
@@ -7,22 +7,25 @@ import QR from './qr';
 import Login from './login';
 import Questionnaire from './questionnaire/[assessmentId]';
 import { useRouter } from 'expo-router';
+import { useUser, UserProvider  } from './UserContext';
 
 const router = useRouter();
 
-const CustomDrawerContent = ({ user }) => {
+const CustomDrawerContent = () => {
     const [loading, setLoading] = useState(false);
+    const { user } = useUser();
 
     const handleLogout = async () => {
         setLoading(true);
         try {
-            const response = await fetch('http://localhost/logout', {
+            await fetch('http://localhost/logout', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
             });
             localStorage.removeItem('key');
+            localStorage.removeItem('user');
             router.push('/login');
         } catch (error) {
             console.error('Erro ao fazer logout:', error);
@@ -40,25 +43,29 @@ const CustomDrawerContent = ({ user }) => {
                         style={styles.profileImage}
                     />
                 </View>
-                <Text style={styles.userName}>Usuário 1</Text>
-                <Text style={styles.userEmail}>loremipsum@gmail.com</Text>
+                {user ? (
+                    <>
+                        <Text style={styles.userName}>{user.name}</Text>
+                        <Text style={styles.userEmail}>{user.email}</Text>
+                    </>
+                ) : (
+                    <Text style={styles.userName}>Carregando...</Text>
+                )}
             </View>
             {loading ? (
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color="#56BA54" />
                 </View>
             ) : (
-                <>
-                    <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-                        <View style={styles.logoutRow}>
-                            <Image
-                                source={{ uri: 'https://img.icons8.com/?size=100&id=BdksXmxLaK8r&format=png&color=FF0000' }}
-                                style={styles.logoutIcon}
-                            />
-                            <Text style={styles.logoutText}>Sair</Text>
-                        </View>
-                    </TouchableOpacity>
-                </>
+                <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+                    <View style={styles.logoutRow}>
+                        <Image
+                            source={{ uri: 'https://img.icons8.com/?size=100&id=BdksXmxLaK8r&format=png&color=FF0000' }}
+                            style={styles.logoutIcon}
+                        />
+                        <Text style={styles.logoutText}>Sair</Text>
+                    </View>
+                </TouchableOpacity>
             )}
         </View>
     );
@@ -66,45 +73,47 @@ const CustomDrawerContent = ({ user }) => {
 
 const Drawer = createDrawerNavigator();
 
-export default function RootLayout({ user }) {
+export default function RootLayout() {
     return (
-        <Drawer.Navigator
-            drawerContent={props => <CustomDrawerContent {...props} user={user} />}
-            screenOptions={({ navigation }) => ({
-                drawerPosition: "right",
-                drawerType: 'front',
-                headerStyle: {
-                    backgroundColor: '#56BA54',
-                },
-                headerTitle: '',
-                headerTintColor: '#fff',
-                headerLeft: () => (
-                    <Image
-                        source={require('../assets/images/fecitel-logo.png')}
-                        style={styles.headerLogo}
-                        resizeMode="contain"
-                    />
-                ),
-                headerRight: () => (
-                    <TouchableOpacity onPress={() => navigation.openDrawer()}>
+        <UserProvider>
+            <Drawer.Navigator
+                drawerContent={props => <CustomDrawerContent {...props} />}
+                screenOptions={({ navigation }) => ({
+                    drawerPosition: "right",
+                    drawerType: 'front',
+                    headerStyle: {
+                        backgroundColor: '#56BA54',
+                    },
+                    headerTitle: '',
+                    headerTintColor: '#fff',
+                    headerLeft: () => (
                         <Image
-                            source={{ uri: 'https://img.icons8.com/ios-filled/50/ffffff/menu.png' }}
-                            style={styles.menuIcon}
+                            source={require('../assets/images/fecitel-logo.png')}
+                            style={styles.headerLogo}
                             resizeMode="contain"
                         />
-                    </TouchableOpacity>
-                ),
-                drawerStyle: {
-                    width: 300,
-                },
-                overlayColor: 'rgba(0, 0, 0, 0.5)',
-            })}>
-            <Drawer.Screen name="index" component={Index} />
-            <Drawer.Screen name="list" component={List} />
-            <Drawer.Screen name="qr" component={QR} />
-            <Drawer.Screen name="login" component={Login} options={{ headerShown: false }} />
-            <Drawer.Screen name="questionnaire/[assessmentId]" component={Questionnaire} options={{ headerShown: false }} />
-        </Drawer.Navigator>
+                    ),
+                    headerRight: () => (
+                        <TouchableOpacity onPress={() => navigation.openDrawer()}>
+                            <Image
+                                source={{ uri: 'https://img.icons8.com/ios-filled/50/ffffff/menu.png' }}
+                                style={styles.menuIcon}
+                                resizeMode="contain"
+                            />
+                        </TouchableOpacity>
+                    ),
+                    drawerStyle: {
+                        width: 300,
+                    },
+                    overlayColor: 'rgba(0, 0, 0, 0.5)',
+                })}>
+                <Drawer.Screen name="index" component={Index} />
+                <Drawer.Screen name="list" component={List} />
+                <Drawer.Screen name="qr" component={QR} />
+                <Drawer.Screen name="login" component={Login} options={{ headerShown: false }} />
+                <Drawer.Screen name="questionnaire/[assessmentId]" component={Questionnaire} options={{ headerShown: false }} />
+            </Drawer.Navigator>
+        </UserProvider>
     );
 }
 

@@ -1,12 +1,14 @@
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View, Image, ActivityIndicator } from 'react-native';
+import { useUser } from './UserContext';
 
 const Login = () => {
   const [pin, setPin] = useState('');
   const [msg, setMsg] = useState('');
   const router = useRouter();
-  const [loading, setLoading] = useState(false); 
+  const [loading, setLoading] = useState(false);
+  const { setUser } = useUser();
 
   const handleLogin = async () => {
     if (pin.length < 4) {
@@ -14,7 +16,7 @@ const Login = () => {
       return;
     }
 
-    setLoading(true); 
+    setLoading(true);
     try {
       const response = await fetch('http://localhost/login', {
         method: 'POST',
@@ -22,14 +24,16 @@ const Login = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          PIN: pin
-        })
+          PIN: pin,
+        }),
       });
 
       const data = await response.json();
 
       if (data.status === true) {
         localStorage.setItem('key', data.data.plainTextToken);
+        setUser(data.data.user);
+        setPin('');
         router.push('/list');
       } else {
         setMsg(data.message);
