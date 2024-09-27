@@ -32,6 +32,7 @@ const Login = () => {
 
       if (data.status === true) {
         localStorage.setItem('key', data.data.plainTextToken);
+        localStorage.setItem('user', JSON.stringify({ name: data.data.user.name, email: data.data.user.email }));
         setUser(data.data.user);
         setPin('');
         router.push('/list');

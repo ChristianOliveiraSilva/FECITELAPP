@@ -5,14 +5,13 @@ import Index from './index';
 import List from './list';
 import Login from './login';
 import Questionnaire from './questionnaire/[assessmentId]';
-import { useRouter } from 'expo-router';
-import { useUser, UserProvider  } from './UserContext';
+import { useUser, UserProvider } from './UserContext';
+import { CommonActions } from '@react-navigation/native';
 
 
 const CustomDrawerContent = (props: any) => {
-    const router = useRouter();
     const [loading, setLoading] = useState(false);
-    const { user } = useUser();
+    const { user, setUser } = useUser();
 
     const handleLogout = async () => {
         setLoading(true);
@@ -27,8 +26,14 @@ const CustomDrawerContent = (props: any) => {
 
             localStorage.removeItem('key');
             localStorage.removeItem('user');
+            setUser(null);
 
-            router.push('/login');
+            props.navigation.dispatch(
+                CommonActions.reset({
+                    index: 0,
+                    routes: [{ name: 'login' }],
+                })
+            );
         } catch (error) {
             console.error('Erro ao fazer logout:', error);
         } finally {
