@@ -5,12 +5,15 @@ namespace App\Filament\Resources;
 use App\Enum\AreaEnum;
 use App\Filament\Resources\EvaluatorResource\Pages;
 use App\Filament\Resources\EvaluatorResource\RelationManagers;
+use App\Helper;
+use App\Models\Category;
 use App\Models\Evaluator;
 use App\Models\Project;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -49,10 +52,11 @@ class EvaluatorResource extends Resource
                     ->default(Evaluator::generateRandomPin())
                     ->required(),
 
-                Forms\Components\Select::make('area')
+                Forms\Components\Select::make('categories')
                     ->label('Área')
-                    ->options(AreaEnum::class)
-                    ->default(AreaEnum::TECHNICAL)
+                    ->relationship('categories', 'name', fn (Builder $query) => $query->whereNull('main_category_id'))
+                    ->multiple()
+                    ->preload()
                     ->required(),
 
                 Forms\Components\Select::make('project_id')
@@ -71,13 +75,22 @@ class EvaluatorResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('user.name')
                     ->label('Nome')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('user.email')
-                    ->label('Email')
+                    ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('PIN')
                     ->label('PIN')
-                    ->sortable(),
+                    ->sortable()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('total_projects')
+                    ->label('Quantidade de projetos')
+                    ->sortable()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('categories.name')
+                    ->label('Área')
+                    ->limit(50)
+                    ->tooltip(Helper::getTooltipFunction())
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Criado em')
                     ->dateTime()
@@ -90,7 +103,11 @@ class EvaluatorResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                SelectFilter::make('categories')
+                    ->relationship('categories', 'name', fn (Builder $query) => $query->whereNull('main_category_id'))
+                    ->label('Área')
+                    ->searchable()
+                    ->preload()
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

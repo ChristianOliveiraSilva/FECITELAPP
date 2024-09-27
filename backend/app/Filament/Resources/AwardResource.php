@@ -9,6 +9,7 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -33,8 +34,25 @@ class AwardResource extends Resource
 
                 Forms\Components\Select::make('school_grade_id')
                     ->relationship('schoolGrade', 'name')
-                    ->label('Grau de escolaridade')
+                    ->label('Grau de Escolaridade')
                     ->required(),
+
+                Forms\Components\Select::make('questions')
+                    ->label('Perguntas')
+                    ->relationship('questions', 'text')
+                    ->multiple()
+                    ->preload()
+                    ->required(),
+
+                Forms\Components\TextInput::make('total_positions')
+                    ->label('Total de posições')
+                    ->required(),
+
+                Forms\Components\Checkbox::make('use_school_grades')
+                    ->label('Usar Grau de escolaridade'),
+
+                Forms\Components\Checkbox::make('use_categories')
+                    ->label('Usar Categorias'),
             ]);
     }
 
@@ -44,15 +62,37 @@ class AwardResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->label('Nome')
+                    ->sortable()
                     ->searchable(),
+
                 Tables\Columns\TextColumn::make('schoolGrade.name')
-                    ->label('Grau de escolaridade')
+                    ->label('Grau de Escolaridade')
+                    ->sortable()
                     ->searchable(),
+
+                Tables\Columns\TextColumn::make('total_positions')
+                    ->label('Total de posições')
+                    ->sortable()
+                    ->searchable(),
+
+                Tables\Columns\IconColumn::make('use_school_grades')
+                    ->label('Usar Graus de escolaridade?')
+                    ->boolean()
+                    ->sortable()
+                    ->searchable(),
+
+                Tables\Columns\IconColumn::make('use_categories')
+                    ->label('Usar Categorias?')
+                    ->boolean()
+                    ->sortable()
+                    ->searchable(),
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Criado em')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+
                 Tables\Columns\TextColumn::make('updated_at')
                     ->label('Atualizado em')
                     ->dateTime()
@@ -60,10 +100,13 @@ class AwardResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                SelectFilter::make('schoolGrade')
+                    ->relationship('schoolGrade', 'name')
+                    ->label('Grau de Escolaridade')
+                    ->searchable()
+                    ->preload()
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
@@ -85,7 +128,6 @@ class AwardResource extends Resource
         return [
             'index' => Pages\ListAwards::route('/'),
             'create' => Pages\CreateAward::route('/create'),
-            'view' => Pages\ViewAward::route('/{record}'),
             'edit' => Pages\EditAward::route('/{record}/edit'),
         ];
     }

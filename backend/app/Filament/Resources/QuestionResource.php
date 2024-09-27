@@ -9,12 +9,15 @@ use App\Filament\Resources\QuestionResource\RelationManagers;
 use App\Models\Question;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Tables\Columns\SelectColumn;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
 
 class QuestionResource extends Resource
 {
@@ -32,16 +35,25 @@ class QuestionResource extends Resource
                     ->label('Pergunta')
                     ->required()
                     ->columnSpanFull(),
+
                 Forms\Components\Select::make('type')
                     ->label('Tipo')
                     ->options(QuestionTypeEnum::class)
                     ->default(QuestionTypeEnum::MULTIPLE_CHOICE)
+                    ->live()
                     ->required(),
+
                 Forms\Components\Select::make('area')
-                    ->label('Área')
+                    ->label('Tipo de projeto')
                     ->options(AreaEnum::class)
                     ->default(AreaEnum::TECHNICAL)
                     ->required(),
+
+                Forms\Components\TextInput::make('number_alternatives')
+                    ->label('Número de Alternativas')
+                    ->default(20)
+                    ->numeric()
+                    ->hidden(fn (Get $get) => $get('type') != QuestionTypeEnum::MULTIPLE_CHOICE),
             ]);
     }
 
@@ -51,13 +63,17 @@ class QuestionResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('text')
                     ->label('Pergunta')
+                    ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('type')
                     ->label('Tipo')
-                    ->sortable(),
+                    ->limit(50)
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('area')
-                    ->label('Área')
-                    ->sortable(),
+                    ->label('Tipo de projeto')
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Criado em')
                     ->dateTime()
@@ -70,7 +86,14 @@ class QuestionResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                SelectFilter::make('type')
+                    ->label('Tipo')
+                    ->options(fn (): array => QuestionTypeEnum::getValues())
+                    ->attribute('type'),
+                SelectFilter::make('area')
+                    ->label('Tipo de projeto')
+                    ->options(fn (): array => AreaEnum::getValues())
+                    ->attribute('area'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

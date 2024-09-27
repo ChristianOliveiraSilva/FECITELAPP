@@ -39,6 +39,7 @@ return new class extends Migration
             $table->integer('year');
             $table->integer('area');
             $table->foreignId('category_id')->constrained('categories')->onDelete('cascade');
+            $table->integer('external_id');
             $table->timestamps();
             $table->softDeletes();
         });
@@ -54,7 +55,6 @@ return new class extends Migration
         Schema::create('evaluators', function (Blueprint $table) {
             $table->id();
             $table->integer('PIN');
-            $table->integer('area');
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('cascade');
             $table->timestamps();
             $table->softDeletes();
@@ -73,6 +73,7 @@ return new class extends Migration
             $table->text('text');
             $table->integer('type');
             $table->integer('area');
+            $table->integer('number_alternatives');
             $table->timestamps();
             $table->softDeletes();
         });
@@ -91,6 +92,9 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->foreignId('school_grade_id')->constrained('school_grades')->onDelete('cascade');
+            $table->integer('total_positions');
+            $table->boolean('use_school_grades');
+            $table->boolean('use_categories');
             $table->timestamps();
             $table->softDeletes();
         });
@@ -99,7 +103,14 @@ return new class extends Migration
             $table->id();
             $table->foreignId('award_id')->constrained('awards')->onDelete('cascade');
             $table->foreignId('question_id')->constrained('questions')->onDelete('cascade');
-            $table->integer('weight');
+            $table->timestamps();
+            $table->softDeletes();
+        });
+
+        Schema::create('evaluator_categories', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('category_id')->constrained('categories')->onDelete('cascade');
+            $table->foreignId('evaluator_id')->constrained('evaluators')->onDelete('cascade');
             $table->timestamps();
             $table->softDeletes();
         });

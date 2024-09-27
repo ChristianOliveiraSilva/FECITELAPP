@@ -19,7 +19,7 @@ class CategoryResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-list-bullet';
 
-    protected static ?string $modelLabel = 'categoria';
+    protected static ?string $modelLabel = 'área';
 
     public static function form(Form $form): Form
     {
@@ -30,8 +30,8 @@ class CategoryResource extends Resource
                     ->required(),
 
                 Forms\Components\Select::make('main_category_id')
-                    ->relationship('mainCategory', 'name')
-                    ->label('Categoria Pai'),
+                    ->relationship('mainCategory', 'name', fn (Builder $query) => $query->whereNull('main_category_id'))
+                    ->label('Área Pai'),
             ]);
     }
 
@@ -41,6 +41,7 @@ class CategoryResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->label('Nome')
+                    ->sortable()
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('created_at')

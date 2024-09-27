@@ -16,6 +16,7 @@ class Question extends Model
         'text',
         'type',
         'area',
+        'number_alternatives',
     ];
 
     protected $casts = [
@@ -30,6 +31,6 @@ class Question extends Model
 
     public function awards()
     {
-        return $this->belongsToMany(Award::class)->withPivot('weight');
+        return $this->belongsToMany(Award::class);
     }
 }

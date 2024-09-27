@@ -17,6 +17,7 @@ class Project extends Model
         'year',
         'category_id',
         'area',
+        'external_id',
     ];
 
     protected $casts = [
@@ -36,5 +37,10 @@ class Project extends Model
     public function assessments()
     {
         return $this->hasMany(Assessment::class);
+    }
+
+    public function getSchoolGradeIdAttribute()
+    {
+        return $this->students[0]->school_grade_id;
     }
 }

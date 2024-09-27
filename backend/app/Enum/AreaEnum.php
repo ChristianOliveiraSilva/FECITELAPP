@@ -16,4 +16,12 @@ enum AreaEnum: int implements HasLabel
             self::SCIENTIFIC => 'Científico',
         };
     }
+
+    public static function getValues(): array
+    {
+        return [
+            self::TECHNICAL->value => 'Técnico',
+            self::SCIENTIFIC->value => 'Científico',
+        ];
+    }
 }

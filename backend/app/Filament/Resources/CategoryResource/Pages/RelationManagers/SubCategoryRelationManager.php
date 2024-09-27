@@ -10,7 +10,7 @@ class SubCategoryRelationManager extends RelationManager
 {
     protected static string $relationship = 'subCategories';
 
-    protected static ?string $title = 'Sub-cateogrias';
+    protected static ?string $title = 'Sub-Áreas';
 
     public function table(Table $table): Table
     {

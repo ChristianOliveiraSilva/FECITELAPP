@@ -14,6 +14,9 @@ class Award extends Model
     protected $fillable = [
         'name',
         'school_grade_id',
+        'total_positions',
+        'use_school_grades',
+        'use_categories',
     ];
 
     public function schoolGrade()
@@ -23,38 +26,34 @@ class Award extends Model
 
     public function questions()
     {
-        return $this->belongsToMany(Question::class)->withPivot('weight');
+        return $this->belongsToMany(Question::class);
     }
-
-    public function getWinnerAttribute()
+    
+    public function getWinner($position = null, $school = null, $categoryId = null) 
     {
         $questions = $this->questions->where('type', QuestionTypeEnum::MULTIPLE_CHOICE);
 
-        $maxScore = $questions->flatMap(function ($question) {
+        $scores = $questions->flatMap(function ($question) {
             return $question->responses;
-        })->max('score');
-        
-        $topResponses = $questions->flatMap(function ($question) {
-            return $question->responses;
-        })->filter(function ($response) use ($maxScore) {
-            return $response['score'] == $maxScore;
-        });
+        })->sortByDesc('score');
 
-        $studentNames = $topResponses->flatMap(function ($response) {
-            return $response->assessment->project->students;
-        })->pluck('name')->implode(', ');
+        $score = $scores[$position - 1] ?? null;
 
-        return $studentNames;
+        if (!$score) {
+            return 'Não houve competidor';        
+        }
+
+        return $score?->assessment?->project?->students[0]?->name ?? 'Não houve competidor';        
     }
 
-    public function getWinnerScoreAttribute()
+    public function getWinnerScore($position)
     {
         $questions = $this->questions->where('type', QuestionTypeEnum::MULTIPLE_CHOICE);
 
-        $maxScore = $questions->flatMap(function ($question) {
+        $scores = $questions->flatMap(function ($question) {
             return $question->responses;
-        })->max('score');
+        })->sortByDesc('score');
 
-        return $maxScore;
+        return $scores[$position - 1]->score ?? '-';
     }
 }
