@@ -2,6 +2,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, FlatList, TextInput, ActivityIndicator, Dimensions, ScrollView } from 'react-native';
 import Header from './header';
+import { useNavigation } from '@react-navigation/native';
 
 const MULTIPLE_CHOICE_QUESTION = 1;
 
@@ -66,8 +67,8 @@ const fetchQuestions = async (assessmentId: number) => {
   }
 };
 
-export default function Questionnaire() {
-  const { assessmentId } = useLocalSearchParams();
+export default function Questionnaire({ route }) {
+  const { assessmentId } = route.params;
   const router = useRouter();
 
   const [questions, setQuestions] = useState([]);
@@ -79,6 +80,8 @@ export default function Questionnaire() {
   const [isLoading, setIsLoading] = useState(true);
   const [screen, setScreen] = useState(0);
   const [msg, setMsg] = useState(null);
+
+  const navigation = useNavigation();
 
   useEffect(() => {
     const loadProjectAndQuestions = async () => {
@@ -112,8 +115,7 @@ export default function Questionnaire() {
     const currentQuestion = questions[currentQuestionIndex];
 
     const newAnswers = [...answers];
-    console.log({value});
-    
+
     newAnswers[currentQuestionIndex] = {
       question_id: currentQuestion.id,
       value,
@@ -126,25 +128,25 @@ export default function Questionnaire() {
   const handleNext = () => {
     const currentQuestion = questions[currentQuestionIndex];
     const answerQuestion = answers[currentQuestionIndex];
-    
+
     if (currentQuestion.type === MULTIPLE_CHOICE_QUESTION && answerQuestion == null) {
       alertMsg('Esta pergunta é obrigatória.');
       return;
     }
-  
+
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
       nextScreen()
     }
   };
-  
+
   const handlePrevious = () => {
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(currentQuestionIndex - 1);
     }
   };
-  
+
   const handleNextAndAnswer = (value: any) => {
     handleAnswer(value);
     handleNext();
@@ -173,7 +175,7 @@ export default function Questionnaire() {
       });
 
       if (response.ok) {
-        router.replace('/list');
+        navigation.navigate('list');
       } else {
         console.error('Erro ao enviar resposta:', await response.text());
       }
@@ -298,7 +300,7 @@ export default function Questionnaire() {
             style={styles.textInput}
             placeholder="Digite a sua resposta"
             value={answers[currentQuestionIndex]?.value}
-            onChangeText={(value: string) => handleAnswer(value)} 
+            onChangeText={(value: string) => handleAnswer(value)}
             multiline
             numberOfLines={10}
             textAlignVertical="top"
@@ -392,7 +394,7 @@ export default function Questionnaire() {
   ];
 
   const currentPage = pages[screen]
-  
+
   if (currentPage) {
     return currentPage();
   }
@@ -404,7 +406,6 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
     justifyContent: 'center',
-    padding: 20,
     backgroundColor: '#F5FCFF',
   },
   title: {
@@ -418,6 +419,9 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingLeft: 20,
+    paddingRight: 20,
+    paddingBottom: 20,
   },
   containerInline: {
     flex: 1,
@@ -493,6 +497,9 @@ const styles = StyleSheet.create({
     paddingTop: 50,
     alignItems: 'center',
     backgroundColor: '#F5FCFF',
+    paddingLeft: 20,
+    paddingRight: 20,
+    paddingBottom: 20,
   },
   card: {
     backgroundColor: '#fff',

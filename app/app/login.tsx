@@ -1,19 +1,22 @@
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { StyleSheet, Text, TextInput, TouchableOpacity, View, Alert, Image, } from 'react-native';
+import { StyleSheet, Text, TextInput, TouchableOpacity, View, Image, ActivityIndicator } from 'react-native';
+import { useUser } from './UserContext';
 
-const Index = () => {
+const Login = () => {
   const [pin, setPin] = useState('');
   const [msg, setMsg] = useState('');
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const { setUser } = useUser();
 
   const handleLogin = async () => {
-
     if (pin.length < 4) {
       setMsg('Erro: PIN incorreto. Tente novamente.');
-      return false
+      return;
     }
-    
+
+    setLoading(true);
     try {
       const response = await fetch('http://localhost/login', {
         method: 'POST',
@@ -21,14 +24,16 @@ const Index = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          PIN: pin
-        })
+          PIN: pin,
+        }),
       });
-      
+
       const data = await response.json();
-      
+
       if (data.status === true) {
-        localStorage.setItem('key', data.data.plainTextToken)
+        localStorage.setItem('key', data.data.plainTextToken);
+        setUser(data.data.user);
+        setPin('');
         router.push('/list');
       } else {
         setMsg(data.message);
@@ -36,37 +41,46 @@ const Index = () => {
     } catch (error) {
       setMsg(error.message);
       console.error('Erro:', error);
-      return false;
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <View style={styles.container}>
-      <Image
-        source={require('../assets/images/ifms-feira-de-ciencia.jpg')}
-        style={{ height: 230, marginBottom: 50, marginTop: 80}}
-        resizeMode="contain"
-      />
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#56BA54" />
+        </View>
+      ) : (
+        <>
+          <Image
+            source={require('../assets/images/ifms-feira-de-ciencia.jpg')}
+            style={{ height: 230, marginBottom: 50, marginTop: 80 }}
+            resizeMode="contain"
+          />
 
-      <Text style={styles.title}>
-        Faça login com o PIN fornecido
-      </Text>
+          <Text style={styles.title}>
+            Faça login com o PIN fornecido
+          </Text>
 
-      {msg && <Text style={styles.textMsg}>{msg}</Text>}
+          {msg && <Text style={styles.textMsg}>{msg}</Text>}
 
-      <TextInput
-        style={[styles.input, { color: pin ? 'black' : 'grey' }]}
-        placeholder="PIN"
-        keyboardType="numeric"
-        secureTextEntry
-        maxLength={4}
-        value={pin}
-        onChangeText={setPin}
-      />
+          <TextInput
+            style={[styles.input, { color: pin ? 'black' : 'grey' }]}
+            placeholder="PIN"
+            keyboardType="numeric"
+            secureTextEntry
+            maxLength={4}
+            value={pin}
+            onChangeText={setPin}
+          />
 
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Entrar</Text>
-      </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={handleLogin}>
+            <Text style={styles.buttonText}>Entrar</Text>
+          </TouchableOpacity>
+        </>
+      )}
     </View>
   );
 };
@@ -111,6 +125,11 @@ const styles = StyleSheet.create({
     maxWidth: 500,
 
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   buttonText: {
     color: '#fff',
     fontSize: 17,
@@ -119,4 +138,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Index;
+export default Login;
