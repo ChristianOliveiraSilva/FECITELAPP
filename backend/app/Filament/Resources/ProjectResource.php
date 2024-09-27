@@ -79,6 +79,8 @@ class ProjectResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('external_id')
                     ->label('ID do projeto')
+                    ->limit(50)
+                    ->tooltip(Helper::getTooltipFunction())
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('title')
@@ -89,6 +91,8 @@ class ProjectResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('year')
                     ->label('Ano')
+                    ->limit(50)
+                    ->tooltip(Helper::getTooltipFunction())
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('students.name')
@@ -99,10 +103,14 @@ class ProjectResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('category.name')
                     ->label('Área')
+                    ->limit(50)
+                    ->tooltip(Helper::getTooltipFunction())
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('area')
                     ->label('Tipo de projeto')
+                    ->limit(50)
+                    ->tooltip(Helper::getTooltipFunction())
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('created_at')

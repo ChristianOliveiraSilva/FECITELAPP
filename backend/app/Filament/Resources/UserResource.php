@@ -10,6 +10,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use App\Helper;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
@@ -46,14 +47,20 @@ class UserResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->label('Nome')
+                    ->limit(50)
+                    ->tooltip(Helper::getTooltipFunction())
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('email')
+                    ->limit(50)
+                    ->tooltip(Helper::getTooltipFunction())
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('email_verified_at')
                     ->label('Email verificado')
                     ->dateTime()
+                    ->limit(50)
+                    ->tooltip(Helper::getTooltipFunction())
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('created_at')

@@ -35,10 +35,14 @@ class AssessmentResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('evaluator.user.name')
                     ->label('Avaliador')
+                    ->limit(50)
+                    ->tooltip(Helper::getTooltipFunction())
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('project.external_id')
                     ->label('ID do Projeto')
+                    ->limit(50)
+                    ->tooltip(Helper::getTooltipFunction())
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('project.title')
@@ -55,6 +59,8 @@ class AssessmentResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('note')
                     ->label('Nota Final')
+                    ->limit(50)
+                    ->tooltip(Helper::getTooltipFunction())
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('created_at')

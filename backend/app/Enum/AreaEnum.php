@@ -12,7 +12,7 @@ enum AreaEnum: int implements HasLabel
     public function getLabel(): string
     {
         return match ($this) {
-            self::TECHNICAL => 'Técnico',
+            self::TECHNICAL => 'Tecnológico',
             self::SCIENTIFIC => 'Científico',
         };
     }
@@ -20,7 +20,7 @@ enum AreaEnum: int implements HasLabel
     public static function getValues(): array
     {
         return [
-            self::TECHNICAL->value => 'Técnico',
+            self::TECHNICAL->value => 'Tecnológico',
             self::SCIENTIFIC->value => 'Científico',
         ];
     }

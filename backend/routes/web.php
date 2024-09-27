@@ -34,21 +34,30 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
 
     Route::post('/responses', function () {
         $data = request()->all();
+
+        $assessment = Assessment::find($data['assessment']);
         $responses = collect($data['responses']);
-        $assessment = $data['assessment'];
+
+        if (!$assessment) {
+            return "Avaliação não encontrada";
+        }
+
+        if ($assessment->has_response) {
+            $assessment->responses()->delete();
+        }
 
         $responses->each(function($response) use($assessment) {
-            $responseValue = $response['type'] == QuestionTypeEnum::TEXT ? $response['value'] : null;
-            $scoreValue = $response['type'] == QuestionTypeEnum::MULTIPLE_CHOICE ? $response['value'] : null;
-
+            $responseValue = $response['type'] == QuestionTypeEnum::TEXT->value ? $response['value'] : null;
+            $scoreValue = $response['type'] == QuestionTypeEnum::MULTIPLE_CHOICE->value ? $response['value'] : null;
+            
             Response::create([
                 'question_id' => $response['question_id'],
-                'assessment_id' => $assessment,
+                'assessment_id' => $assessment->id,
                 'response' => $responseValue,
                 'score' => $scoreValue,
             ]);
         });
 
-        return Assessment::find($assessment)->load('responses.question');
+        return $assessment->load('responses.question');
     });
 });

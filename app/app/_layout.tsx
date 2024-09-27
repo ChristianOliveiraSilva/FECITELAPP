@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Image, TouchableOpacity, View, Text, StyleSheet, ActivityIndicator, CommonActions } from 'react-native';
+import { Image, TouchableOpacity, View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import Index from './index';
 import List from './list';
-import QR from './qr';
 import Login from './login';
 import Questionnaire from './questionnaire/[assessmentId]';
 import { useRouter } from 'expo-router';
 import { useUser, UserProvider  } from './UserContext';
 
-const router = useRouter();
 
-const CustomDrawerContent = () => {
+const CustomDrawerContent = (props: any) => {
+    const router = useRouter();
     const [loading, setLoading] = useState(false);
     const { user } = useUser();
 
@@ -21,11 +20,14 @@ const CustomDrawerContent = () => {
             await fetch('http://localhost/logout', {
                 method: 'POST',
                 headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('key')}`,
                     'Content-Type': 'application/json',
                 },
             });
+
             localStorage.removeItem('key');
             localStorage.removeItem('user');
+
             router.push('/login');
         } catch (error) {
             console.error('Erro ao fazer logout:', error);
@@ -109,7 +111,6 @@ export default function RootLayout() {
                 })}>
                 <Drawer.Screen name="index" component={Index} />
                 <Drawer.Screen name="list" component={List} />
-                <Drawer.Screen name="qr" component={QR} />
                 <Drawer.Screen name="login" component={Login} options={{ headerShown: false }} />
                 <Drawer.Screen name="questionnaire/[assessmentId]" component={Questionnaire} options={{ headerShown: false }} />
             </Drawer.Navigator>

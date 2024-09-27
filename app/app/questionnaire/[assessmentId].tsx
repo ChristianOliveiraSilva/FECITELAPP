@@ -79,7 +79,7 @@ export default function Questionnaire({ route }) {
 
   const [isLoading, setIsLoading] = useState(true);
   const [screen, setScreen] = useState(0);
-  const [msg, setMsg] = useState(null);
+  const [msg, setMsg] = useState('');
 
   const navigation = useNavigation();
 
@@ -113,12 +113,11 @@ export default function Questionnaire({ route }) {
 
   const handleAnswer = (value: any) => {
     const currentQuestion = questions[currentQuestionIndex];
-
     const newAnswers = [...answers];
 
     newAnswers[currentQuestionIndex] = {
       question_id: currentQuestion.id,
-      value,
+      value: value ?? null,
       type: currentQuestion.type,
     };
 
@@ -156,11 +155,13 @@ export default function Questionnaire({ route }) {
     setCurrentQuestionIndex(0);
     setAnswers([])
     setScreen(0);
-    setMsg(null);
+    setMsg('');
   };
 
   const handleSave = async () => {
     setIsLoading(true);
+    setMsg('');
+    
     try {
       const response = await fetch('http://localhost/responses', {
         method: 'POST',
@@ -177,16 +178,19 @@ export default function Questionnaire({ route }) {
       if (response.ok) {
         navigation.navigate('list');
       } else {
-        console.error('Erro ao enviar resposta:', await response.text());
+        setMsg('Erro ao enviar resposta: ' + await response.text())
+        console.error('Erro ao enviar resposta: ', await response.text());
       }
     } catch (error) {
-      console.error('Erro ao enviar resposta:', error);
+      setMsg('Erro ao enviar resposta: ' + error)
+      console.error('Erro ao enviar resposta: ', error);
     } finally {
       setIsLoading(false);
     }
   };
 
   const nextScreen = () => {
+    setMsg('')
     setScreen(screen + 1)
   }
 
@@ -355,6 +359,9 @@ export default function Questionnaire({ route }) {
       <Header project={assessment} />
       <View style={styles.container}>
         <Text style={[styles.title, { marginTop: 40 }]}>Suas Respostas:</Text>
+        
+        {msg && <Text>{msg}</Text>}
+
         {answers.map((answer, index) => {
           const questionText = questions.find((q) => q.id === answer.question_id)?.text || 'Pergunta não encontrada';
           return (

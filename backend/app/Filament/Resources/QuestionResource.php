@@ -7,6 +7,7 @@ use App\Enum\QuestionTypeEnum;
 use App\Filament\Resources\QuestionResource\Pages;
 use App\Filament\Resources\QuestionResource\RelationManagers;
 use App\Models\Question;
+use App\Helper;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
@@ -53,7 +54,7 @@ class QuestionResource extends Resource
                     ->label('Número de Alternativas')
                     ->default(20)
                     ->numeric()
-                    ->hidden(fn (Get $get) => $get('type') != QuestionTypeEnum::MULTIPLE_CHOICE),
+                    ->hidden(fn (Get $get) => self::setHiddenValue($get('type'), QuestionTypeEnum::MULTIPLE_CHOICE->value)),
             ]);
     }
 
@@ -63,15 +64,21 @@ class QuestionResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('text')
                     ->label('Pergunta')
+                    ->limit(50)
+                    ->tooltip(Helper::getTooltipFunction())
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('type')
                     ->label('Tipo')
                     ->limit(50)
+                    ->limit(50)
+                    ->tooltip(Helper::getTooltipFunction())
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('area')
                     ->label('Tipo de projeto')
+                    ->limit(50)
+                    ->tooltip(Helper::getTooltipFunction())
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('created_at')
@@ -103,6 +110,15 @@ class QuestionResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
+    }
+
+    public static function setHiddenValue($value, $enumValue): bool
+    {
+        if (is_integer($value)) {
+            return $value != $enumValue;
+        }
+
+        return $value->value != $enumValue;
     }
 
     public static function getRelations(): array

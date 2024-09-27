@@ -8,6 +8,7 @@ use App\Models\Award;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use App\Helper;
 use Filament\Tables;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -52,7 +53,7 @@ class AwardResource extends Resource
                     ->label('Usar Grau de escolaridade'),
 
                 Forms\Components\Checkbox::make('use_categories')
-                    ->label('Usar Categorias'),
+                    ->label('Usar Áreas'),
             ]);
     }
 
@@ -62,28 +63,38 @@ class AwardResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->label('Nome')
+                    ->limit(50)
+                    ->tooltip(Helper::getTooltipFunction())
                     ->sortable()
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('schoolGrade.name')
                     ->label('Grau de Escolaridade')
+                    ->limit(50)
+                    ->tooltip(Helper::getTooltipFunction())
                     ->sortable()
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('total_positions')
                     ->label('Total de posições')
+                    ->limit(50)
+                    ->tooltip(Helper::getTooltipFunction())
                     ->sortable()
                     ->searchable(),
 
                 Tables\Columns\IconColumn::make('use_school_grades')
                     ->label('Usar Graus de escolaridade?')
                     ->boolean()
+                    ->limit(50)
+                    ->tooltip(Helper::getTooltipFunction())
                     ->sortable()
                     ->searchable(),
 
                 Tables\Columns\IconColumn::make('use_categories')
-                    ->label('Usar Categorias?')
+                    ->label('Usar Áreas?')
                     ->boolean()
+                    ->limit(50)
+                    ->tooltip(Helper::getTooltipFunction())
                     ->sortable()
                     ->searchable(),
 

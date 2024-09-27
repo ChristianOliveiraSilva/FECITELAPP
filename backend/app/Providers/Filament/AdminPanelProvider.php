@@ -3,12 +3,8 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Widgets\EvaluatedProjects;
-use App\Filament\Widgets\ProjectToBeEvaluated;
-use App\Filament\Widgets\WorksMissing1Evaluation;
 use App\Filament\Widgets\MissingEvaluations;
 use App\Filament\Widgets\ProjectsPerCategories;
-use App\Filament\Widgets\WorksMissing3Evaluation;
-use App\Filament\Widgets\WorksMissingAllEvaluation;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
@@ -16,7 +12,6 @@ use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
-use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;

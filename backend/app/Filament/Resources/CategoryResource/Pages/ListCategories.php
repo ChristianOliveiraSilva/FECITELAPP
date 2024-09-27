@@ -28,7 +28,7 @@ class ListCategories extends ListRecords
             'main' => Tab::make('Principais')
                 ->modifyQueryUsing(fn (Builder $query) => $query->whereNull('main_category_id')),
             'all' => Tab::make('Todos'),
-            'subs' => Tab::make('Sub-Categorias')
+            'subs' => Tab::make('Sub-Áreas')
                 ->modifyQueryUsing(fn (Builder $query) => $query->whereNotNull('main_category_id')),
         ];
     }
