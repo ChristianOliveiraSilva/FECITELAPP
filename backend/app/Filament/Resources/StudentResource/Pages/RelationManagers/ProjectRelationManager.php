@@ -2,9 +2,11 @@
 
 namespace App\Filament\Resources\StudentResource\Pages\RelationManagers;
 
+use App\Filament\Resources\ProjectResource\Pages\EditProject;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Filament\Tables\Actions\Action;
 
 class ProjectRelationManager extends RelationManager
 {
@@ -15,7 +17,6 @@ class ProjectRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
-            ->recordTitleAttribute('title')
             ->columns([
                 TextColumn::make('title')->label('Título'),
                 TextColumn::make('description')->label('Descrição'),
@@ -23,8 +24,10 @@ class ProjectRelationManager extends RelationManager
                 TextColumn::make('category.name')->label('Categoria'),
                 TextColumn::make('area')->label('Tipo de projeto'),
             ])
-            ->filters([
-                //
+            ->actions([
+                Action::make('link')
+                    ->label('Ver Projeto')
+                    ->url(fn ($record): string => EditProject::getNavigationUrl(['record' => $record->id])),
             ]);
     }
 }

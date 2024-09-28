@@ -85,16 +85,12 @@ class AwardResource extends Resource
                 Tables\Columns\IconColumn::make('use_school_grades')
                     ->label('Usar Graus de escolaridade?')
                     ->boolean()
-                    ->limit(50)
-                    ->tooltip(Helper::getTooltipFunction())
                     ->sortable()
                     ->searchable(),
 
                 Tables\Columns\IconColumn::make('use_categories')
                     ->label('Usar Áreas?')
                     ->boolean()
-                    ->limit(50)
-                    ->tooltip(Helper::getTooltipFunction())
                     ->sortable()
                     ->searchable(),
 
