@@ -1,64 +1,61 @@
 
 <x-filament-panels::page>
+    <p>Ordene e filtre pelas Perguntas</p>
+
     <div class="overflow-x-auto">
-        <table class="min-w-full table-auto border-collapse border border-gray-200 shadow-lg">
+        <table id="table" class="min-w-full table-auto border-collapse border border-gray-200 shadow-lg">
             <thead class="bg-gray-100">
                 <tr>
-                    <th class="px-4 py-2 text-left border border-gray-200">Nome do Prêmio</th>
-                    <th class="px-4 py-2 text-left border border-gray-200">Série Escolar</th>
-                    <th class="px-4 py-2 text-left border border-gray-200">Vencedor(es)</th>
-                    <th class="px-4 py-2 text-left border border-gray-200">Pontuação</th>
+                    <th class="sortable px-4 py-2 text-left border border-gray-200 cursor-pointer select-none" data-type="string">Projeto</th>
+                    <th class="sortable px-4 py-2 text-left border border-gray-200 cursor-pointer select-none" data-type="number">Nota Final</th>
+                    @foreach ($questions as $question)
+                        <th class="sortable px-4 py-2 text-left border border-gray-200 cursor-pointer select-none" data-type="number">{{ $question->text }}</th>
+                    @endforeach
                 </tr>
             </thead>
             <tbody>
-                @foreach ($awards as $award)
-                    @php
-                        $total = $award->total_positions;
-                        $school_grades = ['Ensino Fundamental', 'Ensino Médio'];
-                        $categories = \App\Models\Category::mainCategories();
-                    @endphp
-
-                    @for ($i = 0; $i < $award->total_positions; $i++)
-                        @if ($award->use_school_grades)
-                            @foreach ($school_grades as $school_grade)
-                                @if ($award->use_categories)
-                                    @foreach ($categories as $category)
-                                        <tr class="bg-white even:bg-gray-50">
-                                            <td class="px-4 py-2 border border-gray-200">{{ $i + 1 }}º {{ $award->name }} {{ $school_grade }} {{ $category->name }}</td>
-                                            <td class="px-4 py-2 border border-gray-200">{{ $award->schoolGrade->name }}</td>
-                                            <td class="px-4 py-2 border border-gray-200">{{ $award->getWinner($i, $school_grade, $category->id) }}</td>
-                                            <td class="px-4 py-2 border border-gray-200">{{ $award->getWinnerScore($i) }}</td>
-                                        </tr>
-                                    @endforeach
-                                @else
-                                    <tr class="bg-white even:bg-gray-50">
-                                        <td class="px-4 py-2 border border-gray-200">{{ $i + 1 }}º {{ $award->name }} {{ $school_grade }}</td>
-                                        <td class="px-4 py-2 border border-gray-200">{{ $award->schoolGrade->name }}</td>
-                                        <td class="px-4 py-2 border border-gray-200">{{ $award->getWinner($i, $school_grade) }}</td>
-                                        <td class="px-4 py-2 border border-gray-200">{{ $award->getWinnerScore($i) }}</td>
-                                    </tr>
-                                @endif
-                            @endforeach
-                        @elseif ($award->use_categories)
-                            @foreach ($categories as $category)
-                                <tr class="bg-white even:bg-gray-50">
-                                    <td class="px-4 py-2 border border-gray-200">{{ $i + 1 }}º {{ $award->name }} {{ $category->name }}</td>
-                                    <td class="px-4 py-2 border border-gray-200">{{ $award->schoolGrade->name }}</td>
-                                    <td class="px-4 py-2 border border-gray-200">{{ $award->getWinner($i, null, $category->id) }}</td>
-                                    <td class="px-4 py-2 border border-gray-200">{{ $award->getWinnerScore($i) }}</td>
-                                </tr>
-                            @endforeach
-                        @else
-                            <tr class="bg-white even:bg-gray-50">
-                                <td class="px-4 py-2 border border-gray-200">{{ $i + 1 }}º {{ $award->name }}</td>
-                                <td class="px-4 py-2 border border-gray-200">{{ $award->schoolGrade->name }}</td>
-                                <td class="px-4 py-2 border border-gray-200">{{ $award->getWinner($i) }}</td>
-                                <td class="px-4 py-2 border border-gray-200">{{ $award->getWinnerScore($i) }}</td>
-                            </tr>
-                        @endif
-                    @endfor
+                @foreach ($projects as $project)
+                    <tr class="bg-white even:bg-gray-50">
+                        <td class="px-4 py-2 border border-gray-200">{{ $project->title }}</td>
+                        <td class="px-4 py-2 border border-gray-200">{{ $project->final_note }}</td>
+                        @foreach ($questions as $question)
+                            <td class="px-4 py-2 border border-gray-200">{{ $project->getNoteByQuestion($question) }}</td>
+                        @endforeach
+                    </tr>
                 @endforeach
             </tbody>
         </table>
     </div>
 </x-filament-panels::page>
+
+<script>
+    document.querySelectorAll(".sortable").forEach(header => {
+        header.addEventListener("click", () => {
+            const table = document.getElementById("table");
+            const tbody = table.querySelector("tbody");
+            const rows = Array.from(tbody.querySelectorAll("tr"));
+            const index = Array.from(header.parentNode.children).indexOf(header);
+            const type = header.getAttribute("data-type");
+            const isAscending = header.classList.contains("ascending");
+            
+            rows.sort((rowA, rowB) => {
+                const cellA = rowA.children[index].innerText;
+                const cellB = rowB.children[index].innerText;
+                
+                if (type === "number") {
+                    return isAscending ? cellA - cellB : cellB - cellA;
+                } else {
+                    return isAscending 
+                        ? cellA.localeCompare(cellB) 
+                        : cellB.localeCompare(cellA);
+                }
+            });
+            
+            tbody.innerHTML = "";
+            
+            rows.forEach(row => tbody.appendChild(row));
+            
+            header.classList.toggle("ascending", !isAscending);
+        });
+    });
+</script>

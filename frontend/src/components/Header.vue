@@ -1,10 +1,9 @@
-<script setup>
-</script>
+<script setup></script>
 
 <template>
   <header class="main-header">
-      <span class="logo-text">FeciTEL</span>
-      <i class="fas fa-user"></i>
+    <img src="@/assets/fecitel-logo.png" alt="FeciTEL Logo" class="logo-image" />
+    <i class="fa fa-bars"></i>
   </header>
 </template>
 
@@ -14,13 +13,11 @@
   align-items: center;
   justify-content: space-between;
   background-color: #4caf50;
-  padding: 10px 20px;
+  padding: 20px;
 }
 
-.logo-text {
-  font-size: 24px;
-  color: white;
-  font-weight: bold;
+.logo-image {
+  height: 25px;
   margin-right: 10px;
 }
 

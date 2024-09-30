@@ -2,7 +2,8 @@
 
 namespace App\Filament\Pages;
 
-use App\Models\Award;
+use App\Models\Project;
+use App\Models\Question;
 use Filament\Pages\Page;
 
 class AwardsPage extends Page
@@ -15,8 +16,21 @@ class AwardsPage extends Page
 
     protected function getViewData(): array
     {
+        $questions = Question::all();
+        $projects = Project::all();
+
+        $column = request('sort_column');
+        $direction = request('sort_direction');
+
+        if ($column && $direction) {
+            $projects = $projects->sortBy(function ($project, int $key) {
+                return $project->id;
+            });
+        }
+
         return [
-            'awards' => Award::all(),
+            'questions' => $questions,
+            'projects' => $projects,
         ];
     }
 }

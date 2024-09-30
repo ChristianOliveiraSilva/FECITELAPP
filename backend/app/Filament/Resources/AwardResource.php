@@ -46,7 +46,7 @@ class AwardResource extends Resource
                     ->required(),
 
                 Forms\Components\TextInput::make('total_positions')
-                    ->label('Total de posições')
+                    ->label('Total de colocações')
                     ->required(),
 
                 Forms\Components\Checkbox::make('use_school_grades')
@@ -76,7 +76,7 @@ class AwardResource extends Resource
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('total_positions')
-                    ->label('Total de posições')
+                    ->label('Total de colocações')
                     ->limit(50)
                     ->tooltip(Helper::getTooltipFunction())
                     ->sortable()

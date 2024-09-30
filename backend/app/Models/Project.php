@@ -43,4 +43,18 @@ class Project extends Model
     {
         return $this->students[0]->school_grade_id;
     }
+
+    public function getNoteByQuestion(Question $question)
+    {
+        $assessmentsIds = $this->assessments->pluck('id');
+
+        $responses = Response::where('question_id', $question->id)->whereIn('assessment_id', $assessmentsIds)->get();
+
+        return $responses->avg('score');
+    }
+
+    public function getFinalNoteAttribute()
+    {
+        return round($this->assessments->avg('note'), 2);
+    }
 }
