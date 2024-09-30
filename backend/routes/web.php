@@ -14,7 +14,7 @@ Route::get('/', function () {
     return redirect('/admin');
 });
 
-Route::post('/login', [MobileAuthController::class, 'login']);
+Route::post('/login', [MobileAuthController::class, 'login'])->name('login');
 
 Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::post('/logout', [MobileAuthController::class, 'logout']);

@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import NotFoundView from '../views/404View.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -21,7 +22,12 @@ const router = createRouter({
       path: '/questionnaire/:assessmentId',
       name: 'questionnaire',
       component: () => import('../views/QuestionnaireView.vue')
-    }
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'NotFound',
+      component: NotFoundView,
+    },
   ]
 })
 
@@ -34,7 +40,7 @@ router.beforeEach((to, from, next) => {
 
   if (!isLoggedIn && to.name !== 'login') {
     next({ name: 'login' });
-  } else if (isLoggedIn && to.name === 'login') {
+  } else if (isLoggedIn && (to.name === 'login' || to.name === 'home')) {
     next({ name: 'list' });
   } else {
     next();

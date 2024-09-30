@@ -35,7 +35,6 @@ export default {
       try {
         const response = await ApiService.post('/login', { PIN: this.pin });
 
-
         console.log(response.data);
         
         localStorage.setItem('user', JSON.stringify(response.data.data.user));

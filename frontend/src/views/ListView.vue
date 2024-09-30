@@ -1,25 +1,19 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import ProjectItem from '../components/ProjectItem.vue';
+import Header from '../components/Header.vue';
+import ApiService from '@/services/ApiService';
+import { useRouter } from 'vue-router';
 
 const loading = ref(true);
 const projects = ref({});
+const router = useRouter();
 
 const SCIENTIFIC = 2;
 
 const fetchProjects = async () => {
   try {
-    const response = await fetch('http://localhost/assessments', {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('key')}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) throw new Error('Erro ao buscar os assessments');
-
-    const data = await response.json();
+    const {data} = await ApiService.get('/assessments');
 
     const groupedByCategory = data.reduce((acc, assessment) => {
       const categoryName = assessment.project.category.name;
@@ -54,7 +48,6 @@ const loadProjects = async () => {
 };
 
 const handlePress = (id) => {
-  // Utilize o router para navegação, exemplo:
   router.push({ name: 'questionnaire', params: { assessmentId: id } });
 };
 
@@ -62,51 +55,70 @@ onMounted(loadProjects);
 </script>
 
 <template>
-  <div class="container">
+  <div>
+    <Header />
+
     <div v-if="loading" class="loading-container">
-      <v-progress-circular indeterminate color="#56BA54"></v-progress-circular>
+      <div class="spinner"></div>
     </div>
 
-    <div v-else-if="!Object.keys(projects).length">
+    <div v-else-if="!Object.keys(projects).length" class="list-container">
       <p class="no-projects-text">Não há projetos para serem avaliados</p>
-      <v-btn @click="loadProjects" color="#56BA54">Tentar Novamente</v-btn>
+      <button @click="loadProjects" class="retry-button">Tentar Novamente</button>
     </div>
 
-    <div v-else>
+    <div v-else class="list-container">
       <div v-for="(items, group) in projects" :key="group">
         <h3 class="group-title">{{ group }}</h3>
-        <v-list>
+        <ul class="project-list">
           <ProjectItem
             v-for="item in items"
             :key="item.id"
             :item="item"
             @press="handlePress"
           />
-        </v-list>
+        </ul>
       </div>
     </div>
+
   </div>
 </template>
 
 <style scoped>
-.container {
-  padding: 16px;
-  background-color: #F5FCFF;
-}
-.loading-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-}
 .no-projects-text {
   text-align: center;
   color: #666;
 }
+
+.list-container {
+  padding: 12px;
+}
+
+.retry-button {
+  display: block;
+  margin: 0 auto;
+  padding: 10px 20px;
+  background-color: #56BA54;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
 .group-title {
   font-size: 18px;
   font-weight: bold;
   margin: 10px 0;
   color: #333;
 }
+
+.project-list {
+  list-style: none;
+  padding: 0;
+}
+
+.project-list li {
+  margin-bottom: 10px;
+}
+
 </style>

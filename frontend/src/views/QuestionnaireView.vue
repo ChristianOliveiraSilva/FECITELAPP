@@ -1,5 +1,5 @@
 <template>
-  <div class="questionnaire-view">
+  <div class="questionnaire-container">
     <header>
       <h1>Avaliação: {{ assessment.projectName }}</h1>
     </header>
@@ -51,6 +51,7 @@
 </template>
 
 <script>
+import ApiService from '@/services/ApiService';
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -58,6 +59,7 @@ export default {
   setup() {
     const route = useRoute();
     const router = useRouter();
+
     const assessmentId = route.params.assessmentId;
 
     const assessment = ref({});
@@ -82,15 +84,13 @@ export default {
     });
 
     const fetchAssessment = async (assessmentId) => {
-      const response = await fetch(`http://localhost/assessments/${assessmentId}`);
-      if (!response.ok) throw new Error('Erro ao buscar avaliação');
-      return response.json();
+      const {data} = await ApiService.get('/assessments');
+      return data;
     };
 
     const fetchQuestions = async (assessmentId) => {
-      const response = await fetch(`http://localhost/questions/${assessmentId}`);
-      if (!response.ok) throw new Error('Erro ao buscar perguntas');
-      return response.json();
+      const {data} = await ApiService.get(`/questions/${assessmentId}`);
+      return data;
     };
 
     const nextScreen = () => {
@@ -165,7 +165,7 @@ export default {
 </script>
 
 <style scoped>
-.questionnaire-view {
+.questionnaire-container {
   padding: 20px;
 }
 .loading {
