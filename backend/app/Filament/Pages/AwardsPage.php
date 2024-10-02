@@ -2,8 +2,10 @@
 
 namespace App\Filament\Pages;
 
+use App\Models\Category;
 use App\Models\Project;
 use App\Models\Question;
+use App\Models\SchoolGrade;
 use Filament\Pages\Page;
 
 class AwardsPage extends Page
@@ -16,21 +18,36 @@ class AwardsPage extends Page
 
     protected function getViewData(): array
     {
+        $schoolGrades = SchoolGrade::all();
+        $categories = Category::mainCategories();
         $questions = Question::all();
-        $projects = Project::all();
+        $projectQuery = Project::query();
+        $question = null;
 
-        $column = request('sort_column');
-        $direction = request('sort_direction');
-
-        if ($column && $direction) {
-            $projects = $projects->sortBy(function ($project, int $key) {
-                return $project->id;
+        $data = request()->all();
+        
+        if (!empty($data['school_grade'])) {
+            $projectQuery->whereHas('students', function ($q) use ($data) {
+                $q->where('school_grade_id', $data['school_grade']);
             });
         }
+        
+        if (!empty($data['category'])) {
+            $projectQuery->where('category_id', $data['category']);
+        }
+        
+        if (!empty($data['question'])) {
+            $question = Question::find($data['question']);
+        }
+
+        $projects = $projectQuery->get();
 
         return [
+            'schoolGrades' => $schoolGrades,
+            'categories' => $categories,
             'questions' => $questions,
             'projects' => $projects,
+            'question' => $question,
         ];
     }
 }

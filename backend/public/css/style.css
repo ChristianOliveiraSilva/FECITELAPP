@@ -1,0 +1,23 @@
+#widget-success {
+    background-color: #1abc9c !important;
+}
+
+#widget-success * {
+    color: white !important;
+}
+
+#widget-warning {
+    background-color: #f39c12 !important;
+}
+
+#widget-warning * {
+    color: white !important;
+}
+
+#widget-danger {
+    background-color: #c0392b !important;
+}
+
+#widget-danger * {
+    color: white !important;
+}

@@ -16,7 +16,7 @@ class EvaluatedProjects extends BaseWidget
 
         $projectsWithAllAssessmentsResponded = Project::with('assessments')
             ->get()
-            ->filter(fn($project) => $project->assessments->count() === Helper::getMinimumNumberAssessmentsPerProject() && 
+            ->filter(fn($project) => $project->assessments->count() >= Helper::getMinimumNumberAssessmentsPerProject() && 
                                      $project->assessments->every(fn($assessment) => $assessment->has_response))
             ->count();
 

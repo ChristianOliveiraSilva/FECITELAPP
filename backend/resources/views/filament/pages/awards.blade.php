@@ -2,25 +2,72 @@
 <x-filament-panels::page>
     <p>Ordene e filtre pelas Perguntas</p>
 
+    <form action="{{ \App\Filament\Pages\AwardsPage::getUrl() }}" method="GET">
+        <div class="flex space-x-4">
+            {{-- Grau de Escolaridade --}}
+            <select name="school_grade" class="border-gray-300 rounded-lg" style="width: 100%;">
+                <option value="">Selecione o Grau de Escolaridade</option>
+                @foreach($schoolGrades as $grade)
+                    <option value="{{ $grade->id }}" {{ request('school_grade') == $grade->id ? 'selected' : '' }}>
+                        {{ $grade->name }}
+                    </option>
+                @endforeach
+            </select>
+
+            {{-- Área --}}
+            <select name="category" class="border-gray-300 rounded-lg" style="width: 100%;">
+                <option value="">Selecione a Área</option>
+                @foreach($categories as $category)
+                    <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>
+                        {{ $category->name }}
+                    </option>
+                @endforeach
+            </select>
+
+            {{-- Questão --}}
+            <select name="question" class="border-gray-300 rounded-lg" style="width: 100%;">
+                <option value="">Todas as questões</option>
+                @foreach($questions as $q)
+                    <option value="{{ $q->id }}" {{ request('q') == $q->id ? 'selected' : '' }}>
+                        {{ $q->text }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+
+        <button type="submit" class="my-4 px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-300 ease-in-out" style="background-color: darkblue;">
+            Filtrar
+        </button>
+    </form>
+
+
     <div class="overflow-x-auto">
-        <table id="table" class="min-w-full table-auto border-collapse border border-gray-200 shadow-lg">
+        <table id="table" class=" w-full table-auto border-collapse border border-gray-200 shadow-lg">
             <thead class="bg-gray-100">
                 <tr>
+                    <th class="sortable px-4 py-2 text-left border border-gray-200 cursor-pointer select-none" data-type="string">ID do Projeto</th>
                     <th class="sortable px-4 py-2 text-left border border-gray-200 cursor-pointer select-none" data-type="string">Projeto</th>
-                    <th class="sortable px-4 py-2 text-left border border-gray-200 cursor-pointer select-none" data-type="number">Nota Final</th>
-                    @foreach ($questions as $question)
-                        <th class="sortable px-4 py-2 text-left border border-gray-200 cursor-pointer select-none" data-type="number">{{ $question->text }}</th>
-                    @endforeach
+                    <th class="sortable px-4 py-2 text-left border border-gray-200 cursor-pointer select-none" data-type="number">
+                        @if (request('question'))
+                            {{ $question?->text }}
+                        @else
+                            Nota Final
+                        @endif
+                    </th>
                 </tr>
             </thead>
             <tbody>
                 @foreach ($projects as $project)
                     <tr class="bg-white even:bg-gray-50">
+                        <td class="px-4 py-2 border border-gray-200">{{ $project->external_id }}</td>
                         <td class="px-4 py-2 border border-gray-200">{{ $project->title }}</td>
-                        <td class="px-4 py-2 border border-gray-200">{{ $project->final_note }}</td>
-                        @foreach ($questions as $question)
-                            <td class="px-4 py-2 border border-gray-200">{{ $project->getNoteByQuestion($question) }}</td>
-                        @endforeach
+                        <td class="px-4 py-2 border border-gray-200">
+                            @if (request('question'))
+                                {{ $project->getNoteByQuestion($question) }}
+                            @else
+                                {{ $project->final_note }}
+                            @endif    
+                        </td>
                     </tr>
                 @endforeach
             </tbody>

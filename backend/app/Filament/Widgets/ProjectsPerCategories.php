@@ -11,26 +11,29 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class ProjectsPerCategories extends BaseWidget
 {
-    
-    protected function getStats(): array
+    protected static string $view = 'accordion-widget';
+
+    protected function getViewData(): array
     {
-        return Category::mainCategories()->reverse()->map(function($category) {
+        $values = Category::mainCategories()->map(function($category) {
             $totalProjects = $category->projects->count();
     
-            // Projetos onde todas as assessments têm has_response = true
             $projectsWithAllAssessmentsResponded = $category->projects
-                ->filter(fn($project) => $project->assessments->count() === Helper::getMinimumNumberAssessmentsPerProject() &&
+                ->filter(fn($project) => $project->assessments->count() >= Helper::getMinimumNumberAssessmentsPerProject() &&
                                          $project->assessments->every(fn($assessment) => $assessment->has_response))
                 ->count();
     
-            // Projetos com pelo menos uma assessment sem has_response
             $projectsWithPendingAssessments = $totalProjects - $projectsWithAllAssessmentsResponded;
     
-            return [
-                Stat::make('Total de projetos ' . $category->name, $totalProjects),
-                Stat::make('Total de trabalhos a serem avaliados ' . $category->name, $projectsWithPendingAssessments),
-                Stat::make('Total de trabalhos avaliados ' . $category->name, $projectsWithAllAssessmentsResponded),
-            ];
+            $category->totalProjects = $totalProjects;
+            $category->projectsWithPendingAssessments = $projectsWithPendingAssessments;
+            $category->projectsWithAllAssessmentsResponded = $projectsWithAllAssessmentsResponded;
+
+            return $category;
         })->flatten()->toArray();
+
+        return [
+            'values' => $values
+        ];
     }
 }
