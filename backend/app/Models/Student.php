@@ -14,6 +14,7 @@ class Student extends Model
         'name',
         'email',
         'school_grade_id',
+        'school',
     ];
 
     public function schoolGrade()

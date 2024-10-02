@@ -44,9 +44,9 @@ class DatabaseSeeder extends Seeder
             $highSchool = SchoolGrade::where('name', 'Ensino médio')->first();
 
             Student::insert([
-                ['name' => 'Ana Souza', 'email' => 'ana.souza@example.com', 'school_grade_id' => $elementarySchool->id],
-                ['name' => 'Carlos Silva', 'email' => 'carlos.silva@example.com', 'school_grade_id' => $highSchool->id],
-                ['name' => 'Ana Souza 2', 'email' => 'ana.souza2@example.com', 'school_grade_id' => $elementarySchool->id],
+                ['name' => 'Ana Souza', 'email' => 'ana.souza@example.com', 'school_grade_id' => $elementarySchool->id, 'school' => 'escola 1'],
+                ['name' => 'Carlos Silva', 'email' => 'carlos.silva@example.com', 'school_grade_id' => $highSchool->id, 'school' => 'escola 2'],
+                ['name' => 'Ana Souza 2', 'email' => 'ana.souza2@example.com', 'school_grade_id' => $elementarySchool->id, 'school' => 'escola 3'],
             ]);
 
             Project::insert([

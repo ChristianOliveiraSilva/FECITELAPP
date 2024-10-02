@@ -114,7 +114,7 @@ class QuestionResource extends Resource
 
     public static function setHiddenValue($value, $enumValue): bool
     {
-        if (is_integer($value)) {
+        if (is_integer($value) || is_string($value)) {
             return $value != $enumValue;
         }
 

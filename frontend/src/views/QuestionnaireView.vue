@@ -54,6 +54,7 @@ onMounted(async () => {
 // Métodos
 const nextScreen = () => {
   screen.value++
+  msg.value = ''
   currentQuestion = questions.value[currentQuestionIndex.value] ?? {}
   console.log({ currentQuestion })
 }
@@ -64,12 +65,14 @@ const cancel = () => {
 
 const nextQuestion = () => {
   const response = answers.value[currentQuestionIndex.value]
+  msg.value = ''
 
   if (
     currentQuestion.type === MULTIPLE_CHOICE_QUESTION &&
     (response == null || response == undefined)
   ) {
     msg.value = 'Esta pergunta é obrigatória.'
+    setTimeout(() => msg.value = '', 2000)
     return
   }
 
@@ -177,9 +180,12 @@ const submitAnswers = async () => {
           </div>
         </div>
 
-        <div v-if="screen === 2">
-          <div v-for="answer in answers" :key="index">
-            {{ answer != null ? answer : 'sem resposta' }}
+        <div v-if="screen === 2" class="check-container">
+          <div class="results-container">
+            <div v-for="(answer, index) in answers" :key="index" class="result">
+              <p><strong>{{ questions[index].text }}</strong></p>
+              <p>{{ answer != null ? answer : 'sem resposta' }}</p>
+            </div>
           </div>
 
           <button @click="submitAnswers" class="primary">Finalizar Avaliação</button>
@@ -208,7 +214,7 @@ const submitAnswers = async () => {
   margin-bottom: 0.25rem;
 }
 
-.assessment-details {
+.assessment-details, .results-container {
   background-color: white;
   box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.3);
   padding: 20px;
@@ -218,6 +224,7 @@ const submitAnswers = async () => {
   font-weight: bold;
 }
 
+.check-container button,
 .assessment-details-container button {
   display: block;
   margin-block: 1rem;
@@ -301,4 +308,13 @@ const submitAnswers = async () => {
   margin-block: 1rem;
   text-align: center;
 }
+
+.results-container .result {
+  margin-bottom: 1.5rem;
+}
+
+.results-container .result:last-child {
+  margin-bottom: 0;
+}
+
 </style>

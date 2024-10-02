@@ -130,6 +130,11 @@ class ProjectResource extends Resource
                     ->relationship('category', 'name', fn (Builder $query) => $query->whereNull('main_category_id'))
                     ->searchable()
                     ->preload(),
+                SelectFilter::make('students.schoolGrade')
+                    ->label('Grau de escolaridade')
+                    ->relationship('students.schoolGrade', 'name')
+                    ->searchable()
+                    ->preload(),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

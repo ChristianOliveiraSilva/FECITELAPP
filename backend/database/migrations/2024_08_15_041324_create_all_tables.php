@@ -18,7 +18,8 @@ return new class extends Migration
         Schema::create('students', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('email')->unique();
+            $table->string('email')->nullable()->unique();
+            $table->string('school')->nullable();
             $table->foreignId('school_grade_id')->constrained('school_grades')->onDelete('cascade');
             $table->timestamps();
             $table->softDeletes();

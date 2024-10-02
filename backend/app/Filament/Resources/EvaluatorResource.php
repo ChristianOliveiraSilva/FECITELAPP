@@ -42,7 +42,6 @@ class EvaluatorResource extends Resource
                     ->label('Email')
                     ->email()
                     ->unique(ignoreRecord: true)
-                    ->required()
                     ->maxLength(255),
 
                 Forms\Components\TextInput::make('PIN')

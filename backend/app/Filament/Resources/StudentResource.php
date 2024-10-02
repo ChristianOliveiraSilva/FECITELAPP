@@ -33,10 +33,13 @@ class StudentResource extends Resource
                 Forms\Components\TextInput::make('email')
                     ->label('E-mail')
                     ->autocomplete(false)
-                    ->required()
                     ->email()
                     ->unique(ignoreRecord: true)
                     ->maxLength(255),
+
+                Forms\Components\TextInput::make('school')
+                    ->label('Escola')
+                    ->required(),
 
                 Forms\Components\Select::make('school_grade_id')
                     ->relationship('schoolGrade', 'name')
@@ -62,6 +65,12 @@ class StudentResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('schoolGrade.name')
                     ->label('Grau de escolaridade')
+                    ->limit(50)
+                    ->tooltip(Helper::getTooltipFunction())
+                    ->sortable()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('school')
+                    ->label('Escola')
                     ->limit(50)
                     ->tooltip(Helper::getTooltipFunction())
                     ->sortable()
