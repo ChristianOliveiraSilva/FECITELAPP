@@ -12,36 +12,6 @@ class QuestionSeeder extends Seeder
     {
         $questions = [
             [
-                'id' => 2,
-                'text' => 'Forneça comentários detalhados.',
-                'type' => 2,
-                'area' => 2,
-                'number_alternatives' => 20,
-                'created_at' => null,
-                'updated_at' => null,
-                'deleted_at' => null,
-            ],
-            [
-                'id' => 4,
-                'text' => 'De a nota do banner I',
-                'type' => 1,
-                'area' => 2,
-                'number_alternatives' => 20,
-                'created_at' => null,
-                'updated_at' => null,
-                'deleted_at' => null,
-            ],
-            [
-                'id' => 5,
-                'text' => 'De a nota do banner II',
-                'type' => 1,
-                'area' => 2,
-                'number_alternatives' => 20,
-                'created_at' => null,
-                'updated_at' => null,
-                'deleted_at' => null,
-            ],
-            [
                 'id' => 6,
                 'text' => 'Problema/hipótese: delimitação do tema, relação hipótese/problema/objetivo; clareza na formulação; originalidade; relevância social.',
                 'type' => 1,
