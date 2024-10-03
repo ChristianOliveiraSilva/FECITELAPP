@@ -45,7 +45,7 @@ class RealSeeder extends Seeder
         Evaluator::firstOrCreate([
             'user_id' => $user->id,
         ],[
-            'PIN' => Evaluator::generateRandomPin(),
+            'PIN' => $evaluator->pin,
         ]);
     }
 
