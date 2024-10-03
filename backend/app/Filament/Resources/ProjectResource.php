@@ -158,6 +158,7 @@ class ProjectResource extends Resource
         return [
             'index' => Pages\ListProjects::route('/'),
             'create' => Pages\CreateProject::route('/create'),
+            'view-contact' => Pages\ViewAssessmentPerProject::route('/{record}/assessment'),
             'edit' => Pages\EditProject::route('/{record}/edit'),
         ];
     }

@@ -59,8 +59,16 @@
             <tbody>
                 @foreach ($projects as $project)
                     <tr class="bg-white even:bg-gray-50">
-                        <td class="px-4 py-2 border border-gray-200">{{ $project->external_id }}</td>
-                        <td class="px-4 py-2 border border-gray-200">{{ $project->title }}</td>
+                        <td class="px-4 py-2 border border-gray-200">
+                            <a href="{{ '/admin/projects/'. $project->id .'/assessment' }}">
+                                {{ $project->external_id }}
+                            </a>
+                        </td>
+                        <td class="px-4 py-2 border border-gray-200">
+                            <a href="{{ '/admin/projects/'. $project->id .'/assessment' }}">
+                                {{ $project->title }}
+                            </a>
+                        </td>
                         <td class="px-4 py-2 border border-gray-200">
                             @if (request('question'))
                                 {{ $project->getNoteByQuestion($question) }}
