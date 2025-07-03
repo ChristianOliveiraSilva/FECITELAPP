@@ -55,6 +55,6 @@ class Project extends Model
 
     public function getFinalNoteAttribute()
     {
-        return round($this->assessments->avg('note'), 2);
+        return round($this->assessments->filter(fn ($a) => $a->has_response)->avg('note'), 2);
     }
 }
