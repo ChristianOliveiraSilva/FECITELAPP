@@ -17,7 +17,10 @@ class ResponseController extends Controller
         $responses = collect($data['responses']);
 
         if (!$assessment) {
-            return "Avaliação não encontrada";
+            return response()->json([
+                'success' => false,
+                'message' => 'Avaliação não encontrada',
+            ], 404);
         }
 
         if ($assessment->has_response) {
@@ -36,6 +39,12 @@ class ResponseController extends Controller
             ]);
         });
 
-        return $assessment->load('responses.question');
+        $assessment->load('responses.question');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Respostas salvas com sucesso.',
+            'data' => $assessment,
+        ]);
     }
 } 
