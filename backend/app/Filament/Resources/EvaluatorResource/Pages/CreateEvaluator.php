@@ -19,6 +19,7 @@ class CreateEvaluator extends CreateRecord
             'email' => $data['email'],
             'name' => $data['name'],
             'password' => bcrypt('1234'),
+            'active' => $data['active'],
         ]);
     
         $data['user_id'] = $user->id;

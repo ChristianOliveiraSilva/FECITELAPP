@@ -60,6 +60,11 @@ class EvaluatorResource extends Resource
                     ->preload()
                     ->required()
                     ->columnSpanFull(),
+
+                Forms\Components\Toggle::make('active')
+                    ->label('Ativo')
+                    ->default(true)
+                    ->required(),
             ]);
     }
 

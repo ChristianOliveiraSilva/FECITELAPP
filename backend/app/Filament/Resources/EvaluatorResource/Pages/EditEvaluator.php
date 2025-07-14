@@ -26,6 +26,7 @@ class EditEvaluator extends EditRecord
 
         $data['name'] = $model->user->name;
         $data['email'] = $model->user->email;
+        $data['active'] = $model->user->active;
         $data['project_id'] = $model->assessments->pluck('project_id');
     
         return $data;
@@ -35,6 +36,7 @@ class EditEvaluator extends EditRecord
     {
         $record->user->name = $data['name'];
         $record->user->email = $data['email'];
+        $record->user->active = $data['active'];
         $record->user->save();
 
         $record->update($data);

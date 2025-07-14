@@ -31,12 +31,15 @@ class UserResource extends Resource
                 Forms\Components\TextInput::make('name')
                     ->label('Nome')
                     ->required(),
+
                 Forms\Components\TextInput::make('email')
                     ->email()
                     ->unique(ignoreRecord: true),
+
                 Forms\Components\TextInput::make('password')
                     ->password()
                     ->required(),
+
                 Forms\Components\Toggle::make('active')
                     ->label('Ativo')
                     ->default(true)
@@ -54,11 +57,13 @@ class UserResource extends Resource
                     ->tooltip(Helper::getTooltipFunction())
                     ->sortable()
                     ->searchable(),
+
                 Tables\Columns\TextColumn::make('email')
                     ->limit(50)
                     ->tooltip(Helper::getTooltipFunction())
                     ->sortable()
                     ->searchable(),
+
                 Tables\Columns\TextColumn::make('email_verified_at')
                     ->label('Email verificado')
                     ->dateTime()
@@ -66,21 +71,25 @@ class UserResource extends Resource
                     ->tooltip(Helper::getTooltipFunction())
                     ->sortable()
                     ->searchable(),
+
                 Tables\Columns\IconColumn::make('active')
                     ->label('Ativo')
                     ->boolean()
                     ->sortable()
                     ->searchable(),
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Criado em')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+
                 Tables\Columns\TextColumn::make('updated_at')
                     ->label('Atualizado em')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+                    
                 Tables\Columns\TextColumn::make('deleted_at')
                     ->label('Deletado em')
                     ->dateTime()
