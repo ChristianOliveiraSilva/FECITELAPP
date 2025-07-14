@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Enum\AreaEnum;
+use App\Enum\ProjectTypeEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;

@@ -29,7 +29,7 @@
                 <option value="">Todas as questões</option>
                 @foreach($questions as $q)
                     <option value="{{ $q->id }}" {{ request('q') == $q->id ? 'selected' : '' }}>
-                        {{ $q->text }}
+                        {{ $q->scientific_text }} / {{ $q->technological_text }}
                     </option>
                 @endforeach
             </select>
@@ -49,7 +49,7 @@
                     <th class="sortable px-4 py-2 text-left border border-gray-200 cursor-pointer select-none" data-type="string">Projeto</th>
                     <th class="sortable px-4 py-2 text-left border border-gray-200 cursor-pointer select-none" data-type="number">
                         @if (request('question'))
-                            {{ $question?->text }}
+                            {{ $question->scientific_text }} / {{ $question->technological_text }}
                         @else
                             Nota Final
                         @endif

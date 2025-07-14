@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enum\SchoolGradeEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -13,13 +14,17 @@ class Student extends Model
     protected $fillable = [
         'name',
         'email',
-        'school_grade_id',
-        'school',
+        'school_id',
+        'school_grade',
     ];
 
-    public function schoolGrade()
+    protected $casts = [
+        'school_grade' => SchoolGradeEnum::class,
+    ];
+
+    public function school()
     {
-        return $this->belongsTo(SchoolGrade::class);
+        return $this->belongsTo(School::class);
     }
 
     public function projects()

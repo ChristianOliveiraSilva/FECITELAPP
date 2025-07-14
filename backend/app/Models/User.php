@@ -18,6 +18,7 @@ class User extends Authenticatable implements FilamentUser
         'name',
         'email',
         'password',
+        'active',
     ];
 
     protected $hidden = [
@@ -30,12 +31,13 @@ class User extends Authenticatable implements FilamentUser
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'active' => 'boolean',
         ];
     }
 
     public function canAccessPanel(Panel $panel): bool
     {
-        return str_ends_with($this->email, '@ifms.edu.br');
+        return str_ends_with($this->email, '@ifms.edu.br') && $this->active;
     }
 
     public function evaluator()

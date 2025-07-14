@@ -2,11 +2,8 @@
 
 namespace App\Filament\Resources;
 
-use App\Enum\AreaEnum;
 use App\Filament\Resources\EvaluatorResource\Pages;
-use App\Filament\Resources\EvaluatorResource\RelationManagers;
 use App\Helper;
-use App\Models\Category;
 use App\Models\Evaluator;
 use App\Models\Project;
 use Filament\Forms;
@@ -16,8 +13,6 @@ use Filament\Tables;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class EvaluatorResource extends Resource
 {

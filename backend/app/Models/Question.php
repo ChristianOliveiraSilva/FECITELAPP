@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Enum\AreaEnum;
+
 use App\Enum\QuestionTypeEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,15 +13,14 @@ class Question extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'text',
+        'scientific_text',
+        'technological_text',
         'type',
-        'area',
         'number_alternatives',
     ];
 
     protected $casts = [
         'type' => QuestionTypeEnum::class,
-        'area' => AreaEnum::class,
     ];
 
     public function responses()
@@ -32,5 +31,11 @@ class Question extends Model
     public function awards()
     {
         return $this->belongsToMany(Award::class);
+    }
+
+    public function getDisplayTextAttribute()
+    {
+        // Show both texts separated by a line break
+        return $this->scientific_text . "\n\n" . $this->technological_text;
     }
 }

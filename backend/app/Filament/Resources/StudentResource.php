@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Enum\SchoolGradeEnum;
 use App\Filament\Resources\StudentResource\Pages;
 use App\Filament\Resources\StudentResource\RelationManagers;
 use App\Models\Student;
@@ -37,12 +38,15 @@ class StudentResource extends Resource
                     ->unique(ignoreRecord: true)
                     ->maxLength(255),
 
-                Forms\Components\TextInput::make('school')
+                Forms\Components\Select::make('school_id')
+                    ->relationship('school', 'name')
                     ->label('Escola')
+                    ->searchable()
+                    ->preload()
                     ->required(),
 
-                Forms\Components\Select::make('school_grade_id')
-                    ->relationship('schoolGrade', 'name')
+                Forms\Components\Select::make('school_grade')
+                    ->options(SchoolGradeEnum::getValues())
                     ->label('Grau de escolaridade')
                     ->required(),
             ]);
@@ -63,13 +67,13 @@ class StudentResource extends Resource
                     ->tooltip(Helper::getTooltipFunction())
                     ->sortable()
                     ->searchable(),
-                Tables\Columns\TextColumn::make('schoolGrade.name')
+                Tables\Columns\TextColumn::make('school_grade')
                     ->label('Grau de escolaridade')
                     ->limit(50)
                     ->tooltip(Helper::getTooltipFunction())
                     ->sortable()
                     ->searchable(),
-                Tables\Columns\TextColumn::make('school')
+                Tables\Columns\TextColumn::make('school.name')
                     ->label('Escola')
                     ->limit(50)
                     ->tooltip(Helper::getTooltipFunction())

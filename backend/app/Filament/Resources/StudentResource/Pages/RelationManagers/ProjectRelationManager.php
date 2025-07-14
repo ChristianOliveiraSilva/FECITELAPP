@@ -22,7 +22,7 @@ class ProjectRelationManager extends RelationManager
                 TextColumn::make('description')->label('Descrição'),
                 TextColumn::make('year')->label('ano'),
                 TextColumn::make('category.name')->label('Categoria'),
-                TextColumn::make('area')->label('Tipo de projeto'),
+                TextColumn::make('projectType')->label('Tipo de projeto'),
             ])
             ->actions([
                 Action::make('link')

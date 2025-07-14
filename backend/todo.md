@@ -1,12 +1,15 @@
 Fazer:
-[] Inativar avaliadores e usuários
+[🟠] Inativar avaliadores e usuários
+    [] ajustar avaliadoresResource
 [] Criar edição por ano
+    [] Importar dados de anos anteriores para ano atual
 [] Importar dados de uma planilha
-[] Importar dados de anos anteriores para ano atual
-[] Cadastrar escolas
-[] Perguntas tecnológicas e científicas devem ter o mesmo peso, pois são as mesmas perguntas, apenas com áreas diferentes
+[🟠] Cadastrar escolas
+    [] criar resource
+[🟠] Perguntas tecnológicas e científicas devem ter o mesmo peso, pois são as mesmas perguntas, apenas com áreas diferentes
 [] Permitir que o avaliador refaça a avaliação caso cometa um erro
 [] Gerar campeões
+[] Dashboards
 
 Refinar / entender melhor:
 

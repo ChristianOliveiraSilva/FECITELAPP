@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Enum\SchoolGradeEnum;
 use App\Filament\Resources\AwardResource\Pages;
 use App\Filament\Resources\AwardResource\RelationManagers;
 use App\Models\Award;
@@ -33,14 +34,14 @@ class AwardResource extends Resource
                     ->label('Nome')
                     ->required(),
 
-                Forms\Components\Select::make('school_grade_id')
-                    ->relationship('schoolGrade', 'name')
+                Forms\Components\Select::make('school_grade')
+                    ->options(SchoolGradeEnum::getValues())
                     ->label('Grau de Escolaridade')
                     ->required(),
 
                 Forms\Components\Select::make('questions')
                     ->label('Perguntas')
-                    ->relationship('questions', 'text')
+                    ->relationship('questions', 'display_text')
                     ->multiple()
                     ->preload()
                     ->required(),
@@ -68,7 +69,7 @@ class AwardResource extends Resource
                     ->sortable()
                     ->searchable(),
 
-                Tables\Columns\TextColumn::make('schoolGrade.name')
+                Tables\Columns\TextColumn::make('school_grade')
                     ->label('Grau de Escolaridade')
                     ->limit(50)
                     ->tooltip(Helper::getTooltipFunction())
@@ -107,8 +108,8 @@ class AwardResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                SelectFilter::make('schoolGrade')
-                    ->relationship('schoolGrade', 'name')
+                SelectFilter::make('school_grade')
+                    ->options(SchoolGradeEnum::getValues())
                     ->label('Grau de Escolaridade')
                     ->searchable()
                     ->preload()

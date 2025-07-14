@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enum\QuestionTypeEnum;
+use App\Enum\SchoolGradeEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -13,16 +14,15 @@ class Award extends Model
     
     protected $fillable = [
         'name',
-        'school_grade_id',
+        'school_grade',
         'total_positions',
         'use_school_grades',
         'use_categories',
     ];
 
-    public function schoolGrade()
-    {
-        return $this->belongsTo(SchoolGrade::class);
-    }
+    protected $casts = [
+        'school_grade' => SchoolGradeEnum::class,
+    ];
 
     public function questions()
     {

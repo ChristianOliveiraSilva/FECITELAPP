@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources;
 
-use App\Enum\AreaEnum;
+
 use App\Enum\QuestionTypeEnum;
 use App\Filament\Resources\QuestionResource\Pages;
 use App\Filament\Resources\QuestionResource\RelationManagers;
@@ -32,23 +32,24 @@ class QuestionResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Textarea::make('text')
-                    ->label('Pergunta')
+                Forms\Components\Textarea::make('scientific_text')
+                    ->label('Texto Científico')
+                    ->required()
+                    ->columnSpanFull(),
+
+                Forms\Components\Textarea::make('technological_text')
+                    ->label('Texto Tecnológico')
                     ->required()
                     ->columnSpanFull(),
 
                 Forms\Components\Select::make('type')
-                    ->label('Tipo')
+                    ->label('Tipo de Pergunta')
                     ->options(QuestionTypeEnum::class)
                     ->default(QuestionTypeEnum::MULTIPLE_CHOICE)
                     ->live()
                     ->required(),
 
-                Forms\Components\Select::make('area')
-                    ->label('Tipo de projeto')
-                    ->options(AreaEnum::class)
-                    ->default(AreaEnum::TECHNICAL)
-                    ->required(),
+
 
                 Forms\Components\TextInput::make('number_alternatives')
                     ->label('Número de Alternativas')
@@ -62,8 +63,14 @@ class QuestionResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('text')
-                    ->label('Pergunta')
+                Tables\Columns\TextColumn::make('scientific_text')
+                    ->label('Texto Científico')
+                    ->limit(50)
+                    ->tooltip(Helper::getTooltipFunction())
+                    ->sortable()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('technological_text')
+                    ->label('Texto Tecnológico')
                     ->limit(50)
                     ->tooltip(Helper::getTooltipFunction())
                     ->sortable()
@@ -75,12 +82,7 @@ class QuestionResource extends Resource
                     ->tooltip(Helper::getTooltipFunction())
                     ->sortable()
                     ->searchable(),
-                Tables\Columns\TextColumn::make('area')
-                    ->label('Tipo de projeto')
-                    ->limit(50)
-                    ->tooltip(Helper::getTooltipFunction())
-                    ->sortable()
-                    ->searchable(),
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Criado em')
                     ->dateTime()
@@ -97,10 +99,7 @@ class QuestionResource extends Resource
                     ->label('Tipo')
                     ->options(fn (): array => QuestionTypeEnum::getValues())
                     ->attribute('type'),
-                SelectFilter::make('area')
-                    ->label('Tipo de projeto')
-                    ->options(fn (): array => AreaEnum::getValues())
-                    ->attribute('area'),
+
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

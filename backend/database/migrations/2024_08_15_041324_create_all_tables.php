@@ -8,19 +8,21 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('school_grades', function (Blueprint $table) {
+        Schema::create('schools', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->string('city')->nullable();
+            $table->string('state')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });
-        
+
         Schema::create('students', function (Blueprint $table) {
             $table->id();
             $table->string('name');
             $table->string('email')->nullable();
-            $table->string('school')->nullable();
-            $table->foreignId('school_grade_id')->constrained('school_grades')->onDelete('cascade');
+            $table->foreignId('school_id')->nullable()->constrained('schools')->onDelete('set null');
+            $table->string('school_grade');
             $table->timestamps();
             $table->softDeletes();
         });
@@ -38,7 +40,7 @@ return new class extends Migration
             $table->string('title');
             $table->text('description')->nullable();
             $table->integer('year');
-            $table->integer('area');
+            $table->integer('projectType');
             $table->foreignId('category_id')->constrained('categories')->onDelete('cascade');
             $table->integer('external_id');
             $table->timestamps();
@@ -55,7 +57,7 @@ return new class extends Migration
 
         Schema::create('evaluators', function (Blueprint $table) {
             $table->id();
-            $table->integer('PIN');
+            $table->integer('PIN')->nullable();
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('cascade');
             $table->timestamps();
             $table->softDeletes();
@@ -71,9 +73,9 @@ return new class extends Migration
 
         Schema::create('questions', function (Blueprint $table) {
             $table->id();
-            $table->text('text');
+            $table->text('scientific_text')->nullable();
+            $table->text('technological_text')->nullable();
             $table->integer('type');
-            $table->integer('area');
             $table->integer('number_alternatives');
             $table->timestamps();
             $table->softDeletes();
@@ -92,7 +94,7 @@ return new class extends Migration
         Schema::create('awards', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->foreignId('school_grade_id')->constrained('school_grades')->onDelete('cascade');
+            $table->string('school_grade');
             $table->integer('total_positions');
             $table->boolean('use_school_grades');
             $table->boolean('use_categories');
@@ -118,6 +120,7 @@ return new class extends Migration
 
         Schema::table('users', function (Blueprint $table) {
             $table->softDeletes();
+            $table->boolean('active')->default(true);
         });
     }
 
@@ -128,6 +131,7 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             $table->dropSoftDeletes();
+            $table->dropColumn('active');
         });
 
         Schema::dropIfExists('award_question');
@@ -138,5 +142,6 @@ return new class extends Migration
         Schema::dropIfExists('projects');
         Schema::dropIfExists('categories');
         Schema::dropIfExists('students');
+        Schema::dropIfExists('schools');
     }
 };

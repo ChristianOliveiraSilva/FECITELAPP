@@ -10,6 +10,6 @@ class QuestionController extends Controller
 {
     public function getByAssessment(Assessment $assessment)
     {
-        return Question::where('area', $assessment->project->area->value)->get();
+        return Question::all();
     }
 } 

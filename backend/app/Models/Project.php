@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Enum\AreaEnum;
+use App\Enum\ProjectTypeEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -16,12 +16,12 @@ class Project extends Model
         'description',
         'year',
         'category_id',
-        'area',
+        'projectType',
         'external_id',
     ];
 
     protected $casts = [
-        'area' => AreaEnum::class,
+        'projectType' => ProjectTypeEnum::class,
     ];
 
     public function students()
@@ -39,9 +39,9 @@ class Project extends Model
         return $this->hasMany(Assessment::class);
     }
 
-    public function getSchoolGradeIdAttribute()
+    public function getSchoolGradeAttribute()
     {
-        return $this->students[0]->school_grade_id;
+        return $this->students[0]->school_grade;
     }
 
     public function getNoteByQuestion(Question $question)

@@ -2,10 +2,10 @@
 
 namespace App\Filament\Pages;
 
+use App\Enum\SchoolGradeEnum;
 use App\Models\Category;
 use App\Models\Project;
 use App\Models\Question;
-use App\Models\SchoolGrade;
 use Filament\Pages\Page;
 
 class AwardsPage extends Page
@@ -18,7 +18,12 @@ class AwardsPage extends Page
 
     protected function getViewData(): array
     {
-        $schoolGrades = SchoolGrade::all();
+        $schoolGrades = collect(SchoolGradeEnum::cases())->map(function ($grade) {
+            return (object) [
+                'id' => $grade->value,
+                'name' => $grade->getLabel(),
+            ];
+        });
         $categories = Category::mainCategories();
         $questions = Question::all();
         $projectQuery = Project::query();
@@ -28,7 +33,7 @@ class AwardsPage extends Page
         
         if (!empty($data['school_grade'])) {
             $projectQuery->whereHas('students', function ($q) use ($data) {
-                $q->where('school_grade_id', $data['school_grade']);
+                $q->where('school_grade', $data['school_grade']);
             });
         }
         

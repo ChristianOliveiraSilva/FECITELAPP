@@ -37,6 +37,10 @@ class UserResource extends Resource
                 Forms\Components\TextInput::make('password')
                     ->password()
                     ->required(),
+                Forms\Components\Toggle::make('active')
+                    ->label('Ativo')
+                    ->default(true)
+                    ->required(),
             ]);
     }
 
@@ -62,6 +66,11 @@ class UserResource extends Resource
                     ->tooltip(Helper::getTooltipFunction())
                     ->sortable()
                     ->searchable(),
+                Tables\Columns\IconColumn::make('active')
+                    ->label('Ativo')
+                    ->boolean()
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Criado em')
                     ->dateTime()
@@ -79,13 +88,56 @@ class UserResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                Tables\Filters\TernaryFilter::make('active')
+                    ->label('Status')
+                    ->placeholder('Todos os usuários')
+                    ->trueLabel('Apenas ativos')
+                    ->falseLabel('Apenas inativos')
+                    ->default(true),
             ])
             ->actions([
+                Tables\Actions\Action::make('activate')
+                    ->label('Ativar')
+                    ->icon('heroicon-o-check-circle')
+                    ->color('success')
+                    ->visible(fn ($record) => !$record->active)
+                    ->action(function ($record) {
+                        $record->update(['active' => true]);
+                    })
+                    ->requiresConfirmation(),
+                Tables\Actions\Action::make('deactivate')
+                    ->label('Desativar')
+                    ->icon('heroicon-o-x-circle')
+                    ->color('danger')
+                    ->visible(fn ($record) => $record->active)
+                    ->action(function ($record) {
+                        $record->update(['active' => false]);
+                    })
+                    ->requiresConfirmation(),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\BulkAction::make('activate')
+                        ->label('Ativar')
+                        ->icon('heroicon-o-check-circle')
+                        ->color('success')
+                        ->action(function ($records) {
+                            $records->each(function ($record) {
+                                $record->update(['active' => true]);
+                            });
+                        })
+                        ->requiresConfirmation(),
+                    Tables\Actions\BulkAction::make('deactivate')
+                        ->label('Desativar')
+                        ->icon('heroicon-o-x-circle')
+                        ->color('danger')
+                        ->action(function ($records) {
+                            $records->each(function ($record) {
+                                $record->update(['active' => false]);
+                            });
+                        })
+                        ->requiresConfirmation(),
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);

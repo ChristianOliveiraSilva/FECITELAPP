@@ -2,27 +2,15 @@
 
 namespace Database\Seeders;
 
-use App\Enum\AreaEnum;
-use App\Enum\QuestionTypeEnum;
-use App\Models\Assessment;
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use App\Models\Student;
-use App\Models\Category;
-use App\Models\Project;
-use App\Models\Evaluator;
-use App\Models\Question;
-use App\Models\Response;
-use App\Models\Award;
-use App\Models\SchoolGrade;
-use Illuminate\Support\Facades\DB;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
         $this->call([
-            SchoolGradeSeeder::class,
+            SchoolSeeder::class,
             CategorySeeder::class,
             QuestionSeeder::class,
         ]);

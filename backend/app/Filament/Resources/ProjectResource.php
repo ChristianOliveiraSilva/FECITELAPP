@@ -2,13 +2,13 @@
 
 namespace App\Filament\Resources;
 
-use App\Enum\AreaEnum;
+use App\Enum\ProjectTypeEnum;
 use App\Filament\Resources\ProjectResource\Pages;
 use App\Filament\Resources\ProjectResource\RelationManagers;
 use App\Helper;
 use App\Models\Category;
 use App\Models\Project;
-use App\Models\SchoolGrade;
+use App\Enum\SchoolGradeEnum;
 use Filament\Forms;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
@@ -50,10 +50,10 @@ class ProjectResource extends Resource
                     ->default(date('Y'))
                     ->numeric(),
 
-                Forms\Components\Select::make('area')
+                Forms\Components\Select::make('projectType')
                     ->label('Tipo de projeto')
-                    ->options(AreaEnum::class)
-                    ->default(AreaEnum::TECHNICAL)
+                    ->options(ProjectTypeEnum::class)
+                    ->default(ProjectTypeEnum::TECHNICAL)
                     ->required(),
 
                 Forms\Components\Select::make('category_id')
@@ -107,7 +107,7 @@ class ProjectResource extends Resource
                     ->tooltip(Helper::getTooltipFunction())
                     ->sortable()
                     ->searchable(),
-                Tables\Columns\TextColumn::make('area')
+                Tables\Columns\TextColumn::make('projectType')
                     ->label('Tipo de projeto')
                     ->limit(50)
                     ->tooltip(Helper::getTooltipFunction())
@@ -130,9 +130,14 @@ class ProjectResource extends Resource
                     ->relationship('category', 'name', fn (Builder $query) => $query->whereNull('main_category_id'))
                     ->searchable()
                     ->preload(),
-                SelectFilter::make('students.schoolGrade')
+                SelectFilter::make('students.school_grade')
                     ->label('Grau de escolaridade')
-                    ->relationship('students.schoolGrade', 'name')
+                    ->options(SchoolGradeEnum::getValues())
+                    ->searchable()
+                    ->preload(),
+                SelectFilter::make('students.school')
+                    ->label('Escola')
+                    ->relationship('students.school', 'name')
                     ->searchable()
                     ->preload(),
             ])
