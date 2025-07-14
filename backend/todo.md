@@ -1,5 +1,6 @@
 Fazer:
-[🟢] Inativar avaliadores e usuários
+[🟠] Inativar avaliadores e usuários
+    [] nao deixar a pessoa desativada fazer as coisas!
 [] Criar edição por ano
     [] Importar dados de anos anteriores para ano atual
 [] Importar dados de uma planilha

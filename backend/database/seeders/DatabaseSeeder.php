@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder
             SchoolSeeder::class,
             CategorySeeder::class,
             QuestionSeeder::class,
+            TestSeeder::class,
         ]);
         
         if (env('APP_ENV') !== 'production') {
