@@ -26,6 +26,10 @@ class AwardResource extends Resource
 
     protected static ?string $pluralLabel = 'premiações';
 
+    protected static ?string $navigationGroup = 'Gestão de Projetos';
+
+    protected static ?int $navigationSort = 5;
+
     public static function form(Form $form): Form
     {
         return $form

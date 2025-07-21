@@ -6,8 +6,6 @@ use App\Filament\Imports\CategoryImporter;
 use App\Filament\Resources\CategoryResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
-use Filament\Resources\Components\Tab;
-use Illuminate\Database\Eloquent\Builder;
 
 class ListCategories extends ListRecords
 {
@@ -17,19 +15,11 @@ class ListCategories extends ListRecords
     {
         return [
             Actions\ImportAction::make()
-                ->importer(CategoryImporter::class),
+                ->importer(CategoryImporter::class)
+                ->label('Importar áreas'),
             Actions\CreateAction::make(),
         ];
     }
  
-    public function getTabs(): array
-    {
-        return [
-            'main' => Tab::make('Principais')
-                ->modifyQueryUsing(fn (Builder $query) => $query->whereNull('main_category_id')),
-            'all' => Tab::make('Todos'),
-            'subs' => Tab::make('Sub-Áreas')
-                ->modifyQueryUsing(fn (Builder $query) => $query->whereNotNull('main_category_id')),
-        ];
-    }
+
 }

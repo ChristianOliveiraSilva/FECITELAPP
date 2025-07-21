@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\EvaluatorResource\Pages;
 
+use App\Filament\Imports\EvaluatorImporter;
 use App\Filament\Resources\EvaluatorResource;
 use App\Models\Assessment;
 use App\Models\User;
@@ -12,6 +13,15 @@ use Illuminate\Database\Eloquent\Model;
 class CreateEvaluator extends CreateRecord
 {
     protected static string $resource = EvaluatorResource::class;
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Actions\ImportAction::make()
+                ->importer(EvaluatorImporter::class)
+                ->label('Importar avaliadores'),
+        ];
+    }
 
     protected function handleRecordCreation(array $data): Model
     {

@@ -22,6 +22,10 @@ class EvaluatorResource extends Resource
 
     protected static ?string $modelLabel = 'avaliador';
 
+    protected static ?string $navigationGroup = 'Administração';
+
+    protected static ?int $navigationSort = 4;
+
     protected static ?string $pluralLabel = 'avaliadores';
 
     public static function form(Form $form): Form

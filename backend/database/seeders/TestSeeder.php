@@ -17,12 +17,10 @@ class TestSeeder extends Seeder
 {
     public function run(): void
     {
-        // Criar usuários de teste
         $users = User::factory()->count(5)->create([
             'active' => true,
         ]);
 
-        // Criar avaliadores de teste
         $evaluators = [];
         foreach ($users as $user) {
             $evaluators[] = Evaluator::create([
@@ -31,10 +29,8 @@ class TestSeeder extends Seeder
             ]);
         }
 
-        // Buscar escolas existentes
         $schools = School::all();
         
-        // Criar estudantes de teste
         $students = [];
         foreach ($schools as $school) {
             for ($i = 0; $i < 3; $i++) {
@@ -47,10 +43,8 @@ class TestSeeder extends Seeder
             }
         }
 
-        // Buscar categorias existentes
         $categories = Category::all();
         
-        // Criar projetos de teste
         $projects = [];
         foreach ($categories as $category) {
             for ($i = 0; $i < 2; $i++) {
@@ -67,23 +61,20 @@ class TestSeeder extends Seeder
             }
         }
 
-        // Associar estudantes aos projetos
         foreach ($projects as $project) {
             $projectStudents = fake()->randomElements($students, fake()->numberBetween(1, 3));
             $project->students()->attach(collect($projectStudents)->pluck('id'));
         }
 
-        // Criar avaliações de teste (máximo 3 projetos por avaliador)
         $evaluatorProjectCount = [];
         
         foreach ($projects as $project) {
-            // Filtrar avaliadores que ainda não atingiram o limite de 3 projetos
             $availableEvaluators = array_filter($evaluators, function($evaluator) use ($evaluatorProjectCount) {
                 return ($evaluatorProjectCount[$evaluator->id] ?? 0) < 3;
             });
             
             if (empty($availableEvaluators)) {
-                break; // Se não há avaliadores disponíveis, para de criar avaliações
+                break;
             }
             
             $projectEvaluators = fake()->randomElements($availableEvaluators, fake()->numberBetween(1, min(3, count($availableEvaluators))));
@@ -94,15 +85,12 @@ class TestSeeder extends Seeder
                     'project_id' => $project->id,
                 ]);
                 
-                // Incrementar contador de projetos para este avaliador
                 $evaluatorProjectCount[$evaluator->id] = ($evaluatorProjectCount[$evaluator->id] ?? 0) + 1;
             }
         }
 
-        // Buscar apenas as categorias principais (5 primeiras)
         $mainCategories = Category::whereNull('main_category_id')->take(5)->get();
         
-        // Associar uma categoria principal a cada avaliador
         foreach ($evaluators as $evaluator) {
             $randomCategory = fake()->randomElement($mainCategories);
             $evaluator->categories()->attach([$randomCategory->id]);

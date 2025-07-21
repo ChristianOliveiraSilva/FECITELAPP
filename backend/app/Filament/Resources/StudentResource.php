@@ -23,6 +23,10 @@ class StudentResource extends Resource
 
     protected static ?string $modelLabel = 'estudante';
 
+    protected static ?string $navigationGroup = 'Administração';
+
+    protected static ?int $navigationSort = 3;
+
     public static function form(Form $form): Form
     {
         return $form

@@ -15,8 +15,8 @@ class CreateCategory extends CreateRecord
     {
         return [
             Actions\ImportAction::make()
-                ->importer(CategoryImporter::class),
-            Actions\CreateAction::make(),
+                ->importer(CategoryImporter::class)
+                ->label('Importar áreas'),
         ];
     }
 }

@@ -23,6 +23,10 @@ class SchoolResource extends Resource
 
     protected static ?string $pluralLabel = 'escolas';
 
+    protected static ?string $navigationGroup = 'Administração';
+
+    protected static ?int $navigationSort = 2;
+
     public static function form(Form $form): Form
     {
         return $form

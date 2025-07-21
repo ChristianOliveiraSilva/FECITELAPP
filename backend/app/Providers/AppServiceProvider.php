@@ -14,9 +14,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        FilamentAsset::register([
-            Css::make('style', asset('css/style.css')),
-        ]);
+        
     }
 
     /**

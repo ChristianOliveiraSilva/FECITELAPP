@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\CategoryResource\Pages;
 
 use App\Filament\Resources\CategoryResource;
+use App\Filament\Resources\CategoryResource\Pages\RelationManagers;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 
@@ -14,6 +15,13 @@ class EditCategory extends EditRecord
     {
         return [
             Actions\DeleteAction::make(),
+        ];
+    }
+
+    public function getRelationManagers(): array
+    {
+        return [
+            RelationManagers\SubCategoryRelationManager::class,
         ];
     }
 }

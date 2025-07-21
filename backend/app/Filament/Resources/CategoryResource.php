@@ -22,6 +22,10 @@ class CategoryResource extends Resource
 
     protected static ?string $modelLabel = 'área';
 
+    protected static ?string $navigationGroup = 'Gestão de Projetos';
+
+    protected static ?int $navigationSort = 2;
+
     public static function form(Form $form): Form
     {
         return $form
@@ -32,7 +36,8 @@ class CategoryResource extends Resource
 
                 Forms\Components\Select::make('main_category_id')
                     ->relationship('mainCategory', 'name', fn (Builder $query) => $query->whereNull('main_category_id'))
-                    ->label('Área Pai'),
+                    ->label('Área Principal')
+                    ->helperText('Se você selecionar uma área principal, esta categoria será considerada uma subárea da área escolhida.'),
             ]);
     }
 
@@ -75,13 +80,13 @@ class CategoryResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery();
+        return parent::getEloquentQuery()->whereNull('main_category_id');
     }
 
     public static function getRelations(): array
     {
         return [
-            //
+            Pages\RelationManagers\SubCategoryRelationManager::class,
         ];
     }
 

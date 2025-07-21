@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\CategoryResource\Pages;
 
 use App\Filament\Resources\CategoryResource;
+use App\Filament\Resources\CategoryResource\Pages\RelationManagers;
 use Filament\Actions;
 use Filament\Resources\Pages\ViewRecord;
 

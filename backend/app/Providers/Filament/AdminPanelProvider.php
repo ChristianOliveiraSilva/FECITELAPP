@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Widgets\EditalFecitelWidget;
 use App\Filament\Widgets\EvaluatedProjects;
 use App\Filament\Widgets\MissingEvaluations;
 use App\Filament\Widgets\ProjectsPerCategories;
@@ -30,6 +31,10 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->brandName('FECITEL IFMS')
+            ->favicon(asset('favicon.ico'))
+            ->sidebarCollapsibleOnDesktop()
+            ->sidebarWidth('250px')
+            ->maxContentWidth('full')
             ->colors([
                 'primary' => Color::Green,
             ])
@@ -40,6 +45,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
+                EditalFecitelWidget::class,
                 EvaluatedProjects::class,
                 MissingEvaluations::class,
                 ProjectsPerCategories::class,
@@ -57,6 +63,10 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
+            ])
+            ->navigationGroups([
+                'Gestão de Projetos',
+                'Administração',
             ]);
     }
 }

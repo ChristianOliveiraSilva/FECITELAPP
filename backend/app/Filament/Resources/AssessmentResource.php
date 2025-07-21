@@ -24,6 +24,10 @@ class AssessmentResource extends Resource
 
     protected static ?string $pluralLabel = 'avaliações';
 
+    protected static ?string $navigationGroup = 'Gestão de Projetos';
+
+    protected static ?int $navigationSort = 3;
+
     public static function form(Form $form): Form
     {
         return $form->schema([]);

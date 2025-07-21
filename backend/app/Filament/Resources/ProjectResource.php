@@ -29,6 +29,10 @@ class ProjectResource extends Resource
 
     protected static ?string $modelLabel = 'projeto';
 
+    protected static ?string $navigationGroup = 'Gestão de Projetos';
+
+    protected static ?int $navigationSort = 1;
+
     public static function form(Form $form): Form
     {
         return $form
@@ -39,6 +43,7 @@ class ProjectResource extends Resource
 
                 Forms\Components\TextInput::make('external_id')
                     ->label('ID do projeto')
+                    ->helperText('Este é um ID externo fornecido pela organização da FECITEL.')
                     ->required(),
 
                 Forms\Components\Textarea::make('description')
