@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/projects_provider.dart';
@@ -20,7 +21,8 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ProjectsProvider()),
       ],
       child: MaterialApp(
-        title: 'FeciTEL App',
+        title: 'Fecitel App',
+        debugShowCheckedModeBanner: false,
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(
             seedColor: const Color(0xFF56BA54),
@@ -52,14 +54,21 @@ class _AuthWrapperState extends State<AuthWrapper> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<AuthProvider>(
-      builder: (context, authProvider, child) {
-        if (authProvider.isAuthenticated) {
-          return const ListScreen();
-        } else {
-          return const LoginScreen();
-        }
-      },
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Color(0xFF4CAF50),
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+      ),
+      child: Consumer<AuthProvider>(
+        builder: (context, authProvider, child) {
+          if (authProvider.isAuthenticated) {
+            return const ListScreen();
+          } else {
+            return const LoginScreen();
+          }
+        },
+      ),
     );
   }
 }

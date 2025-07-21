@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../screens/profile_screen.dart';
+import '../screens/list_screen.dart';
 
 class Header extends StatelessWidget {
   const Header({super.key});
@@ -26,11 +28,49 @@ class Header extends StatelessWidget {
                   size: 30,
                 ),
                 onSelected: (value) {
-                  if (value == 'logout') {
+                  if (value == 'assessments') {
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (context) => const ListScreen(),
+                      ),
+                    );
+                  } else if (value == 'profile') {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const ProfileScreen(),
+                      ),
+                    );
+                  } else if (value == 'logout') {
                     _showLogoutDialog(context);
                   }
                 },
                 itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'assessments',
+                    child: Row(
+                      children: [
+                        Icon(Icons.assessment, color: Colors.black87),
+                        SizedBox(width: 10),
+                        Text(
+                          'Avaliações',
+                          style: TextStyle(color: Colors.black87),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'profile',
+                    child: Row(
+                      children: [
+                        Icon(Icons.person, color: Colors.black87),
+                        SizedBox(width: 10),
+                        Text(
+                          'Perfil',
+                          style: TextStyle(color: Colors.black87),
+                        ),
+                      ],
+                    ),
+                  ),
                   const PopupMenuItem(
                     value: 'logout',
                     child: Row(
@@ -62,7 +102,10 @@ class Header extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancelar'),
+            child: const Text(
+              'Cancelar',
+              style: TextStyle(color: Colors.grey),
+            ),
           ),
           TextButton(
             onPressed: () {
