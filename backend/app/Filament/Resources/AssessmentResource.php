@@ -12,7 +12,6 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class AssessmentResource extends Resource
 {
@@ -30,7 +29,64 @@ class AssessmentResource extends Resource
 
     public static function form(Form $form): Form
     {
-        return $form->schema([]);
+        return $form->schema([
+            Forms\Components\Section::make('Informações da Avaliação')
+                ->description('Configure os dados básicos da avaliação')
+                ->schema([
+                    Forms\Components\Select::make('evaluator_id')
+                        ->label('Avaliador')
+                        ->options(function () {
+                            return \App\Models\Evaluator::with('user')
+                                ->get()
+                                ->mapWithKeys(function ($evaluator) {
+                                    return [$evaluator->id => $evaluator->user->name ?? 'Avaliador #' . $evaluator->id];
+                                });
+                        })
+                        ->searchable()
+                        ->required()
+                        ->placeholder('Selecione um avaliador')
+                        ->helperText('Escolha o avaliador responsável por esta avaliação'),
+                    
+                    Forms\Components\Select::make('project_id')
+                        ->label('Projeto')
+                        ->options(function () {
+                            return \App\Models\Project::with(['students', 'category'])
+                                ->get()
+                                ->mapWithKeys(function ($project) {
+                                    $students = $project->students->pluck('name')->join(', ');
+                                    $category = $project->category->name ?? 'Sem categoria';
+                                    return [$project->id => "{$project->title} - {$students} ({$category})"];
+                                });
+                        })
+                        ->searchable()
+                        ->required()
+                        ->placeholder('Selecione um projeto')
+                        ->helperText('Escolha o projeto que será avaliado'),
+                ])
+                ->columns(2),
+            
+            Forms\Components\Section::make('Informações Adicionais')
+                ->description('Dados sobre a avaliação')
+                ->schema([
+                    Forms\Components\Placeholder::make('created_at')
+                        ->label('Data de Criação')
+                        ->content(fn ($record) => $record ? $record->created_at->format('d/m/Y H:i:s') : 'N/A'),
+                    
+                    Forms\Components\Placeholder::make('updated_at')
+                        ->label('Última Atualização')
+                        ->content(fn ($record) => $record ? $record->updated_at->format('d/m/Y H:i:s') : 'N/A'),
+                    
+                    Forms\Components\Placeholder::make('has_response')
+                        ->label('Possui Respostas')
+                        ->content(fn ($record) => $record && $record->has_response ? 'Sim' : 'Não'),
+                    
+                    Forms\Components\Placeholder::make('note')
+                        ->label('Nota Final')
+                        ->content(fn ($record) => $record ? number_format($record->note, 2) : '0.00'),
+                ])
+                ->columns(2)
+                ->visible(fn ($record) => $record !== null),
+        ]);
     }
 
     public static function table(Table $table): Table
@@ -51,18 +107,6 @@ class AssessmentResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('project.title')
                     ->label('Projeto')
-                    ->limit(50)
-                    ->tooltip(Helper::getTooltipFunction())
-                    ->sortable()
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('project.students.name')
-                    ->label('Estudante')
-                    ->limit(50)
-                    ->tooltip(Helper::getTooltipFunction())
-                    ->sortable()
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('note')
-                    ->label('Nota Final')
                     ->limit(50)
                     ->tooltip(Helper::getTooltipFunction())
                     ->sortable()
@@ -101,7 +145,7 @@ class AssessmentResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->whereHas('responses');
+        return parent::getEloquentQuery();
     }
 
     public static function getPages(): array

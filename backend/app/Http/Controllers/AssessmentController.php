@@ -14,7 +14,7 @@ class AssessmentController extends Controller
 
         if (!$user || !$user->evaluator) {
             return response()->json([
-                'success' => false,
+                'status' => false,
                 'message' => 'Usuário não autorizado ou não é um avaliador.',
                 'data' => [],
             ], 403);
@@ -28,7 +28,7 @@ class AssessmentController extends Controller
             ->get();
 
         return response()->json([
-            'success' => true,
+            'status' => true,
             'message' => 'Avaliações recuperadas com sucesso.',
             'data' => $assessments,
         ]);

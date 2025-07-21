@@ -18,7 +18,7 @@ class ResponseController extends Controller
 
         if (!$assessment) {
             return response()->json([
-                'success' => false,
+                'status' => false,
                 'message' => 'Avaliação não encontrada',
             ], 404);
         }
@@ -42,7 +42,7 @@ class ResponseController extends Controller
         $assessment->load('responses.question');
 
         return response()->json([
-            'success' => true,
+            'status' => true,
             'message' => 'Respostas salvas com sucesso.',
             'data' => $assessment,
         ]);

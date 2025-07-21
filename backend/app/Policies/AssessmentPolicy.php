@@ -29,7 +29,7 @@ class AssessmentPolicy
      */
     public function create(User $user): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -37,7 +37,7 @@ class AssessmentPolicy
      */
     public function update(User $user, Assessment $assessment): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -45,7 +45,7 @@ class AssessmentPolicy
      */
     public function delete(User $user, Assessment $assessment): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -53,7 +53,7 @@ class AssessmentPolicy
      */
     public function restore(User $user, Assessment $assessment): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -61,6 +61,6 @@ class AssessmentPolicy
      */
     public function forceDelete(User $user, Assessment $assessment): bool
     {
-        return false;
+        return true;
     }
 }

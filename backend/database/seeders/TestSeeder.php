@@ -53,7 +53,7 @@ class TestSeeder extends Seeder
                 $projects[] = Project::create([
                     'title' => fake()->sentence(3),
                     'description' => fake()->paragraph(),
-                    'year' => fake()->numberBetween(2020, 2024),
+                    'year' => date('Y'),
                     'projectType' => $projectType,
                     'category_id' => $category->id,
                     'external_id' => fake()->unique()->numberBetween(1000, 9999),
