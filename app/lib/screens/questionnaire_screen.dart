@@ -156,7 +156,7 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            const Header(),
+            if (_screen == 0) const Header(),
             if (_screen != 0 && _assessment != null)
               ProjectHeader(assessment: _assessment!),
             Expanded(

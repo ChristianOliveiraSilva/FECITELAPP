@@ -25,6 +25,10 @@ class OpenQuestion extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         Container(
+          constraints: const BoxConstraints(
+            minHeight: 120,
+            maxHeight: 200,
+          ),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
@@ -38,7 +42,8 @@ class OpenQuestion extends StatelessWidget {
             ],
           ),
           child: TextField(
-            maxLines: 6,
+            maxLines: 8,
+            minLines: 4,
             decoration: const InputDecoration(
               border: InputBorder.none,
               contentPadding: EdgeInsets.all(16),
