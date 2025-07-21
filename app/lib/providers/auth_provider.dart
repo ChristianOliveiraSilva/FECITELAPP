@@ -21,8 +21,9 @@ class AuthProvider extends ChangeNotifier {
     try {
       final response = await ApiService.post('/login', {'PIN': pin});
       
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
+      final data = jsonDecode(response.body);
+      
+      if (data['status'] == true) {
         final userData = data['data']['user'];
         final token = data['data']['plainTextToken'];
 
@@ -33,7 +34,7 @@ class AuthProvider extends ChangeNotifier {
         await prefs.setString('user', jsonEncode(userData));
         await prefs.setString('authToken', token);
       } else {
-        throw Exception('Login failed');
+        throw Exception(data['message'] ?? 'Login failed');
       }
     } catch (e) {
       rethrow;

@@ -23,73 +23,97 @@ class _ListScreenState extends State<ListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(
-        children: [
-          const Header(),
-          Expanded(
-            child: Consumer<ProjectsProvider>(
-              builder: (context, projectsProvider, child) {
-                if (projectsProvider.isLoading) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
-                }
+    return SafeArea(
+      child: Scaffold(
+        body: Column(
+          children: [
+            const Header(),
+            Expanded(
+              child: Consumer<ProjectsProvider>(
+                builder: (context, projectsProvider, child) {
+                  if (projectsProvider.isLoading) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }
 
-                if (projectsProvider.error != null) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          projectsProvider.error!,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey,
+                  if (projectsProvider.error != null) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            projectsProvider.error!,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 20),
-                        ElevatedButton(
-                          onPressed: () {
-                            projectsProvider.loadProjects();
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF56BA54),
-                            foregroundColor: Colors.white,
+                          const SizedBox(height: 20),
+                          ElevatedButton(
+                            onPressed: () {
+                              projectsProvider.loadProjects();
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF56BA54),
+                              foregroundColor: Colors.white,
+                            ),
+                            child: const Text('Tentar Novamente'),
                           ),
-                          child: const Text('Tentar Novamente'),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-
-                if (projectsProvider.projects.isEmpty) {
-                  return const Center(
-                    child: Text(
-                      'Não há projetos para serem avaliados',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey,
+                        ],
                       ),
-                    ),
-                  );
-                }
+                    );
+                  }
 
-                return ListView.builder(
-                  padding: const EdgeInsets.all(12),
+                  if (projectsProvider.projects.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'Não há projetos para serem avaliados',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey,
+                            ),
+                          ),
+                          const SizedBox(height: 30),
+                          SizedBox(
+                            width: 280,
+                            height: 55,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                projectsProvider.loadProjects();
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF56BA54),
+                                foregroundColor: Colors.white,
+                              ),
+                              child: const Text(
+                                'Buscar Novas Avaliações',
+                                style: TextStyle(fontSize: 16),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                                  return ListView.builder(
+                  padding: const EdgeInsets.all(8),
                   itemCount: projectsProvider.projects.length,
                   itemBuilder: (context, index) {
-                    final category = projectsProvider.projects.keys.elementAt(index);
-                    final assessments = projectsProvider.projects[category]!;
+                    final projectType = projectsProvider.projects.keys.elementAt(index);
+                    final assessments = projectsProvider.projects[projectType]!;
 
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          padding: const EdgeInsets.symmetric(vertical: 8),
                           child: Text(
-                            category,
+                            _getProjectTypeName(projectType),
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -103,7 +127,7 @@ class _ListScreenState extends State<ListScreen> {
                             Navigator.of(context).push(
                               MaterialPageRoute(
                                 builder: (context) => QuestionnaireScreen(
-                                  assessmentId: assessment.id,
+                                  assessment: assessment,
                                 ),
                               ),
                             );
@@ -113,11 +137,23 @@ class _ListScreenState extends State<ListScreen> {
                     );
                   },
                 );
-              },
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
+  }
+
+  String _getProjectTypeName(int projectType) {
+    switch (projectType) {
+      case 1:
+        return 'Projetos Técnicos';
+      case 2:
+        return 'Projetos Científicos';
+      default:
+        return 'Tipo de Projeto: $projectType';
+    }
   }
 } 

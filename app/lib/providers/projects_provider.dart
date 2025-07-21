@@ -4,11 +4,11 @@ import '../models/assessment.dart';
 import '../services/api_service.dart';
 
 class ProjectsProvider extends ChangeNotifier {
-  Map<String, List<Assessment>> _projects = {};
+  Map<int, List<Assessment>> _projects = {};
   bool _isLoading = false;
   String? _error;
 
-  Map<String, List<Assessment>> get projects => _projects;
+  Map<int, List<Assessment>> get projects => _projects;
   bool get isLoading => _isLoading;
   String? get error => _error;
 
@@ -19,25 +19,26 @@ class ProjectsProvider extends ChangeNotifier {
 
     try {
       final response = await ApiService.get('/assessments');
+      final data = jsonDecode(response.body);
       
-      if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
-        final Map<String, List<Assessment>> groupedByCategory = {};
+      if (data['status'] == true) {
+        final List<dynamic> assessmentsData = data['data'];
+        final Map<int, List<Assessment>> groupedByType = {};
 
-        for (final assessmentData in data) {
+        for (final assessmentData in assessmentsData) {
           final assessment = Assessment.fromJson(assessmentData);
-          final categoryName = assessment.project.category.name;
+          final projectType = assessment.project.projectType;
 
-          if (!groupedByCategory.containsKey(categoryName)) {
-            groupedByCategory[categoryName] = [];
+          if (!groupedByType.containsKey(projectType)) {
+            groupedByType[projectType] = [];
           }
 
-          groupedByCategory[categoryName]!.add(assessment);
+          groupedByType[projectType]!.add(assessment);
         }
 
-        _projects = groupedByCategory;
+        _projects = groupedByType;
       } else {
-        _error = 'Erro ao carregar projetos';
+        _error = data['message'] ?? 'Erro ao carregar projetos';
       }
     } catch (e) {
       _error = 'Erro de conexão';

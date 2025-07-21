@@ -14,7 +14,7 @@ class ProjectItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const scientific = 2;
-    final isScientific = assessment.project.area == scientific;
+    final isScientific = assessment.project.projectType == scientific;
     
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 0),
