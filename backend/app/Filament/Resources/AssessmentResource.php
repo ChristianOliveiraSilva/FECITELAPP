@@ -111,6 +111,13 @@ class AssessmentResource extends Resource
                     ->tooltip(Helper::getTooltipFunction())
                     ->sortable()
                     ->searchable(),
+                Tables\Columns\TextColumn::make('has_response')
+                    ->label('Possui Respostas')
+                    ->formatStateUsing(fn (bool $state): string => $state ? 'Sim' : 'Não')
+                    ->badge()
+                    ->color(fn (bool $state): string => $state ? 'success' : 'danger')
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Criado em')
                     ->dateTime()
