@@ -2,9 +2,19 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import { DashboardWrapper } from "@/components/layout/DashboardWrapper";
+import { AvaliacoesPage } from "@/pages/dashboard/AvaliacoesPage";
+import { AreasPage } from "@/pages/dashboard/AreasPage";
+import { ProjetosPage } from "@/pages/dashboard/ProjetosPage";
+import { AvaliadoresPage } from "@/pages/dashboard/AvaliadoresPage";
+import { EstudantesPage } from "@/pages/dashboard/EstudantesPage";
+import { EscolasPage } from "@/pages/dashboard/EscolasPage";
+import { UsuariosPage } from "@/pages/dashboard/UsuariosPage";
+import { PremiacoesPage } from "@/pages/dashboard/PremiacoesPage";
+import { PerguntasPage } from "@/pages/dashboard/PerguntasPage";
 
 const queryClient = new QueryClient();
 
@@ -16,6 +26,18 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/dashboard" element={<DashboardWrapper />}>
+            <Route index element={<Navigate to="avaliacoes" replace />} />
+            <Route path="avaliacoes" element={<AvaliacoesPage />} />
+            <Route path="areas" element={<AreasPage />} />
+            <Route path="projetos" element={<ProjetosPage />} />
+            <Route path="avaliadores" element={<AvaliadoresPage />} />
+            <Route path="estudantes" element={<EstudantesPage />} />
+            <Route path="escolas" element={<EscolasPage />} />
+            <Route path="usuarios" element={<UsuariosPage />} />
+            <Route path="premiacoes" element={<PremiacoesPage />} />
+            <Route path="perguntas" element={<PerguntasPage />} />
+          </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
