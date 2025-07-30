@@ -1,0 +1,31 @@
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
+from app.database import Base
+import random
+
+class Evaluator(Base):
+    __tablename__ = "evaluators"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    PIN = Column(String(4), unique=True, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    deleted_at = Column(DateTime(timezone=True), nullable=True)
+    
+    # Relationships
+    user = relationship("User", back_populates="evaluator")
+    assessments = relationship("Assessment", back_populates="evaluator")
+    categories = relationship("Category", secondary="evaluator_categories", back_populates="evaluators")
+    
+    @staticmethod
+    def generate_random_pin() -> str:
+        while True:
+            pin = str(random.randint(1111, 9999))
+            # Check if PIN exists (would need database session in real implementation)
+            return pin
+    
+    @property
+    def total_projects(self) -> int:
+        return len(self.assessments) 
