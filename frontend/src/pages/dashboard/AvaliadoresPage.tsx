@@ -1,59 +1,66 @@
 import { useState } from "react";
 import { DataTable } from "@/components/ui/data-table";
 import { CrudForm } from "@/components/ui/crud-form";
-import { useCrud } from "@/hooks/use-crud";
-import { mockAvaliadores } from "@/data/mockData";
+import { useApiCrud } from "@/hooks/use-api-crud";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2 } from "lucide-react";
 
 interface Avaliador extends Record<string, unknown> {
-  id?: string;
-  nome: string;
-  pin: string;
-  quantidade_projetos: number;
-  area: string;
+  id?: number;
+  user_id: number;
+  PIN: string;
+  created_at?: string;
+  updated_at?: string;
+  user?: {
+    id: number;
+    name: string;
+    email: string;
+    active: boolean;
+  };
+  assessments?: Array<{
+    id: number;
+    project_id: number;
+    created_at: string;
+  }>;
+  categories?: Array<{
+    id: number;
+    name: string;
+  }>;
 }
 
 const columns = [
-  { key: "nome", label: "Nome", sortable: true },
-  { key: "pin", label: "PIN", sortable: false },
-  { key: "quantidade_projetos", label: "Quantidade de projetos", sortable: true },
-  { key: "area", label: "Área", sortable: true }
+  { key: "user_name", label: "Nome", sortable: true },
+  { key: "user_email", label: "E-mail", sortable: true },
+  { key: "PIN", label: "PIN", sortable: true },
+  { key: "assessments_count", label: "Avaliações", sortable: false },
+  { key: "categories_count", label: "Categorias", sortable: false },
+  { key: "created_at", label: "Criado em", sortable: true }
 ];
 
 const formFields = [
   {
-    name: "nome",
-    label: "Nome do Avaliador",
-    type: "text" as const,
+    name: "user_id",
+    label: "Usuário",
+    type: "select" as const,
     required: true,
-    placeholder: "Digite o nome completo do avaliador"
+    placeholder: "Selecione o usuário",
+    options: [] // Will be populated dynamically
   },
   {
-    name: "pin",
+    name: "PIN",
     label: "PIN",
     type: "text" as const,
     required: true,
-    placeholder: "Digite o PIN de acesso"
-  },
-  {
-    name: "quantidade_projetos",
-    label: "Quantidade de Projetos",
-    type: "number" as const,
-    required: true,
-    placeholder: "Digite a quantidade de projetos"
-  },
-  {
-    name: "area",
-    label: "Área de Atuação",
-    type: "text" as const,
-    required: true,
-    placeholder: "Digite a área de atuação"
+    placeholder: "Digite o PIN (4 dígitos)"
   }
 ];
 
 export const AvaliadoresPage = () => {
   const {
     data,
+    loading,
+    error,
     isFormOpen,
     editingItem,
     openAddForm,
@@ -61,7 +68,7 @@ export const AvaliadoresPage = () => {
     closeForm,
     handleSubmit,
     deleteItem
-  } = useCrud<Avaliador>({ initialData: mockAvaliadores });
+  } = useApiCrud<Avaliador>({ endpoint: "/evaluators" });
 
   const [itemToDelete, setItemToDelete] = useState<Avaliador | null>(null);
 
@@ -69,31 +76,55 @@ export const AvaliadoresPage = () => {
     setItemToDelete(item);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (itemToDelete) {
-      deleteItem(itemToDelete);
+      await deleteItem(itemToDelete);
       setItemToDelete(null);
     }
   };
+
+  // Transform data for display
+  const transformedData = data.map(item => ({
+    ...item,
+    user_name: item.user?.name || "-",
+    user_email: item.user?.email || "-",
+    assessments_count: item.assessments?.length || 0,
+    categories_count: item.categories?.length || 0,
+    created_at: item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : "-"
+  }));
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-ifms-green-dark">Avaliadores</h1>
         <p className="text-muted-foreground">
-          Gerencie os avaliadores da FECITEL
+          Gerencie os avaliadores do sistema FECITEL
         </p>
       </div>
+
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+      
+      {loading && (
+        <div className="flex items-center justify-center p-4">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <span className="ml-2">Carregando...</span>
+        </div>
+      )}
       
       {!isFormOpen ? (
         <DataTable
           title="Lista de Avaliadores"
           columns={columns}
-          data={data}
-          searchPlaceholder="Buscar por nome, área..."
+          data={transformedData}
+          searchPlaceholder="Buscar por nome, email, PIN..."
           onAdd={openAddForm}
           onEdit={openEditForm}
           onDelete={handleDelete}
+          loading={loading}
         />
       ) : (
         <CrudForm
@@ -103,6 +134,7 @@ export const AvaliadoresPage = () => {
           onSubmit={handleSubmit}
           onCancel={closeForm}
           isEditing={!!editingItem}
+          loading={loading}
         />
       )}
 
@@ -111,7 +143,7 @@ export const AvaliadoresPage = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir o avaliador "{itemToDelete?.nome}"? Esta ação não pode ser desfeita.
+              Tem certeza que deseja excluir o avaliador "{itemToDelete?.user?.name}"? Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

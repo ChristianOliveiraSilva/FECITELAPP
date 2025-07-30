@@ -1,16 +1,41 @@
 from pydantic import BaseModel
 from typing import Optional, List
+from datetime import datetime
 
-class ResponseItem(BaseModel):
+class ResponseBase(BaseModel):
     question_id: int
-    type: int
-    value: Optional[str] = None
+    assessment_id: int
+    response: Optional[str] = None
+    score: Optional[float] = None
 
-class ResponseRequest(BaseModel):
-    assessment: int
-    responses: List[ResponseItem]
+class ResponseCreate(ResponseBase):
+    pass
 
-class ResponseResponse(BaseModel):
+class ResponseUpdate(BaseModel):
+    question_id: Optional[int] = None
+    assessment_id: Optional[int] = None
+    response: Optional[str] = None
+    score: Optional[float] = None
+
+class ResponseResponse(ResponseBase):
+    id: int
+    created_at: datetime
+    updated_at: Optional[datetime]
+    deleted_at: Optional[datetime]
+
+    class Config:
+        from_attributes = True
+
+class ResponseWithRelations(ResponseResponse):
+    question: Optional[dict] = None
+    assessment: Optional[dict] = None
+
+class ResponseListResponse(BaseModel):
     status: bool
     message: str
-    data: Optional[dict] = None 
+    data: List[ResponseWithRelations] = []
+
+class ResponseDetailResponse(BaseModel):
+    status: bool
+    message: str
+    data: ResponseWithRelations 

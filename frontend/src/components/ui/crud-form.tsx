@@ -24,6 +24,7 @@ interface CrudFormProps {
   onSubmit: (data: Record<string, any>) => void;
   onCancel: () => void;
   isEditing?: boolean;
+  loading?: boolean;
 }
 
 export const CrudForm = ({
@@ -32,7 +33,8 @@ export const CrudForm = ({
   initialData = {},
   onSubmit,
   onCancel,
-  isEditing = false
+  isEditing = false,
+  loading = false
 }: CrudFormProps) => {
   const form = useForm({
     defaultValues: initialData
@@ -143,8 +145,13 @@ export const CrudForm = ({
               <Button type="button" variant="outline" onClick={onCancel}>
                 Cancelar
               </Button>
-              <Button type="submit" className="bg-ifms-green hover:bg-ifms-green-dark">
-                {isEditing ? (
+              <Button type="submit" className="bg-ifms-green hover:bg-ifms-green-dark" disabled={loading}>
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    {isEditing ? "Salvando..." : "Adicionando..."}
+                  </>
+                ) : isEditing ? (
                   <>
                     <Save className="h-4 w-4 mr-2" />
                     Salvar

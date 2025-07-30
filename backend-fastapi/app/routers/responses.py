@@ -1,89 +1,327 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, HTTPException, status, Query
+from sqlalchemy.orm import Session, joinedload
 from app.database import get_db
-from app.models.user import User
-from app.models.assessment import Assessment
 from app.models.response import Response
 from app.models.question import Question
-from app.schemas.response import ResponseRequest, ResponseResponse
-from app.utils.auth import get_current_user
-from app.enums.question_type import QuestionType
+from app.models.assessment import Assessment
+from app.schemas.response import (
+    ResponseCreate, ResponseUpdate, ResponseListResponse, ResponseDetailResponse
+)
+from typing import Optional
 
 router = APIRouter()
 
-@router.post("/responses", response_model=ResponseResponse)
-async def store_responses(
-    request: ResponseRequest,
-    current_user: User = Depends(get_current_user),
+@router.get("/", response_model=ResponseListResponse)
+async def get_responses(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=1000),
+    include_relations: bool = Query(False, description="Include related data"),
     db: Session = Depends(get_db)
 ):
+    """Get all responses with optional pagination and relations"""
     try:
-        # Get assessment
-        assessment = db.query(Assessment).filter(Assessment.id == request.assessment).first()
+        query = db.query(Response)
         
+        if include_relations:
+            query = query.options(
+                joinedload(Response.question),
+                joinedload(Response.assessment)
+            )
+        
+        responses = query.offset(skip).limit(limit).all()
+        
+        response_data = []
+        for response in responses:
+            response_dict = {
+                "id": response.id,
+                "question_id": response.question_id,
+                "assessment_id": response.assessment_id,
+                "response": response.response,
+                "score": response.score,
+                "created_at": response.created_at,
+                "updated_at": response.updated_at,
+                "deleted_at": response.deleted_at,
+                "question": None,
+                "assessment": None
+            }
+            
+            if include_relations:
+                if response.question:
+                    response_dict["question"] = {
+                        "id": response.question.id,
+                        "scientific_text": response.question.scientific_text,
+                        "technological_text": response.question.technological_text,
+                        "type": response.question.type,
+                        "number_alternatives": response.question.number_alternatives
+                    }
+                
+                if response.assessment:
+                    response_dict["assessment"] = {
+                        "id": response.assessment.id,
+                        "evaluator_id": response.assessment.evaluator_id,
+                        "project_id": response.assessment.project_id
+                    }
+            
+            response_data.append(response_dict)
+        
+        return ResponseListResponse(
+            status=True,
+            message="Responses retrieved successfully",
+            data=response_data
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error retrieving responses: {str(e)}"
+        )
+
+@router.get("/{response_id}", response_model=ResponseDetailResponse)
+async def get_response(
+    response_id: int,
+    include_relations: bool = Query(False, description="Include related data"),
+    db: Session = Depends(get_db)
+):
+    """Get a specific response by ID"""
+    try:
+        query = db.query(Response)
+        
+        if include_relations:
+            query = query.options(
+                joinedload(Response.question),
+                joinedload(Response.assessment)
+            )
+        
+        response = query.filter(Response.id == response_id).first()
+        
+        if not response:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Response not found"
+            )
+        
+        response_dict = {
+            "id": response.id,
+            "question_id": response.question_id,
+            "assessment_id": response.assessment_id,
+            "response": response.response,
+            "score": response.score,
+            "created_at": response.created_at,
+            "updated_at": response.updated_at,
+            "deleted_at": response.deleted_at,
+            "question": None,
+            "assessment": None
+        }
+        
+        if include_relations:
+            if response.question:
+                response_dict["question"] = {
+                    "id": response.question.id,
+                    "scientific_text": response.question.scientific_text,
+                    "technological_text": response.question.technological_text,
+                    "type": response.question.type,
+                    "number_alternatives": response.question.number_alternatives
+                }
+            
+            if response.assessment:
+                response_dict["assessment"] = {
+                    "id": response.assessment.id,
+                    "evaluator_id": response.assessment.evaluator_id,
+                    "project_id": response.assessment.project_id
+                }
+        
+        return ResponseDetailResponse(
+            status=True,
+            message="Response retrieved successfully",
+            data=response_dict
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error retrieving response: {str(e)}"
+        )
+
+@router.post("/", response_model=ResponseDetailResponse)
+async def create_response(response_data: ResponseCreate, db: Session = Depends(get_db)):
+    """Create a new response"""
+    try:
+        # Check if question exists
+        question = db.query(Question).filter(Question.id == response_data.question_id).first()
+        if not question:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Question not found"
+            )
+        
+        # Check if assessment exists
+        assessment = db.query(Assessment).filter(Assessment.id == response_data.assessment_id).first()
         if not assessment:
-            return ResponseResponse(
-                status=False,
-                message="Avaliação não encontrada"
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Assessment not found"
             )
         
-        # Delete existing responses if any
-        if assessment.has_response:
-            db.query(Response).filter(Response.assessment_id == assessment.id).delete()
+        # Check if response already exists for this question and assessment
+        existing_response = db.query(Response).filter(
+            Response.question_id == response_data.question_id,
+            Response.assessment_id == response_data.assessment_id
+        ).first()
         
-        # Create new responses
-        for response_item in request.responses:
-            response_value = None
-            score_value = None
-            
-            # Determine if it's text or multiple choice based on question type
-            question = db.query(Question).filter(Question.id == response_item.question_id).first()
-            
-            if question and question.type == QuestionType.TEXT.value:
-                response_value = response_item.value
-            elif question and question.type == QuestionType.MULTIPLE_CHOICE.value:
-                score_value = float(response_item.value) if response_item.value else None
-            
-            # Create response
-            new_response = Response(
-                question_id=response_item.question_id,
-                assessment_id=assessment.id,
-                response=response_value,
-                score=score_value
+        if existing_response:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Response already exists for this question and assessment"
             )
-            db.add(new_response)
+        
+        response = Response(
+            question_id=response_data.question_id,
+            assessment_id=response_data.assessment_id,
+            response=response_data.response,
+            score=response_data.score
+        )
+        
+        db.add(response)
+        db.commit()
+        db.refresh(response)
+        
+        response_dict = {
+            "id": response.id,
+            "question_id": response.question_id,
+            "assessment_id": response.assessment_id,
+            "response": response.response,
+            "score": response.score,
+            "created_at": response.created_at,
+            "updated_at": response.updated_at,
+            "deleted_at": response.deleted_at,
+            "question": None,
+            "assessment": None
+        }
+        
+        return ResponseDetailResponse(
+            status=True,
+            message="Response created successfully",
+            data=response_dict
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error creating response: {str(e)}"
+        )
+
+@router.put("/{response_id}", response_model=ResponseDetailResponse)
+async def update_response(
+    response_id: int,
+    response_data: ResponseUpdate,
+    db: Session = Depends(get_db)
+):
+    """Update an existing response"""
+    try:
+        response = db.query(Response).filter(Response.id == response_id).first()
+        
+        if not response:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Response not found"
+            )
+        
+        # Check if question exists if question_id is being updated
+        if response_data.question_id and response_data.question_id != response.question_id:
+            question = db.query(Question).filter(Question.id == response_data.question_id).first()
+            if not question:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Question not found"
+                )
+        
+        # Check if assessment exists if assessment_id is being updated
+        if response_data.assessment_id and response_data.assessment_id != response.assessment_id:
+            assessment = db.query(Assessment).filter(Assessment.id == response_data.assessment_id).first()
+            if not assessment:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Assessment not found"
+                )
+        
+        # Check for duplicate response if both question_id and assessment_id are being updated
+        if response_data.question_id and response_data.assessment_id:
+            existing_response = db.query(Response).filter(
+                Response.question_id == response_data.question_id,
+                Response.assessment_id == response_data.assessment_id,
+                Response.id != response_id
+            ).first()
+            
+            if existing_response:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Response already exists for this question and assessment"
+                )
+        
+        # Update fields
+        update_data = response_data.dict(exclude_unset=True)
+        for field, value in update_data.items():
+            setattr(response, field, value)
+        
+        db.commit()
+        db.refresh(response)
+        
+        response_dict = {
+            "id": response.id,
+            "question_id": response.question_id,
+            "assessment_id": response.assessment_id,
+            "response": response.response,
+            "score": response.score,
+            "created_at": response.created_at,
+            "updated_at": response.updated_at,
+            "deleted_at": response.deleted_at,
+            "question": None,
+            "assessment": None
+        }
+        
+        return ResponseDetailResponse(
+            status=True,
+            message="Response updated successfully",
+            data=response_dict
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error updating response: {str(e)}"
+        )
+
+@router.delete("/{response_id}")
+async def delete_response(response_id: int, db: Session = Depends(get_db)):
+    """Soft delete a response"""
+    try:
+        response = db.query(Response).filter(Response.id == response_id).first()
+        
+        if not response:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Response not found"
+            )
+        
+        # Soft delete
+        from datetime import datetime
+        response.deleted_at = datetime.utcnow()
         
         db.commit()
         
-        # Reload assessment with responses
-        db.refresh(assessment)
-        
-        # Prepare response data
-        assessment_data = {
-            "id": assessment.id,
-            "evaluator_id": assessment.evaluator_id,
-            "project_id": assessment.project_id,
-            "has_response": assessment.has_response,
-            "note": assessment.note,
-            "responses": [
-                {
-                    "id": response.id,
-                    "question_id": response.question_id,
-                    "response": response.response,
-                    "score": response.score
-                } for response in assessment.responses
-            ]
+        return {
+            "status": True,
+            "message": "Response deleted successfully"
         }
-        
-        return ResponseResponse(
-            status=True,
-            message="Respostas salvas com sucesso.",
-            data=assessment_data
-        )
-        
+    except HTTPException:
+        raise
     except Exception as e:
         db.rollback()
-        return ResponseResponse(
-            status=False,
-            message="Erro ao salvar respostas"
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error deleting response: {str(e)}"
         ) 

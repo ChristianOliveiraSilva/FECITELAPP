@@ -26,6 +26,7 @@ interface DataTableProps {
   onEdit?: (item: Record<string, any>) => void;
   onDelete?: (item: Record<string, any>) => void;
   searchPlaceholder?: string;
+  loading?: boolean;
 }
 
 export const DataTable = ({
@@ -35,7 +36,8 @@ export const DataTable = ({
   onAdd,
   onEdit,
   onDelete,
-  searchPlaceholder = "Buscar..."
+  searchPlaceholder = "Buscar...",
+  loading = false
 }: DataTableProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortColumn, setSortColumn] = useState<string | null>(null);
@@ -119,7 +121,19 @@ export const DataTable = ({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sortedData.length > 0 ? (
+              {loading ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length + (onEdit || onDelete ? 1 : 0)}
+                    className="text-center py-8 text-muted-foreground"
+                  >
+                    <div className="flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-ifms-green"></div>
+                      <span className="ml-2">Carregando...</span>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : sortedData.length > 0 ? (
                 sortedData.map((item, index) => (
                   <TableRow key={index}>
                     {columns.map((column) => (

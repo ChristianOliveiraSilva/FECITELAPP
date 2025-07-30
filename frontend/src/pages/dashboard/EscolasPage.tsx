@@ -1,50 +1,44 @@
 import { useState } from "react";
 import { DataTable } from "@/components/ui/data-table";
 import { CrudForm } from "@/components/ui/crud-form";
-import { useCrud } from "@/hooks/use-crud";
-import { mockEscolas } from "@/data/mockData";
+import { useApiCrud } from "@/hooks/use-api-crud";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2 } from "lucide-react";
 
 interface Escola extends Record<string, unknown> {
-  id?: string;
-  nome: string;
-  cidade: string;
-  estado: string;
+  id?: number;
+  name: string;
+  created_at?: string;
+  updated_at?: string;
+  students?: Array<{
+    id: number;
+    name: string;
+    school_grade: string;
+  }>;
 }
 
 const columns = [
-  { key: "nome", label: "Nome da Escola", sortable: true },
-  { key: "cidade", label: "Cidade", sortable: true },
-  { key: "estado", label: "Estado", sortable: true }
+  { key: "name", label: "Nome da Escola", sortable: true },
+  { key: "students_count", label: "Estudantes", sortable: false },
+  { key: "created_at", label: "Criado em", sortable: true }
 ];
 
 const formFields = [
   {
-    name: "nome",
+    name: "name",
     label: "Nome da Escola",
     type: "text" as const,
     required: true,
     placeholder: "Digite o nome da escola"
-  },
-  {
-    name: "cidade",
-    label: "Cidade",
-    type: "text" as const,
-    required: true,
-    placeholder: "Digite a cidade"
-  },
-  {
-    name: "estado",
-    label: "Estado",
-    type: "text" as const,
-    required: true,
-    placeholder: "Digite o estado (ex: MS)"
   }
 ];
 
 export const EscolasPage = () => {
   const {
     data,
+    loading,
+    error,
     isFormOpen,
     editingItem,
     openAddForm,
@@ -52,7 +46,7 @@ export const EscolasPage = () => {
     closeForm,
     handleSubmit,
     deleteItem
-  } = useCrud<Escola>({ initialData: mockEscolas });
+  } = useApiCrud<Escola>({ endpoint: "/schools" });
 
   const [itemToDelete, setItemToDelete] = useState<Escola | null>(null);
 
@@ -60,12 +54,19 @@ export const EscolasPage = () => {
     setItemToDelete(item);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (itemToDelete) {
-      deleteItem(itemToDelete);
+      await deleteItem(itemToDelete);
       setItemToDelete(null);
     }
   };
+
+  // Transform data for display
+  const transformedData = data.map(item => ({
+    ...item,
+    students_count: item.students?.length || 0,
+    created_at: item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : "-"
+  }));
 
   return (
     <div className="space-y-6">
@@ -75,16 +76,30 @@ export const EscolasPage = () => {
           Gerencie as escolas participantes da FECITEL
         </p>
       </div>
+
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+      
+      {loading && (
+        <div className="flex items-center justify-center p-4">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <span className="ml-2">Carregando...</span>
+        </div>
+      )}
       
       {!isFormOpen ? (
         <DataTable
           title="Lista de Escolas"
           columns={columns}
-          data={data}
-          searchPlaceholder="Buscar por nome, cidade..."
+          data={transformedData}
+          searchPlaceholder="Buscar por nome da escola..."
           onAdd={openAddForm}
           onEdit={openEditForm}
           onDelete={handleDelete}
+          loading={loading}
         />
       ) : (
         <CrudForm
@@ -94,6 +109,7 @@ export const EscolasPage = () => {
           onSubmit={handleSubmit}
           onCancel={closeForm}
           isEditing={!!editingItem}
+          loading={loading}
         />
       )}
 
@@ -102,7 +118,7 @@ export const EscolasPage = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir a escola "{itemToDelete?.nome}"? Esta ação não pode ser desfeita.
+              Tem certeza que deseja excluir a escola "{itemToDelete?.name}"? Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

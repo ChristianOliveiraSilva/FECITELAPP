@@ -1,58 +1,34 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, HTTPException, status, Query
+from sqlalchemy.orm import Session, joinedload
 from app.database import get_db
-from app.models.user import User
-from app.models.evaluator import Evaluator
-from app.models.assessment import Assessment
 from app.models.question import Question
-from app.models.project import Project
-from app.schemas.question import QuestionResponse
-from app.utils.auth import get_current_evaluator
-from app.enums.project_type import ProjectType
+from app.schemas.question import (
+    QuestionCreate, QuestionUpdate, QuestionListResponse, QuestionDetailResponse
+)
+from typing import Optional
 
 router = APIRouter()
 
-@router.get("/questions/{assessment_id}", response_model=QuestionResponse)
-async def get_questions_by_assessment(
-    assessment_id: int,
-    current_user: User = Depends(get_current_evaluator),
+@router.get("/", response_model=QuestionListResponse)
+async def get_questions(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=1000),
+    include_relations: bool = Query(False, description="Include related data"),
     db: Session = Depends(get_db)
 ):
+    """Get all questions with optional pagination and relations"""
     try:
-        # Get evaluator for current user
-        evaluator = db.query(Evaluator).filter(Evaluator.user_id == current_user.id).first()
+        query = db.query(Question)
         
-        if not evaluator:
-            return QuestionResponse(
-                status=False,
-                message="Usuário não é um avaliador"
+        if include_relations:
+            query = query.options(
+                joinedload(Question.responses),
+                joinedload(Question.awards)
             )
         
-        # Get assessment
-        assessment = db.query(Assessment).filter(Assessment.id == assessment_id).first()
+        questions = query.offset(skip).limit(limit).all()
         
-        if not assessment:
-            return QuestionResponse(
-                status=False,
-                message="Avaliação não encontrada"
-            )
-        
-        # Check if evaluator has permission to access this assessment
-        if assessment.evaluator_id != evaluator.id:
-            return QuestionResponse(
-                status=False,
-                message="Você não tem permissão para acessar esta avaliação"
-            )
-        
-        # Get project type
-        project = assessment.project
-        project_type = ProjectType(project.projectType)
-        
-        # Get all questions
-        questions = db.query(Question).all()
-        
-        # Prepare questions data
-        questions_data = []
+        question_data = []
         for question in questions:
             question_dict = {
                 "id": question.id,
@@ -60,26 +36,230 @@ async def get_questions_by_assessment(
                 "technological_text": question.technological_text,
                 "type": question.type,
                 "number_alternatives": question.number_alternatives,
-                "display_text": question.display_text
+                "created_at": question.created_at,
+                "updated_at": question.updated_at,
+                "deleted_at": question.deleted_at,
+                "responses": [],
+                "awards": []
             }
-            questions_data.append(question_dict)
+            
+            if include_relations:
+                question_dict["responses"] = [
+                    {
+                        "id": response.id,
+                        "assessment_id": response.assessment_id,
+                        "response": response.response,
+                        "score": response.score
+                    } for response in question.responses
+                ]
+                
+                question_dict["awards"] = [
+                    {
+                        "id": award.id,
+                        "name": award.name,
+                        "description": award.description
+                    } for award in question.awards
+                ]
+            
+            question_data.append(question_dict)
         
-        response_data = {
-            "project_type": {
-                "value": project_type.value,
-                "label": project_type.get_label()
-            },
-            "questions": questions_data
+        return QuestionListResponse(
+            status=True,
+            message="Questions retrieved successfully",
+            data=question_data
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error retrieving questions: {str(e)}"
+        )
+
+@router.get("/{question_id}", response_model=QuestionDetailResponse)
+async def get_question(
+    question_id: int,
+    include_relations: bool = Query(False, description="Include related data"),
+    db: Session = Depends(get_db)
+):
+    """Get a specific question by ID"""
+    try:
+        query = db.query(Question)
+        
+        if include_relations:
+            query = query.options(
+                joinedload(Question.responses),
+                joinedload(Question.awards)
+            )
+        
+        question = query.filter(Question.id == question_id).first()
+        
+        if not question:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Question not found"
+            )
+        
+        question_dict = {
+            "id": question.id,
+            "scientific_text": question.scientific_text,
+            "technological_text": question.technological_text,
+            "type": question.type,
+            "number_alternatives": question.number_alternatives,
+            "created_at": question.created_at,
+            "updated_at": question.updated_at,
+            "deleted_at": question.deleted_at,
+            "responses": [],
+            "awards": []
         }
         
-        return QuestionResponse(
+        if include_relations:
+            question_dict["responses"] = [
+                {
+                    "id": response.id,
+                    "assessment_id": response.assessment_id,
+                    "response": response.response,
+                    "score": response.score
+                } for response in question.responses
+            ]
+            
+            question_dict["awards"] = [
+                {
+                    "id": award.id,
+                    "name": award.name,
+                    "description": award.description
+                } for award in question.awards
+            ]
+        
+        return QuestionDetailResponse(
             status=True,
-            message="Questões recuperadas com sucesso",
-            data=response_data
+            message="Question retrieved successfully",
+            data=question_dict
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error retrieving question: {str(e)}"
+        )
+
+@router.post("/", response_model=QuestionDetailResponse)
+async def create_question(question_data: QuestionCreate, db: Session = Depends(get_db)):
+    """Create a new question"""
+    try:
+        question = Question(
+            scientific_text=question_data.scientific_text,
+            technological_text=question_data.technological_text,
+            type=question_data.type,
+            number_alternatives=question_data.number_alternatives
         )
         
+        db.add(question)
+        db.commit()
+        db.refresh(question)
+        
+        question_dict = {
+            "id": question.id,
+            "scientific_text": question.scientific_text,
+            "technological_text": question.technological_text,
+            "type": question.type,
+            "number_alternatives": question.number_alternatives,
+            "created_at": question.created_at,
+            "updated_at": question.updated_at,
+            "deleted_at": question.deleted_at,
+            "responses": [],
+            "awards": []
+        }
+        
+        return QuestionDetailResponse(
+            status=True,
+            message="Question created successfully",
+            data=question_dict
+        )
     except Exception as e:
-        return QuestionResponse(
-            status=False,
-            message="Erro ao recuperar questões"
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error creating question: {str(e)}"
+        )
+
+@router.put("/{question_id}", response_model=QuestionDetailResponse)
+async def update_question(
+    question_id: int,
+    question_data: QuestionUpdate,
+    db: Session = Depends(get_db)
+):
+    """Update an existing question"""
+    try:
+        question = db.query(Question).filter(Question.id == question_id).first()
+        
+        if not question:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Question not found"
+            )
+        
+        # Update fields
+        update_data = question_data.dict(exclude_unset=True)
+        for field, value in update_data.items():
+            setattr(question, field, value)
+        
+        db.commit()
+        db.refresh(question)
+        
+        question_dict = {
+            "id": question.id,
+            "scientific_text": question.scientific_text,
+            "technological_text": question.technological_text,
+            "type": question.type,
+            "number_alternatives": question.number_alternatives,
+            "created_at": question.created_at,
+            "updated_at": question.updated_at,
+            "deleted_at": question.deleted_at,
+            "responses": [],
+            "awards": []
+        }
+        
+        return QuestionDetailResponse(
+            status=True,
+            message="Question updated successfully",
+            data=question_dict
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error updating question: {str(e)}"
+        )
+
+@router.delete("/{question_id}")
+async def delete_question(question_id: int, db: Session = Depends(get_db)):
+    """Soft delete a question"""
+    try:
+        question = db.query(Question).filter(Question.id == question_id).first()
+        
+        if not question:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Question not found"
+            )
+        
+        # Soft delete
+        from datetime import datetime
+        question.deleted_at = datetime.utcnow()
+        
+        db.commit()
+        
+        return {
+            "status": True,
+            "message": "Question deleted successfully"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error deleting question: {str(e)}"
         ) 

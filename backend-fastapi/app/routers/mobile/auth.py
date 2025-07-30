@@ -12,7 +12,6 @@ router = APIRouter()
 @router.post("/login", response_model=LoginResponse)
 async def login(request: LoginRequest, db: Session = Depends(get_db)):
     try:
-        # Find user by PIN through evaluator relationship
         user = db.query(User).join(Evaluator).filter(Evaluator.PIN == request.PIN).first()
         
         if not user:
@@ -53,8 +52,6 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
 @router.post("/logout", response_model=LogoutResponse)
 async def logout(current_user: User = Depends(get_current_user)):
     try:
-        # In a real implementation, you might want to blacklist the token
-        # For now, we'll just return success
         return LogoutResponse(
             status=True,
             message="Logout realizado com sucesso",

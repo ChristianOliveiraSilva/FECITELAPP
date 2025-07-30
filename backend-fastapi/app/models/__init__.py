@@ -8,6 +8,8 @@ from .assessment import Assessment
 from .question import Question
 from .response import Response
 from .award import Award
+from .relationships import evaluator_categories, student_projects, award_question
+from app.database import Base
 
 __all__ = [
     "User",
@@ -19,5 +21,9 @@ __all__ = [
     "Assessment",
     "Question",
     "Response",
-    "Award"
+    "Award",
+    "Base",
+    "evaluator_categories",
+    "student_projects", 
+    "award_question"
 ] 

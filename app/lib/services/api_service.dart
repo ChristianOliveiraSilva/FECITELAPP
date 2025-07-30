@@ -3,8 +3,8 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
-  // static const String baseUrl = 'http://10.0.2.2/api';
-  static const String baseUrl = 'https://fecitel.cossoftware.com.br/api';
+  static const String baseUrl = 'http://10.0.2.2:8000/api/v3/mobile';
+  // static const String baseUrl = 'https://fecitel.cossoftware.com.br/api/v3/mobile';
   
   static Future<String?> _getAuthToken() async {
     final prefs = await SharedPreferences.getInstance();

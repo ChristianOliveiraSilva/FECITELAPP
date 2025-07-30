@@ -8,10 +8,12 @@ import '../widgets/questionnaire/index.dart';
 
 class QuestionnaireScreen extends StatefulWidget {
   final Assessment assessment;
+  final VoidCallback? onAssessmentCompleted;
 
   const QuestionnaireScreen({
     super.key,
     required this.assessment,
+    this.onAssessmentCompleted,
   });
 
   @override
@@ -135,6 +137,8 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
       
       if (data['status'] == true) {
         if (mounted) {
+          // Notificar que a avaliação foi completada
+          widget.onAssessmentCompleted?.call();
           Navigator.of(context).pop();
         }
       } else {

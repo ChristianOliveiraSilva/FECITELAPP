@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../screens/profile_screen.dart';
 import '../screens/list_screen.dart';
+import '../screens/certificates_screen.dart';
 
 class Header extends StatelessWidget {
   const Header({super.key});
@@ -34,6 +35,12 @@ class Header extends StatelessWidget {
                         builder: (context) => const ListScreen(),
                       ),
                     );
+                  } else if (value == 'certificates') {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const CertificatesScreen(),
+                      ),
+                    );
                   } else if (value == 'profile') {
                     Navigator.of(context).push(
                       MaterialPageRoute(
@@ -53,6 +60,19 @@ class Header extends StatelessWidget {
                         SizedBox(width: 10),
                         Text(
                           'Avaliações',
+                          style: TextStyle(color: Colors.black87),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'certificates',
+                    child: Row(
+                      children: [
+                        Icon(Icons.verified, color: Colors.black87),
+                        SizedBox(width: 10),
+                        Text(
+                          'Certificados',
                           style: TextStyle(color: Colors.black87),
                         ),
                       ],

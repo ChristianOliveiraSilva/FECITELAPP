@@ -1,23 +1,41 @@
 from pydantic import BaseModel
 from typing import Optional, List
+from datetime import datetime
 
-class QuestionInfo(BaseModel):
-    id: int
-    scientific_text: Optional[str]
-    technological_text: Optional[str]
+class QuestionBase(BaseModel):
+    scientific_text: Optional[str] = None
+    technological_text: Optional[str] = None
     type: int
-    number_alternatives: Optional[int]
-    display_text: str
+    number_alternatives: Optional[int] = None
 
-class ProjectTypeInfo(BaseModel):
-    value: int
-    label: str
+class QuestionCreate(QuestionBase):
+    pass
 
-class QuestionsResponse(BaseModel):
-    status: bool
-    data: dict
+class QuestionUpdate(BaseModel):
+    scientific_text: Optional[str] = None
+    technological_text: Optional[str] = None
+    type: Optional[int] = None
+    number_alternatives: Optional[int] = None
 
-class QuestionResponse(BaseModel):
+class QuestionResponse(QuestionBase):
+    id: int
+    created_at: datetime
+    updated_at: Optional[datetime]
+    deleted_at: Optional[datetime]
+
+    class Config:
+        from_attributes = True
+
+class QuestionWithRelations(QuestionResponse):
+    responses: List[dict] = []
+    awards: List[dict] = []
+
+class QuestionListResponse(BaseModel):
     status: bool
     message: str
-    data: Optional[dict] = None 
+    data: List[QuestionWithRelations] = []
+
+class QuestionDetailResponse(BaseModel):
+    status: bool
+    message: str
+    data: QuestionWithRelations 
