@@ -12,12 +12,14 @@ import {
   School, 
   Settings, 
   Trophy,
-  HelpCircle
+  HelpCircle,
+  Home
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
 const menuItems = [
+  { id: "home", label: "Painel de Controle", icon: Home, path: "/dashboard/home" },
   { id: "avaliacoes", label: "Avaliações", icon: BarChart3, path: "/dashboard/avaliacoes" },
   { id: "areas", label: "Áreas", icon: FolderOpen, path: "/dashboard/areas" },
   { id: "projetos", label: "Projetos", icon: FolderOpen, path: "/dashboard/projetos" },
@@ -38,7 +40,7 @@ export const DashboardWrapper = () => {
   const getCurrentPage = () => {
     const path = location.pathname;
     const menuItem = menuItems.find(item => item.path === path);
-    return menuItem ? menuItem.id : "avaliacoes";
+    return menuItem ? menuItem.id : "home";
   };
 
   const handlePageChange = (pageId: string) => {

@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import { DashboardWrapper } from "@/components/layout/DashboardWrapper";
+import HomePage from "@/pages/dashboard/HomePage";
 import { AvaliacoesPage } from "@/pages/dashboard/AvaliacoesPage";
 import { AreasPage } from "@/pages/dashboard/AreasPage";
 import { ProjetosPage } from "@/pages/dashboard/ProjetosPage";
@@ -27,7 +28,8 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/dashboard" element={<DashboardWrapper />}>
-            <Route index element={<Navigate to="avaliacoes" replace />} />
+            <Route index element={<Navigate to="home" replace />} />
+            <Route path="home" element={<HomePage />} />
             <Route path="avaliacoes" element={<AvaliacoesPage />} />
             <Route path="areas" element={<AreasPage />} />
             <Route path="projetos" element={<ProjetosPage />} />

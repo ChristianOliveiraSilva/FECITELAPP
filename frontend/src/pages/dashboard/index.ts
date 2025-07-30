@@ -1,0 +1,10 @@
+export { default as HomePage } from "./HomePage";
+export { AreasPage } from "./AreasPage";
+export { AvaliacoesPage } from "./AvaliacoesPage";
+export { AvaliadoresPage } from "./AvaliadoresPage";
+export { EscolasPage } from "./EscolasPage";
+export { EstudantesPage } from "./EstudantesPage";
+export { PerguntasPage } from "./PerguntasPage";
+export { PremiacoesPage } from "./PremiacoesPage";
+export { ProjetosPage } from "./ProjetosPage";
+export { UsuariosPage } from "./UsuariosPage"; 
