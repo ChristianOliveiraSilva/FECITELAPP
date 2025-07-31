@@ -1,6 +1,11 @@
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional, List, Union
 from datetime import datetime
+
+class StudentInfo(BaseModel):
+    id: int
+    name: str
+    school_grade: Union[str, int]
 
 class ProjectInfo(BaseModel):
     id: int
@@ -10,12 +15,9 @@ class ProjectInfo(BaseModel):
     category_id: int
     projectType: int
     external_id: Optional[str]
-    school_grade: Optional[str]
-
-class StudentInfo(BaseModel):
-    id: int
-    name: str
-    school_grade: str
+    school_grade: Optional[Union[str, int]]
+    students: List[StudentInfo] = []
+    category: Optional[dict] = None
 
 class AssessmentInfo(BaseModel):
     id: int

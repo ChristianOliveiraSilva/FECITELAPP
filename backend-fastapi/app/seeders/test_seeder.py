@@ -11,6 +11,7 @@ from app.enums.school_grade import SchoolGrade
 import random
 import string
 from faker import Faker
+from datetime import datetime
 
 fake = Faker('pt_BR')
 
@@ -66,7 +67,7 @@ class TestSeeder:
                     name=fake.name(),
                     email=fake.unique.email(),
                     school_id=school.id,
-                    school_grade=random.choice([SchoolGrade.FUNDAMENTAL, SchoolGrade.MEDIO])
+                    school_grade=random.choice([SchoolGrade.FUNDAMENTAL, SchoolGrade.MEDIO]).value
                 )
                 self.db.add(student)
                 students.append(student)
@@ -85,8 +86,8 @@ class TestSeeder:
                 project = Project(
                     title=fake.sentence(nb_words=3),
                     description=fake.paragraph(),
-                    year=2024,
-                    projectType=project_type,
+                    year=datetime.now().year,
+                    projectType=project_type.value,
                     category_id=category.id,
                     external_id=random.randint(1000, 9999)
                 )
@@ -127,8 +128,9 @@ class TestSeeder:
             for evaluator in project_evaluators:
                 assessment = Assessment(
                     evaluator_id=evaluator.id,
-                    project_id=project.id
+                    project_id=project.id,
                 )
+                print('assessment criado!')
                 self.db.add(assessment)
                 
                 # Atualizar contador de projetos do avaliador

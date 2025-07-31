@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from app.database import get_db
 from app.models.user import User
 from app.models.evaluator import Evaluator
@@ -15,13 +15,10 @@ router = APIRouter()
 
 @router.get("/assessments", response_model=AssessmentResponse)
 async def get_assessments(
-    current_user: User = Depends(get_current_evaluator),
+    evaluator: User = Depends(get_current_evaluator),
     db: Session = Depends(get_db)
 ):
     try:
-        # Get evaluator for current user
-        evaluator = db.query(Evaluator).filter(Evaluator.user_id == current_user.id).first()
-        
         if not evaluator:
             return AssessmentResponse(
                 status=False,
@@ -33,16 +30,19 @@ async def get_assessments(
         current_year = datetime.now().year
         
         # Get assessments for current evaluator with projects from current year
-        assessments = db.query(Assessment).join(Project).filter(
+        assessments = db.query(Assessment).join(Project).options(
+            joinedload(Assessment.project).joinedload(Project.students),
+            joinedload(Assessment.project).joinedload(Project.category)
+        ).filter(
             Assessment.evaluator_id == evaluator.id,
             Project.year == current_year
-        ).all()
-        
+        ).limit(20).all()
+
         # Prepare response data
         assessment_data = []
         for assessment in assessments:
             project = assessment.project
-            students = project.students if hasattr(project, 'students') else []
+            students = project.students
             
             assessment_dict = {
                 "id": assessment.id,
@@ -71,14 +71,7 @@ async def get_assessments(
                         "name": project.category.name
                     } if project.category else None
                 },
-                "responses": [
-                    {
-                        "id": response.id,
-                        "question_id": response.question_id,
-                        "response": response.response,
-                        "score": response.score
-                    } for response in assessment.responses
-                ]
+                "responses": []
             }
             assessment_data.append(assessment_dict)
         

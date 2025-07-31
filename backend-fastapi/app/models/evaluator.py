@@ -20,11 +20,14 @@ class Evaluator(Base):
     categories = relationship("Category", secondary="evaluator_categories", back_populates="evaluators")
     
     @staticmethod
-    def generate_random_pin() -> str:
+    def generate_random_pin(db) -> str:
+        """Generate a random PIN that doesn't exist in the database"""
         while True:
             pin = str(random.randint(1111, 9999))
-            # Check if PIN exists (would need database session in real implementation)
-            return pin
+            # Check if PIN exists in database
+            existing_pin = db.query(Evaluator).filter(Evaluator.PIN == pin).first()
+            if not existing_pin:
+                return pin
     
     @property
     def total_projects(self) -> int:

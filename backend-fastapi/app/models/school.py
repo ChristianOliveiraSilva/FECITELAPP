@@ -15,4 +15,17 @@ class School(Base):
     deleted_at = Column(DateTime(timezone=True), nullable=True)
     
     # Relationships
-    students = relationship("Student", back_populates="school") 
+    students = relationship("Student", back_populates="school")
+    
+    @property
+    def full_name(self) -> str:
+        """Get full name with city and state"""
+        parts = [self.name]
+        
+        if self.city:
+            parts.append(self.city)
+        
+        if self.state:
+            parts.append(self.state)
+        
+        return " - ".join(parts) 
