@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Eye, EyeOff, LogIn } from "lucide-react";
+import { Eye, EyeOff, LogIn, ArrowLeft } from "lucide-react";
 
 interface LoginFormProps {
   onLogin: (email: string, password: string) => void;
@@ -14,6 +14,7 @@ export const LoginForm = ({ onLogin }: LoginFormProps) => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,8 +24,69 @@ export const LoginForm = ({ onLogin }: LoginFormProps) => {
     setTimeout(() => {
       onLogin(email, password);
       setIsLoading(false);
-    }, 1000);
+    }, 3000);
   };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    
+    // Simulate password reset request
+    setTimeout(() => {
+      alert("E-mail de recuperação enviado! Verifique sua caixa de entrada.");
+      setIsLoading(false);
+      setShowForgotPassword(false);
+    }, 2000);
+  };
+
+  if (showForgotPassword) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-ifms-green-light to-background p-4">
+        <Card className="w-full max-w-md shadow-lg">
+          <CardHeader className="text-center pb-2">
+            <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-ifms-green to-ifms-green-dark rounded-full flex items-center justify-center">
+              <LogIn className="h-8 w-8 text-white" />
+            </div>
+            <CardTitle className="text-2xl font-bold text-ifms-green-dark">
+              Recuperar Senha
+            </CardTitle>
+            <p className="text-muted-foreground">
+              Digite seu e-mail para receber o link de recuperação
+            </p>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleForgotPassword} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="reset-email">E-mail</Label>
+                <Input
+                  id="reset-email"
+                  type="email"
+                  placeholder="seu.email@ifms.edu.br"
+                  required
+                />
+              </div>
+              <Button 
+                type="submit" 
+                className="w-full bg-ifms-green hover:bg-ifms-green-dark"
+                disabled={isLoading}
+              >
+                {isLoading ? "Enviando..." : "Enviar E-mail"}
+              </Button>
+              <Button 
+                type="button" 
+                variant="ghost" 
+                className="w-full"
+                onClick={() => setShowForgotPassword(false)}
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Voltar ao Login
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-ifms-green-light to-background p-4">
@@ -86,6 +148,16 @@ export const LoginForm = ({ onLogin }: LoginFormProps) => {
             >
               {isLoading ? "Entrando..." : "Entrar"}
             </Button>
+            <div className="text-center">
+              <Button 
+                type="button" 
+                variant="link" 
+                className="text-ifms-green hover:text-ifms-green-dark"
+                onClick={() => setShowForgotPassword(true)}
+              >
+                Esqueci minha senha
+              </Button>
+            </div>
           </form>
         </CardContent>
       </Card>
