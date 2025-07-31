@@ -24,7 +24,7 @@ export const LoginForm = ({ onLogin }: LoginFormProps) => {
     setTimeout(() => {
       onLogin(email, password);
       setIsLoading(false);
-    }, 3000);
+    }, 1000);
   };
 
   const handleForgotPassword = async (e: React.FormEvent) => {
