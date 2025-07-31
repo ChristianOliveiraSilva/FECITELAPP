@@ -50,7 +50,7 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
       
       // Buscar apenas as perguntas da avaliação
       final questionsResponse = await ApiService.get('/questions/${widget.assessment.id}');
-      final questionsData = jsonDecode(questionsResponse.body);
+      final questionsData = json.decode(utf8.decode(questionsResponse.bodyBytes));
       
       if (questionsData['status'] == true) {
         final data = questionsData['data'];
@@ -133,7 +133,7 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
         }).toList(),
       });
 
-      final data = jsonDecode(response.body);
+      final data = json.decode(utf8.decode(response.bodyBytes));
       
       if (data['status'] == true) {
         if (mounted) {

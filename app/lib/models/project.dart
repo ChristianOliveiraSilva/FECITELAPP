@@ -1,11 +1,26 @@
 import 'category.dart';
 import 'student.dart';
 
+enum ProjectType {
+  technological(1),
+  scientific(2);
+
+  const ProjectType(this.value);
+  final int value;
+
+  static ProjectType fromValue(int value) {
+    return ProjectType.values.firstWhere(
+      (type) => type.value == value,
+      orElse: () => ProjectType.technological,
+    );
+  }
+}
+
 class Project {
   final int id;
   final String title;
   final String externalId;
-  final int projectType;
+  final ProjectType projectType;
   final int year;
   final String description;
   final Category category;
@@ -33,7 +48,7 @@ class Project {
       id: json['id'] ?? 0,
       title: json['title'] ?? '',
       externalId: json['external_id']?.toString() ?? '',
-      projectType: json['projectType'] ?? 0,
+      projectType: ProjectType.fromValue(json['projectType'] ?? 1),
       year: json['year'] ?? 0,
       description: json['description'] ?? '',
       category: Category.fromJson(json['category'] ?? {}),
@@ -52,7 +67,7 @@ class Project {
       'id': id,
       'title': title,
       'external_id': externalId,
-      'projectType': projectType,
+      'projectType': projectType.value,
       'year': year,
       'description': description,
       'category': category.toJson(),

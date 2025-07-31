@@ -80,6 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 40),
                 TextFormField(
                   controller: _pinController,
+                  keyboardType: TextInputType.number,
                   decoration: const InputDecoration(
                     labelText: 'PIN',
                     hintText: 'Digite seu PIN',

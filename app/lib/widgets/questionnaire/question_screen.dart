@@ -186,17 +186,8 @@ class QuestionScreen extends StatelessWidget {
                   else
                     const SizedBox.shrink(),
                   
-                  ElevatedButton.icon(
+                  ElevatedButton(
                     onPressed: onNext,
-                    icon: Icon(
-                      currentQuestionIndex < totalQuestions 
-                          ? Icons.arrow_forward 
-                          : Icons.check,
-                      size: 18,
-                    ),
-                    label: Text(
-                      currentQuestionIndex < totalQuestions ? 'Avançar' : 'Finalizar',
-                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF4CAF50),
                       foregroundColor: Colors.white,
@@ -204,6 +195,21 @@ class QuestionScreen extends StatelessWidget {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          currentQuestionIndex < totalQuestions ? 'Avançar' : 'Finalizar',
+                        ),
+                        const SizedBox(width: 8),
+                        Icon(
+                          currentQuestionIndex < totalQuestions 
+                              ? Icons.arrow_forward 
+                              : Icons.check,
+                          size: 18,
+                        ),
+                      ],
                     ),
                   ),
                 ],

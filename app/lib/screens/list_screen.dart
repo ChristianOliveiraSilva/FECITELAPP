@@ -100,7 +100,7 @@ class _ListScreenState extends State<ListScreen> {
                     );
                   }
 
-                                  return RefreshIndicator(
+                  return RefreshIndicator(
                     onRefresh: () async {
                       await projectsProvider.loadProjects();
                     },

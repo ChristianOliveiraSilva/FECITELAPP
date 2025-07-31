@@ -4,6 +4,7 @@ import '../providers/auth_provider.dart';
 import '../screens/profile_screen.dart';
 import '../screens/list_screen.dart';
 import '../screens/certificates_screen.dart';
+import '../screens/login_screen.dart';
 
 class Header extends StatelessWidget {
   const Header({super.key});
@@ -131,6 +132,12 @@ class Header extends StatelessWidget {
             onPressed: () {
               Navigator.of(context).pop();
               context.read<AuthProvider>().logout();
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(
+                  builder: (context) => const LoginScreen(),
+                ),
+                (route) => false,
+              );
             },
             child: const Text(
               'Sair',

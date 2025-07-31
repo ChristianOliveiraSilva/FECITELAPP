@@ -39,8 +39,6 @@ class CertificatesScreen extends StatelessWidget {
                         children: [
                           _buildCertificateCard(context, 2024, 'Certificado de Avaliador 2024', 'Avaliador de Projetos Técnicos e Científicos'),
                           _buildCertificateCard(context, 2023, 'Certificado de Avaliador 2023', 'Avaliador de Projetos Técnicos e Científicos'),
-                          _buildCertificateCard(context, 2022, 'Certificado de Avaliador 2022', 'Avaliador de Projetos Técnicos e Científicos'),
-                          _buildCertificateCard(context, 2021, 'Certificado de Avaliador 2021', 'Avaliador de Projetos Técnicos e Científicos'),
                         ],
                       ),
                     ),
@@ -199,21 +197,28 @@ class CertificatesScreen extends StatelessWidget {
               color: Color(0xFF56BA54),
             ),
             const SizedBox(width: 8),
-            Text('$title'),
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(fontSize: 18),
+              ),
+            ),
           ],
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Ano: $year'),
-            const SizedBox(height: 8),
-            const Text('Tipo: Avaliador de Projetos'),
-            const SizedBox(height: 8),
-            const Text('Status: Válido'),
-            const SizedBox(height: 8),
-            const Text('Emitido por: Fecitel'),
-          ],
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Ano: $year'),
+              const SizedBox(height: 8),
+              const Text('Tipo: Avaliador de Projetos'),
+              const SizedBox(height: 8),
+              const Text('Status: Válido'),
+              const SizedBox(height: 8),
+              const Text('Emitido por: Fecitel'),
+            ],
+          ),
         ),
         actions: [
           TextButton(

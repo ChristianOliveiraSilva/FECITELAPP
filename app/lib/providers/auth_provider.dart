@@ -20,8 +20,7 @@ class AuthProvider extends ChangeNotifier {
 
     try {
       final response = await ApiService.post('/login', {'PIN': pin});
-      
-      final data = jsonDecode(response.body);
+      final data = json.decode(utf8.decode(response.bodyBytes));
       
       if (data['status'] == true) {
         final userData = data['data']['user'];

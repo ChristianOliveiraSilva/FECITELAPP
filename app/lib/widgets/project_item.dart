@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/assessment.dart';
+import '../models/project.dart';
 
 class ProjectItem extends StatelessWidget {
   final Assessment assessment;
@@ -13,8 +14,7 @@ class ProjectItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const scientific = 2;
-    final isScientific = assessment.project.projectType == scientific;
+    final isScientific = assessment.project.projectType == ProjectType.scientific;
     
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 0),
@@ -52,11 +52,21 @@ class ProjectItem extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      'Estudante(s): ${assessment.project.students.map((s) => s.name).join(', ')} - ${isScientific ? 'Científico' : 'Tecnológico'}',
-                      style: const TextStyle(
-                        color: Colors.grey,
-                        fontSize: 14,
+                    RichText(
+                      text: TextSpan(
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 14,
+                        ),
+                        children: [
+                          TextSpan(
+                            text: 'Estudante(s): ${assessment.project.students.map((s) => s.name).join(', ')} - ',
+                          ),
+                          TextSpan(
+                            text: isScientific ? 'Científico' : 'Tecnológico',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ],
                       ),
                     ),
                   ],

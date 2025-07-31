@@ -1,8 +1,25 @@
+import 'project.dart';
+
+enum QuestionType {
+  multipleChoice(1),
+  essay(2);
+
+  const QuestionType(this.value);
+  final int value;
+
+  static QuestionType fromValue(int value) {
+    return QuestionType.values.firstWhere(
+      (type) => type.value == value,
+      orElse: () => QuestionType.multipleChoice,
+    );
+  }
+}
+
 class Question {
   final int id;
   final String scientificText;
   final String technologicalText;
-  final int type;
+  final QuestionType type;
   final int numberAlternatives;
 
   Question({
@@ -18,7 +35,7 @@ class Question {
       id: json['id'] ?? 0,
       scientificText: json['scientific_text'] ?? '',
       technologicalText: json['technological_text'] ?? '',
-      type: json['type'] ?? 0,
+      type: QuestionType.fromValue(json['type'] ?? 1),
       numberAlternatives: json['number_alternatives'] ?? 0,
     );
   }
@@ -28,13 +45,12 @@ class Question {
       'id': id,
       'scientific_text': scientificText,
       'technological_text': technologicalText,
-      'type': type,
+      'type': type.value,
       'number_alternatives': numberAlternatives,
     };
   }
 
-  // Método para obter o texto apropriado baseado no tipo de projeto
-  String getText(int projectType) {
-    return projectType == 2 ? scientificText : technologicalText;
+  String getText(ProjectType projectType) {
+    return projectType == ProjectType.scientific ? scientificText : technologicalText;
   }
 } 

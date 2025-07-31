@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../models/assessment.dart';
+import '../models/project.dart';
 import '../services/api_service.dart';
 
 class ProjectsProvider extends ChangeNotifier {
@@ -19,7 +20,7 @@ class ProjectsProvider extends ChangeNotifier {
 
     try {
       final response = await ApiService.get('/assessments');
-      final data = jsonDecode(response.body);
+      final data = json.decode(utf8.decode(response.bodyBytes));
       
       if (data['status'] == true) {
         final List<dynamic> assessmentsData = data['data'];
@@ -27,7 +28,7 @@ class ProjectsProvider extends ChangeNotifier {
 
         for (final assessmentData in assessmentsData) {
           final assessment = Assessment.fromJson(assessmentData);
-          final projectType = assessment.project.projectType;
+          final projectType = assessment.project.projectType.value;
 
           if (!groupedByType.containsKey(projectType)) {
             groupedByType[projectType] = [];
@@ -38,9 +39,11 @@ class ProjectsProvider extends ChangeNotifier {
 
         _projects = groupedByType;
       } else {
+        print(data);
         _error = data['message'] ?? 'Erro ao carregar projetos';
       }
     } catch (e) {
+      print(e);
       _error = 'Erro de conexão';
     } finally {
       _isLoading = false;
