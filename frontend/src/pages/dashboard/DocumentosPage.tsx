@@ -173,6 +173,9 @@ const getCategoriaBadge = (categoria: Documento["categoria"]) => {
 export const DocumentosPage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  
+  // Flag para controlar se os downloads estão habilitados
+  const downloadsEnabled = false;
 
   const handleConfiguracoes = () => {
     navigate("/dashboard/documentos/configuracoes");
@@ -262,6 +265,7 @@ export const DocumentosPage = () => {
                     size="sm"
                     onClick={() => handleDownload(documento)}
                     className="bg-ifms-green hover:bg-ifms-green-dark"
+                    disabled={!downloadsEnabled}
                   >
                     <Download className="h-4 w-4 mr-1" />
                     Download

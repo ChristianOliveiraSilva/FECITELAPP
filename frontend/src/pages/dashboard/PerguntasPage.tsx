@@ -56,9 +56,8 @@ const formFields = [
     type: "select" as const,
     required: true,
     options: [
-      { value: "1", label: "Qualitativa" },
-      { value: "2", label: "Quantitativa" },
-      { value: "3", label: "Mista" }
+      { value: "1", label: "Múltipla Escolha" },
+      { value: "2", label: "Texto" },
     ]
   },
   {
@@ -100,7 +99,7 @@ export const PerguntasPage = () => {
   // Transform data for display
   const transformedData = data.map(item => ({
     ...item,
-    type: item.type === 1 ? "Qualitativa" : item.type === 2 ? "Quantitativa" : "Mista",
+    type: item.type === 1 ? "Múltipla Escolha" : item.type === 2 ? "Texto" : "Desconhecido",
     created_at: item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : "-"
   }));
 

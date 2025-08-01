@@ -13,14 +13,14 @@ import {
 const HomePage = () => {
   // Dados fictícios para o painel de controle
   const dashboardData = {
-    totalProjetos: 156,
-    totalParaAvaliar: 89,
-    totalAvaliados: 67,
-    faltam1Avaliacao: 23,
-    faltam2Avaliacoes: 34,
-    faltam3Avaliacoes: 32,
-    avaliadoresAtivos: 45,
-    premiosDisponiveis: 12
+    totalProjetos: 0,
+    totalParaAvaliar: 0,
+    totalAvaliados: 0,
+    faltam1Avaliacao: 0,
+    faltam2Avaliacoes: 0,
+    faltam3Avaliacoes: 0,
+    avaliadoresAtivos: 0,
+    premiosDisponiveis: 0
   };
 
   const cards = [
@@ -138,13 +138,13 @@ const HomePage = () => {
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Progresso Geral</span>
                 <span className="text-sm font-medium">
-                  {Math.round((dashboardData.totalAvaliados / dashboardData.totalProjetos) * 100)}%
+                  {dashboardData.totalProjetos > 0 ? Math.round((dashboardData.totalAvaliados / dashboardData.totalProjetos) * 100) : 0}%
                 </span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div 
                   className="bg-ifms-green h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${(dashboardData.totalAvaliados / dashboardData.totalProjetos) * 100}%` }}
+                  style={{ width: `${dashboardData.totalProjetos > 0 ? (dashboardData.totalAvaliados / dashboardData.totalProjetos) * 100 : 0}%` }}
                 ></div>
               </div>
               <div className="grid grid-cols-2 gap-4 text-sm">
