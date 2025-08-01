@@ -6,7 +6,7 @@ class ResponseBase(BaseModel):
     question_id: int
     assessment_id: int
     response: Optional[str] = None
-    score: Optional[float] = None
+    score: Optional[int] = None
 
 class ResponseCreate(ResponseBase):
     pass
@@ -15,7 +15,7 @@ class ResponseUpdate(BaseModel):
     question_id: Optional[int] = None
     assessment_id: Optional[int] = None
     response: Optional[str] = None
-    score: Optional[float] = None
+    score: Optional[int] = None
 
 class ResponseResponse(ResponseBase):
     id: int

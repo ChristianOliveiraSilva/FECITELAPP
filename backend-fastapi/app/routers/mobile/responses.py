@@ -39,10 +39,29 @@ async def store_responses(
             # Determine if it's text or multiple choice based on question type
             question = db.query(Question).filter(Question.id == response_item.question_id).first()
             
-            if question and question.type == QuestionType.TEXT.value:
+            if not question:
+                return ResponseResponse(
+                    status=False,
+                    message=f"Pergunta com ID {response_item.question_id} não encontrada"
+                )
+            
+            # Validate question type matches the expected type
+            if question.type != response_item.type:
+                return ResponseResponse(
+                    status=False,
+                    message=f"Tipo de pergunta não corresponde. Esperado: {question.type}, Recebido: {response_item.type}"
+                )
+            
+            if question.type == QuestionType.TEXT.value:
                 response_value = response_item.value
-            elif question and question.type == QuestionType.MULTIPLE_CHOICE.value:
-                score_value = float(response_item.value) if response_item.value else None
+            elif question.type == QuestionType.MULTIPLE_CHOICE.value:
+                try:
+                    score_value = int(response_item.value) if response_item.value else None
+                except (ValueError, TypeError):
+                    return ResponseResponse(
+                        status=False,
+                        message=f"Valor inválido para questão de múltipla escolha: {response_item.value}"
+                    )
             
             # Create response
             new_response = Response(
@@ -83,7 +102,8 @@ async def store_responses(
         
     except Exception as e:
         db.rollback()
+        print(f"Erro ao salvar respostas: {str(e)}")  # Log para debug
         return ResponseResponse(
             status=False,
-            message="Erro ao salvar respostas"
+            message=f"Erro ao salvar respostas: {str(e)}"
         ) 
