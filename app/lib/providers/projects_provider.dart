@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../models/assessment.dart';
-import '../models/project.dart';
 import '../services/api_service.dart';
 
 class ProjectsProvider extends ChangeNotifier {

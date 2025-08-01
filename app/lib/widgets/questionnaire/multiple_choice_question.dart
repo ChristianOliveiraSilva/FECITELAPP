@@ -13,6 +13,23 @@ class MultipleChoiceQuestion extends StatelessWidget {
     required this.onAnswerChanged,
   });
 
+  bool _isSelected(int index) {
+    if (currentAnswer == null) return false;
+    
+    // Se currentAnswer é uma string, converter para int para comparação
+    if (currentAnswer is String) {
+      final intValue = int.tryParse(currentAnswer);
+      return intValue == index;
+    }
+    
+    // Se currentAnswer é int, comparar diretamente
+    if (currentAnswer is int) {
+      return currentAnswer == index;
+    }
+    
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -53,17 +70,17 @@ class MultipleChoiceQuestion extends StatelessWidget {
                   width: itemWidth,
                   height: itemWidth,
                   decoration: BoxDecoration(
-                    color: currentAnswer == index
+                    color: _isSelected(index)
                         ? const Color(0xFF4CAF50)
                         : Colors.white,
                     border: Border.all(
-                      color: currentAnswer == index
+                      color: _isSelected(index)
                           ? const Color(0xFF4CAF50)
                           : Colors.grey.withOpacity(0.3),
                       width: 2,
                     ),
                     borderRadius: BorderRadius.circular(12),
-                    boxShadow: currentAnswer == index
+                    boxShadow: _isSelected(index)
                         ? [
                             BoxShadow(
                               color: const Color(0xFF4CAF50).withOpacity(0.3),
@@ -77,7 +94,7 @@ class MultipleChoiceQuestion extends StatelessWidget {
                     child: Text(
                       index.toString(),
                       style: TextStyle(
-                        color: currentAnswer == index
+                        color: _isSelected(index)
                             ? Colors.white
                             : Colors.grey[700],
                         fontSize: 20,

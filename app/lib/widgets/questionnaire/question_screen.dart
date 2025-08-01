@@ -28,6 +28,88 @@ class QuestionScreen extends StatelessWidget {
     this.errorMessage,
   });
 
+  Widget _buildPreviousResponse() {
+    if (question.previousResponse == null) return const SizedBox.shrink();
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE3F2FD).withOpacity(0.3),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: const Color(0xFF2196F3).withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF2196F3),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.history,
+                  color: Colors.white,
+                  size: 16,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                'Resposta Anterior',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF2196F3),
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF2196F3),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  'Nota: ${question.previousResponse!.score}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (question.previousResponse!.response != null)
+            Text(
+              'Resposta: ${question.previousResponse!.response}',
+              style: const TextStyle(
+                fontSize: 14,
+                color: Color(0xFF424242),
+                height: 1.4,
+              ),
+            )
+          else
+            const Text(
+              'Nenhuma resposta foi fornecida anteriormente',
+              style: TextStyle(
+                fontSize: 14,
+                color: Color(0xFF757575),
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -59,6 +141,9 @@ class QuestionScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 20),
                     
+                    // Previous response indicator
+                    _buildPreviousResponse(),
+                    
                     // Question card
                     Container(
                       decoration: BoxDecoration(
@@ -77,49 +162,49 @@ class QuestionScreen extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                                              Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF4CAF50).withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(12),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF4CAF50).withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: const Icon(
+                                        Icons.quiz,
+                                        color: Color(0xFF4CAF50),
+                                        size: 24,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    const Expanded(
+                                      child: Text(
+                                        'Pergunta',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                          color: Color(0xFF4CAF50),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  question.getText(assessment.project.projectType),
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w600,
+                                    height: 1.4,
+                                  ),
+                                  textAlign: TextAlign.left,
+                                  overflow: TextOverflow.visible,
+                                ),
+                              ],
                             ),
-                            child: const Icon(
-                              Icons.quiz,
-                              color: Color(0xFF4CAF50),
-                              size: 24,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          const Expanded(
-                            child: Text(
-                              'Pergunta',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF4CAF50),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        question.getText(assessment.project.projectType),
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          height: 1.4,
-                        ),
-                        textAlign: TextAlign.left,
-                        overflow: TextOverflow.visible,
-                      ),
-                    ],
-                  ),
                             const SizedBox(height: 24),
                             if (question.type == QuestionType.multipleChoice)
                               MultipleChoiceQuestion(

@@ -48,7 +48,7 @@ class Project {
       id: json['id'] ?? 0,
       title: json['title'] ?? '',
       externalId: json['external_id']?.toString() ?? '',
-      projectType: ProjectType.fromValue(json['projectType'] ?? 1),
+      projectType: ProjectType.fromValue(json['project_type']?['value'] ?? json['project_type'] ?? json['projectType'] ?? 1),
       year: json['year'] ?? 0,
       description: json['description'] ?? '',
       category: Category.fromJson(json['category'] ?? {}),

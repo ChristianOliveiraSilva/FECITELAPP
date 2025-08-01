@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/assessment.dart';
+import '../../models/project.dart';
 
 class AssessmentDetailsCard extends StatelessWidget {
   final Assessment assessment;
@@ -13,6 +14,64 @@ class AssessmentDetailsCard extends StatelessWidget {
     required this.onCancel,
   });
 
+  Widget _buildPreviousResponseIndicator() {
+    if (!assessment.hasResponse) return const SizedBox.shrink();
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE3F2FD).withOpacity(0.3),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: const Color(0xFF2196F3).withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: const Color(0xFF2196F3),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(
+              Icons.history,
+              color: Colors.white,
+              size: 16,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Avaliação Anterior',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF2196F3),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Esta avaliação já foi realizada anteriormente. Você pode revisar e modificar suas respostas.',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[700],
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -25,6 +84,9 @@ class AssessmentDetailsCard extends StatelessWidget {
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   children: [
+                    // Previous response indicator
+                    _buildPreviousResponseIndicator(),
+                    
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
@@ -95,7 +157,7 @@ class AssessmentDetailsCard extends StatelessWidget {
                                   _buildTableRow('Título', assessment.project.title),
                                   _buildTableRow(
                                     'Tipo',
-                                    assessment.project.projectType == 2 ? 'Científico' : 'Tecnológico',
+                                    assessment.project.projectType == ProjectType.scientific ? 'Científico' : 'Tecnológico',
                                   ),
                                   _buildTableRow('Categoria', assessment.project.category.name),
                                   _buildTableRow('Ano', assessment.project.year.toString()),
@@ -150,14 +212,17 @@ class AssessmentDetailsCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: const Row(
+                        child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.play_arrow, size: 20),
-                            SizedBox(width: 8),
+                            Icon(
+                              assessment.hasResponse ? Icons.edit : Icons.play_arrow,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
                             Text(
-                              'Iniciar Avaliação',
-                              style: TextStyle(
+                              assessment.hasResponse ? 'Reavaliar Projeto' : 'Iniciar Avaliação',
+                              style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                               ),

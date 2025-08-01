@@ -4,7 +4,6 @@ import '../providers/auth_provider.dart';
 import '../screens/profile_screen.dart';
 import '../screens/list_screen.dart';
 import '../screens/certificates_screen.dart';
-import '../screens/login_screen.dart';
 
 class Header extends StatelessWidget {
   const Header({super.key});

@@ -56,7 +56,19 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
         _questions = (data['questions'] as List)
             .map((q) => Question.fromJson(q))
             .toList();
-        _answers = List.filled(_questions.length, null);
+        
+        // Inicializar respostas com valores anteriores se disponíveis
+        _answers = _questions.map((question) {
+          if (question.previousResponse != null) {
+            // Converter para string se for int (questões de múltipla escolha)
+            final response = question.previousResponse!.response;
+            if (response is int) {
+              return response.toString();
+            }
+            return response;
+          }
+          return null;
+        }).toList();
       } else {
         setState(() {
           _errorMessage = questionsData['message'] ?? 'Erro ao carregar perguntas';
@@ -125,15 +137,7 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
         }).toList(),
       };
       
-      // Debug: imprimir dados sendo enviados
-      print('Dados sendo enviados: ${jsonEncode(requestData)}');
-      
       final response = await ApiService.post('/responses', requestData);
-
-      // Debug: imprimir resposta do servidor
-      print('Status code: ${response.statusCode}');
-      print('Response body: ${response.body}');
-      
       final data = json.decode(utf8.decode(response.bodyBytes));
       
       if (data['status'] == true) {
