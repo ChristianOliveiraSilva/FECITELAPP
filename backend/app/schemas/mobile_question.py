@@ -9,6 +9,13 @@ class QuestionInfo(BaseModel):
     number_alternatives: Optional[int]
     display_text: str
 
+class ResponseInfo(BaseModel):
+    id: int
+    question_id: int
+    response: Optional[str]
+    score: Optional[int]
+    created_at: Optional[str]
+
 class ProjectTypeInfo(BaseModel):
     value: int
     label: str

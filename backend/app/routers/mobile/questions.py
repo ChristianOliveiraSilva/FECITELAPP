@@ -6,6 +6,7 @@ from app.models.evaluator import Evaluator
 from app.models.assessment import Assessment
 from app.models.question import Question
 from app.models.project import Project
+from app.models.response import Response
 from app.schemas.mobile_question import QuestionResponse
 from app.utils.auth import get_current_evaluator
 from app.enums.project_type import ProjectType
@@ -51,7 +52,13 @@ async def get_questions_by_assessment(
         # Get all questions
         questions = db.query(Question).all()
         
-        # Prepare questions data
+        # Get responses for this assessment
+        responses = db.query(Response).filter(Response.assessment_id == assessment_id).all()
+        
+        # Create a map of question_id to response for quick lookup
+        responses_map = {response.question_id: response for response in responses}
+        
+        # Prepare questions data with responses
         questions_data = []
         for question in questions:
             question_dict = {
@@ -62,6 +69,20 @@ async def get_questions_by_assessment(
                 "number_alternatives": question.number_alternatives,
                 "display_text": question.display_text
             }
+            
+            # Add response if exists
+            if question.id in responses_map:
+                response = responses_map[question.id]
+                question_dict["response"] = {
+                    "id": response.id,
+                    "question_id": response.question_id,
+                    "response": response.response,
+                    "score": response.score,
+                    "created_at": response.created_at.isoformat() if response.created_at else None
+                }
+            else:
+                question_dict["response"] = None
+                
             questions_data.append(question_dict)
         
         response_data = {
@@ -69,7 +90,8 @@ async def get_questions_by_assessment(
                 "value": project_type.value,
                 "label": project_type.get_label()
             },
-            "questions": questions_data
+            "questions": questions_data,
+            "has_responses": len(responses) > 0
         }
         
         return QuestionResponse(
