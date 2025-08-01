@@ -1,28 +1,43 @@
 import { useState } from "react";
 import { DataTable } from "@/components/ui/data-table";
 import { CrudForm } from "@/components/ui/crud-form";
-import { useCrud } from "@/hooks/use-crud";
-import { mockEstudantes } from "@/data/mockData";
+import { useApiCrud } from "@/hooks/use-api-crud";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2 } from "lucide-react";
 
 interface Estudante extends Record<string, unknown> {
-  id?: string;
-  nome: string;
-  email: string;
-  grau_escolaridade: string;
-  escola: string;
+  id?: number;
+  name: string;
+  email?: string;
+  school_grade: string;
+  school_id: number;
+  created_at?: string;
+  updated_at?: string;
+  school?: {
+    id: number;
+    name: string;
+  };
+  projects?: Array<{
+    id: number;
+    title: string;
+    year: number;
+    category_id: number;
+  }>;
 }
 
 const columns = [
-  { key: "nome", label: "Nome", sortable: true },
+  { key: "name", label: "Nome", sortable: true },
   { key: "email", label: "E-mail", sortable: true },
-  { key: "grau_escolaridade", label: "Grau de escolaridade", sortable: true },
-  { key: "escola", label: "Escola", sortable: true }
+  { key: "school_grade", label: "Grau de escolaridade", sortable: true },
+  { key: "school_name", label: "Escola", sortable: true },
+  { key: "projects_count", label: "Projetos", sortable: false },
+  { key: "created_at", label: "Criado em", sortable: true }
 ];
 
 const formFields = [
   {
-    name: "nome",
+    name: "name",
     label: "Nome do Estudante",
     type: "text" as const,
     required: true,
@@ -32,32 +47,34 @@ const formFields = [
     name: "email",
     label: "E-mail",
     type: "email" as const,
-    required: true,
-    placeholder: "Digite o e-mail do estudante"
+    required: false,
+    placeholder: "Digite o e-mail do estudante (opcional)"
   },
   {
-    name: "grau_escolaridade",
+    name: "school_grade",
     label: "Grau de Escolaridade",
     type: "select" as const,
     required: true,
     options: [
       { value: "Ensino Fundamental", label: "Ensino Fundamental" },
-      { value: "Ensino Médio", label: "Ensino Médio" },
-      { value: "Ensino Superior", label: "Ensino Superior" }
+      { value: "Ensino Médio", label: "Ensino Médio" }
     ]
   },
   {
-    name: "escola",
+    name: "school_id",
     label: "Escola",
-    type: "text" as const,
+    type: "select" as const,
     required: true,
-    placeholder: "Digite o nome da escola"
+    placeholder: "Selecione a escola",
+    options: []
   }
 ];
 
 export const EstudantesPage = () => {
   const {
     data,
+    loading,
+    error,
     isFormOpen,
     editingItem,
     openAddForm,
@@ -65,7 +82,7 @@ export const EstudantesPage = () => {
     closeForm,
     handleSubmit,
     deleteItem
-  } = useCrud<Estudante>({ initialData: mockEstudantes });
+  } = useApiCrud<Estudante>({ endpoint: "/students" });
 
   const [itemToDelete, setItemToDelete] = useState<Estudante | null>(null);
 
@@ -73,12 +90,21 @@ export const EstudantesPage = () => {
     setItemToDelete(item);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (itemToDelete) {
-      deleteItem(itemToDelete);
+      await deleteItem(itemToDelete);
       setItemToDelete(null);
     }
   };
+
+  // Transform data for display
+  const transformedData = data.map(item => ({
+    ...item,
+    email: item.email || "-",
+    school_name: item.school?.name || `Escola ${item.school_id}`,
+    projects_count: item.projects?.length || 0,
+    created_at: item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : "-"
+  }));
 
   return (
     <div className="space-y-6">
@@ -88,16 +114,30 @@ export const EstudantesPage = () => {
           Gerencie os estudantes participantes da FECITEL
         </p>
       </div>
+
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+      
+      {loading && (
+        <div className="flex items-center justify-center p-4">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <span className="ml-2">Carregando...</span>
+        </div>
+      )}
       
       {!isFormOpen ? (
         <DataTable
           title="Lista de Estudantes"
           columns={columns}
-          data={data}
+          data={transformedData}
           searchPlaceholder="Buscar por nome, email, escola..."
           onAdd={openAddForm}
           onEdit={openEditForm}
           onDelete={handleDelete}
+          loading={loading}
         />
       ) : (
         <CrudForm
@@ -107,6 +147,7 @@ export const EstudantesPage = () => {
           onSubmit={handleSubmit}
           onCancel={closeForm}
           isEditing={!!editingItem}
+          loading={loading}
         />
       )}
 
@@ -115,7 +156,7 @@ export const EstudantesPage = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir o estudante "{itemToDelete?.nome}"? Esta ação não pode ser desfeita.
+              Tem certeza que deseja excluir o estudante "{itemToDelete?.name}"? Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

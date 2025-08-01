@@ -4,6 +4,7 @@ from datetime import datetime
 
 class StudentBase(BaseModel):
     name: str
+    email: Optional[str] = None
     school_grade: str
     school_id: int
 
@@ -12,6 +13,7 @@ class StudentCreate(StudentBase):
 
 class StudentUpdate(BaseModel):
     name: Optional[str] = None
+    email: Optional[str] = None
     school_grade: Optional[str] = None
     school_id: Optional[int] = None
 
