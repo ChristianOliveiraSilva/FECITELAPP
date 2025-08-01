@@ -112,24 +112,32 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
 
   Future<void> _submitAnswers() async {
     try {
-      final response = await ApiService.post('/responses', {
+      final requestData = {
         'assessment': widget.assessment.id,
         'responses': _questions.asMap().entries.map((entry) {
           final index = entry.key;
           final question = entry.value;
           return {
             'question_id': question.id,
-            'type': question.type,
-            'value': _answers[index],
+            'type': question.type.value,
+            'value': _answers[index]?.toString() ?? '',
           };
         }).toList(),
-      });
+      };
+      
+      // Debug: imprimir dados sendo enviados
+      print('Dados sendo enviados: ${jsonEncode(requestData)}');
+      
+      final response = await ApiService.post('/responses', requestData);
 
+      // Debug: imprimir resposta do servidor
+      print('Status code: ${response.statusCode}');
+      print('Response body: ${response.body}');
+      
       final data = json.decode(utf8.decode(response.bodyBytes));
       
       if (data['status'] == true) {
         if (mounted) {
-          // Notificar que a avaliação foi completada
           widget.onAssessmentCompleted?.call();
           Navigator.of(context).pop();
         }
@@ -286,6 +294,4 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
         return const Center(child: Text('Tela não encontrada'));
     }
   }
-
-
 } 
