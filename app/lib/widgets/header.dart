@@ -37,7 +37,7 @@ class Header extends StatelessWidget {
                       ),
                     );
                   } else if (value == 'certificates') {
-                    Navigator.of(context).push(
+                    Navigator.of(context).pushReplacement(
                       MaterialPageRoute(
                         builder: (context) => const CertificatesScreen(),
                       ),
@@ -132,12 +132,6 @@ class Header extends StatelessWidget {
             onPressed: () {
               Navigator.of(context).pop();
               context.read<AuthProvider>().logout();
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(
-                  builder: (context) => const LoginScreen(),
-                ),
-                (route) => false,
-              );
             },
             child: const Text(
               'Sair',

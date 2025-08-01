@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../widgets/header.dart';
 
 class CertificatesScreen extends StatelessWidget {
@@ -154,7 +155,7 @@ class CertificatesScreen extends StatelessWidget {
                 Column(
                   children: [
                     IconButton(
-                      onPressed: () => _downloadCertificate(context, year),
+                      onPressed: () => _openCertificate(context, year),
                       icon: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
@@ -162,14 +163,14 @@ class CertificatesScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Icon(
-                          Icons.download,
+                          Icons.open_in_new,
                           color: Colors.white,
                           size: 20,
                         ),
                       ),
                     ),
                     const Text(
-                      'Download',
+                      'Abrir',
                       style: TextStyle(
                         fontSize: 12,
                         color: Color(0xFF56BA54),
@@ -228,39 +229,69 @@ class CertificatesScreen extends StatelessWidget {
           ElevatedButton(
             onPressed: () {
               Navigator.of(context).pop();
-              _downloadCertificate(context, year);
+              _openCertificate(context, year);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF56BA54),
               foregroundColor: Colors.white,
             ),
-            child: const Text('Download'),
+            child: const Text('Abrir'),
           ),
         ],
       ),
     );
   }
 
-  void _downloadCertificate(BuildContext context, int year) {
-    // Simular download
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(
-              Icons.download_done,
-              color: Colors.white,
+  void _openCertificate(BuildContext context, int year) async {
+    // URL do certificado (você pode ajustar conforme necessário)
+    final String certificateUrl = 'https://fecitel.ifms.edu.br/certificados/$year';
+    
+    try {
+      final Uri url = Uri.parse(certificateUrl);
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(
+                  Icons.open_in_new,
+                  color: Colors.white,
+                ),
+                const SizedBox(width: 8),
+                Text('Abrindo certificado $year no navegador...'),
+              ],
             ),
-            const SizedBox(width: 8),
-            Text('Certificado $year baixado com sucesso!'),
-          ],
+            backgroundColor: const Color(0xFF56BA54),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        );
+      } else {
+        throw 'Não foi possível abrir o certificado';
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(
+                Icons.error,
+                color: Colors.white,
+              ),
+              const SizedBox(width: 8),
+              Text('Erro ao abrir certificado: $e'),
+            ],
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
         ),
-        backgroundColor: const Color(0xFF56BA54),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-      ),
-    );
+      );
+    }
   }
 } 
