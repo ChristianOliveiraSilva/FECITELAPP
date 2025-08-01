@@ -16,7 +16,8 @@ import { EscolasPage } from "@/pages/dashboard/EscolasPage";
 import { UsuariosPage } from "@/pages/dashboard/UsuariosPage";
 import { PremiacoesPage } from "@/pages/dashboard/PremiacoesPage";
 import { PerguntasPage } from "@/pages/dashboard/PerguntasPage";
-import { FinalizacaoPage } from "@/pages/dashboard/FinalizacaoPage";
+import { DocumentosPage } from "@/pages/dashboard/DocumentosPage";
+import { DocumentosConfiguracoesPage } from "@/pages/dashboard/DocumentosConfiguracoesPage";
 
 const queryClient = new QueryClient();
 
@@ -40,7 +41,8 @@ const App = () => (
             <Route path="usuarios" element={<UsuariosPage />} />
             <Route path="premiacoes" element={<PremiacoesPage />} />
             <Route path="perguntas" element={<PerguntasPage />} />
-            <Route path="finalizacao" element={<FinalizacaoPage />} />
+            <Route path="documentos" element={<DocumentosPage />} />
+            <Route path="documentos/configuracoes" element={<DocumentosConfiguracoesPage />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

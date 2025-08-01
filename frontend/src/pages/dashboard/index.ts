@@ -8,4 +8,5 @@ export { PerguntasPage } from "./PerguntasPage";
 export { PremiacoesPage } from "./PremiacoesPage";
 export { ProjetosPage } from "./ProjetosPage";
 export { UsuariosPage } from "./UsuariosPage";
-export { FinalizacaoPage } from "./FinalizacaoPage"; 
+export { DocumentosPage } from "./DocumentosPage";
+export { DocumentosConfiguracoesPage } from "./DocumentosConfiguracoesPage"; 

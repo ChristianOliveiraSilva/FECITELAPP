@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import users, evaluators, students, schools, categories, projects, awards, assessments, questions, responses
+from app.routers import users, evaluators, students, schools, categories, projects, awards, assessments, questions, responses, documents
 from app.routers.mobile import auth, assessments as mobile_assessments, questions as mobile_questions, responses as mobile_responses
 from app.database import engine, Base
 
@@ -39,6 +39,7 @@ app.include_router(awards.router, prefix="/api/v3/awards", tags=["awards"])
 app.include_router(assessments.router, prefix="/api/v3/assessments", tags=["assessments"])
 app.include_router(questions.router, prefix="/api/v3/questions", tags=["questions"])
 app.include_router(responses.router, prefix="/api/v3/responses", tags=["responses"])
+app.include_router(documents.router, prefix="/api/v3/docs", tags=["documents"])
 
 @app.get("/")
 async def root():
