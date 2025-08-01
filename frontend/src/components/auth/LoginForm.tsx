@@ -3,40 +3,66 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Eye, EyeOff, LogIn, ArrowLeft } from "lucide-react";
+import { Eye, EyeOff, LogIn, ArrowLeft, Mail } from "lucide-react";
+import { authService } from "@/services/auth";
+import { useToast } from "@/hooks/use-toast";
 
 interface LoginFormProps {
   onLogin: (email: string, password: string) => void;
+  isLoading?: boolean;
 }
 
-export const LoginForm = ({ onLogin }: LoginFormProps) => {
+export const LoginForm = ({ onLogin, isLoading: externalLoading }: LoginFormProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
+  const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate login delay
-    setTimeout(() => {
-      onLogin(email, password);
+    try {
+      await onLogin(email, password);
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setForgotPasswordLoading(true);
     
-    // Simulate password reset request
-    setTimeout(() => {
-      alert("E-mail de recuperação enviado! Verifique sua caixa de entrada.");
-      setIsLoading(false);
-      setShowForgotPassword(false);
-    }, 2000);
+    try {
+      const response = await authService.forgotPassword(forgotPasswordEmail);
+      
+      if (response.success) {
+        toast({
+          title: "Email enviado!",
+          description: response.message,
+        });
+        setShowForgotPassword(false);
+        setForgotPasswordEmail("");
+      } else {
+        toast({
+          title: "Erro",
+          description: response.message,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: error instanceof Error ? error.message : "Erro ao enviar email de recuperação",
+        variant: "destructive",
+      });
+    } finally {
+      setForgotPasswordLoading(false);
+    }
   };
 
   if (showForgotPassword) {
@@ -45,7 +71,7 @@ export const LoginForm = ({ onLogin }: LoginFormProps) => {
         <Card className="w-full max-w-md shadow-lg">
           <CardHeader className="text-center pb-2">
             <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-ifms-green to-ifms-green-dark rounded-full flex items-center justify-center">
-              <LogIn className="h-8 w-8 text-white" />
+              <Mail className="h-8 w-8 text-white" />
             </div>
             <CardTitle className="text-2xl font-bold text-ifms-green-dark">
               Recuperar Senha
@@ -62,15 +88,17 @@ export const LoginForm = ({ onLogin }: LoginFormProps) => {
                   id="reset-email"
                   type="email"
                   placeholder="seu.email@ifms.edu.br"
+                  value={forgotPasswordEmail}
+                  onChange={(e) => setForgotPasswordEmail(e.target.value)}
                   required
                 />
               </div>
               <Button 
                 type="submit" 
                 className="w-full bg-ifms-green hover:bg-ifms-green-dark"
-                disabled={isLoading}
+                disabled={forgotPasswordLoading}
               >
-                {isLoading ? "Enviando..." : "Enviar E-mail"}
+                {forgotPasswordLoading ? "Enviando..." : "Enviar E-mail"}
               </Button>
               <Button 
                 type="button" 
@@ -141,13 +169,13 @@ export const LoginForm = ({ onLogin }: LoginFormProps) => {
                 </Button>
               </div>
             </div>
-            <Button 
-              type="submit" 
-              className="w-full bg-ifms-green hover:bg-ifms-green-dark"
-              disabled={isLoading}
-            >
-              {isLoading ? "Entrando..." : "Entrar"}
-            </Button>
+                          <Button 
+                type="submit" 
+                className="w-full bg-ifms-green hover:bg-ifms-green-dark"
+                disabled={isLoading || externalLoading}
+              >
+                {isLoading || externalLoading ? "Entrando..." : "Entrar"}
+              </Button>
             <div className="text-center">
               <Button 
                 type="button" 

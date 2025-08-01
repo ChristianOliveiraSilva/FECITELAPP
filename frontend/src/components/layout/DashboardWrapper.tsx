@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 const menuItems = [
   { id: "home", label: "Painel de Controle", icon: Home, path: "/dashboard/home" },
@@ -37,6 +38,7 @@ export const DashboardWrapper = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+  const { user, logout } = useAuth();
 
   const getCurrentPage = () => {
     const path = location.pathname;
@@ -51,12 +53,21 @@ export const DashboardWrapper = () => {
     }
   };
 
-  const handleLogout = () => {
-    navigate("/");
-    toast({
-      title: "Logout realizado",
-      description: "Você foi desconectado do sistema",
-    });
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate("/");
+      toast({
+        title: "Logout realizado",
+        description: "Você foi desconectado do sistema",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro no logout",
+        description: "Erro ao fazer logout",
+        variant: "destructive",
+      });
+    }
   };
 
   const currentPage = getCurrentPage();
@@ -76,6 +87,11 @@ export const DashboardWrapper = () => {
               <Menu className="h-5 w-5" />
             </Button>
             <h1 className="text-xl font-bold">IFMS FECITEL</h1>
+            {user && (
+              <span className="text-sm opacity-90">
+                Olá, {user.name}
+              </span>
+            )}
           </div>
           <Button
             variant="ghost"

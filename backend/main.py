@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import users, evaluators, students, schools, categories, projects, awards, assessments, questions, responses, documents
+from app.routers import users, evaluators, students, schools, categories, projects, awards, assessments, questions, responses, documents, cards
 from app.routers.mobile import auth, assessments as mobile_assessments, questions as mobile_questions, responses as mobile_responses
+from app.routers import web_auth
 from app.database import engine, Base
 
 # Create database tables
@@ -28,6 +29,9 @@ app.include_router(mobile_assessments.router, prefix="/api/v3/mobile", tags=["as
 app.include_router(mobile_questions.router, prefix="/api/v3/mobile", tags=["questions"])
 app.include_router(mobile_responses.router, prefix="/api/v3/mobile", tags=["responses"])
 
+# Web authentication router
+app.include_router(web_auth.router, prefix="/api/v3/auth", tags=["auth"])
+
 # CRUD routers for all models
 app.include_router(users.router, prefix="/api/v3/users", tags=["users"])
 app.include_router(evaluators.router, prefix="/api/v3/evaluators", tags=["evaluators"])
@@ -40,6 +44,7 @@ app.include_router(assessments.router, prefix="/api/v3/assessments", tags=["asse
 app.include_router(questions.router, prefix="/api/v3/questions", tags=["questions"])
 app.include_router(responses.router, prefix="/api/v3/responses", tags=["responses"])
 app.include_router(documents.router, prefix="/api/v3/docs", tags=["documents"])
+app.include_router(cards.router, prefix="/api/v3/cards", tags=["cards"])
 
 @app.get("/")
 async def root():

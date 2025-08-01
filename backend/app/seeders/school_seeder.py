@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from app.models.school import School
+from app.models import School
 
 class SchoolSeeder:
     def __init__(self, db: Session):

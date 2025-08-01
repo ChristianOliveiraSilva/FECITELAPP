@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from app.models.user import User
+from app.models import User, PasswordReset
 from app.seeders.school_seeder import SchoolSeeder
 from app.seeders.category_seeder import CategorySeeder
 from app.seeders.question_seeder import QuestionSeeder

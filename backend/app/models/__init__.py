@@ -8,6 +8,7 @@ from .assessment import Assessment
 from .question import Question
 from .response import Response
 from .award import Award
+from .password_reset import PasswordReset
 from .relationships import evaluator_categories, student_projects, award_question
 from app.database import Base
 
@@ -22,6 +23,7 @@ __all__ = [
     "Question",
     "Response",
     "Award",
+    "PasswordReset",
     "Base",
     "evaluator_categories",
     "student_projects", 

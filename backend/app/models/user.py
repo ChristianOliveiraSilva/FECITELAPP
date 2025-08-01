@@ -22,6 +22,7 @@ class User(Base):
     
     # Relationships
     evaluator = relationship("Evaluator", back_populates="user", uselist=False)
+    password_resets = relationship("PasswordReset", back_populates="user")
     
     @staticmethod
     def verify_password(plain_password: str, hashed_password: str) -> bool:
