@@ -121,13 +121,13 @@ class QuestionScreen extends StatelessWidget {
                     ],
                   ),
                             const SizedBox(height: 24),
-                            if (question.type == 1)
+                            if (question.type == QuestionType.multipleChoice)
                               MultipleChoiceQuestion(
                                 question: question,
                                 currentAnswer: currentAnswer,
                                 onAnswerChanged: onAnswerChanged,
                               )
-                            else if (question.type == 2)
+                            else if (question.type == QuestionType.essay)
                               OpenQuestion(
                                 currentAnswer: currentAnswer,
                                 onAnswerChanged: onAnswerChanged,

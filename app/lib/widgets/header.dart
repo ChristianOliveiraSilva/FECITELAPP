@@ -43,7 +43,7 @@ class Header extends StatelessWidget {
                       ),
                     );
                   } else if (value == 'profile') {
-                    Navigator.of(context).push(
+                    Navigator.of(context).pushReplacement(
                       MaterialPageRoute(
                         builder: (context) => const ProfileScreen(),
                       ),

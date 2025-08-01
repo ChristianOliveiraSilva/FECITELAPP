@@ -135,7 +135,6 @@ class _ListScreenState extends State<ListScreen> {
                                     builder: (context) => QuestionnaireScreen(
                                       assessment: assessment,
                                       onAssessmentCompleted: () {
-                                        // Recarregar a lista quando uma avaliação for completada
                                         projectsProvider.loadProjects();
                                       },
                                     ),

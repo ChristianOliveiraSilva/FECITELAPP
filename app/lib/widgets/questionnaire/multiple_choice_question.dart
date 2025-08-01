@@ -21,7 +21,7 @@ class MultipleChoiceQuestion extends StatelessWidget {
     const spacing = 12.0; // espaçamento entre itens
     final availableWidth = screenWidth - outerPadding - innerPadding;
     final itemWidth = (availableWidth - (spacing * 3)) / 4; // 4 itens por linha
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
