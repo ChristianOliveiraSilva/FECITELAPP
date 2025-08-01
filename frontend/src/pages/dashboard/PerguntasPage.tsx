@@ -1,54 +1,80 @@
 import { useState } from "react";
 import { DataTable } from "@/components/ui/data-table";
 import { CrudForm } from "@/components/ui/crud-form";
-import { useCrud } from "@/hooks/use-crud";
-import { mockPerguntas } from "@/data/mockData";
+import { useApiCrud } from "@/hooks/use-api-crud";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2 } from "lucide-react";
 
 interface Pergunta extends Record<string, unknown> {
-  id?: string;
-  texto_cientifico: string;
-  texto_tecnologico: string;
-  tipo: string;
+  id?: number;
+  scientific_text: string;
+  technological_text: string;
+  type: number;
+  number_alternatives: number;
+  created_at?: string;
+  updated_at?: string;
+  responses?: Array<{
+    id: number;
+    assessment_id: number;
+    response: string;
+    score: number;
+  }>;
+  awards?: Array<{
+    id: number;
+    name: string;
+    description: string;
+  }>;
 }
 
 const columns = [
-  { key: "texto_cientifico", label: "Texto Científico", sortable: false },
-  { key: "texto_tecnologico", label: "Texto Tecnológico", sortable: false },
-  { key: "tipo", label: "Tipo", sortable: true }
+  { key: "scientific_text", label: "Texto Científico", sortable: false },
+  { key: "technological_text", label: "Texto Tecnológico", sortable: false },
+  { key: "type", label: "Tipo", sortable: true },
+  { key: "number_alternatives", label: "Alternativas", sortable: true },
+  { key: "created_at", label: "Criado em", sortable: true }
 ];
 
 const formFields = [
   {
-    name: "texto_cientifico",
+    name: "scientific_text",
     label: "Texto Científico",
     type: "textarea" as const,
     required: true,
     placeholder: "Digite o texto da pergunta para projetos científicos"
   },
   {
-    name: "texto_tecnologico",
+    name: "technological_text",
     label: "Texto Tecnológico",
     type: "textarea" as const,
     required: true,
     placeholder: "Digite o texto da pergunta para projetos tecnológicos"
   },
   {
-    name: "tipo",
+    name: "type",
     label: "Tipo de Pergunta",
     type: "select" as const,
     required: true,
     options: [
-      { value: "Qualitativa", label: "Qualitativa" },
-      { value: "Quantitativa", label: "Quantitativa" },
-      { value: "Mista", label: "Mista" }
+      { value: "1", label: "Qualitativa" },
+      { value: "2", label: "Quantitativa" },
+      { value: "3", label: "Mista" }
     ]
+  },
+  {
+    name: "number_alternatives",
+    label: "Número de Alternativas",
+    type: "number" as const,
+    required: true,
+    placeholder: "Digite o número de alternativas"
   }
 ];
 
 export const PerguntasPage = () => {
   const {
     data,
+    loading,
+    error,
     isFormOpen,
     editingItem,
     openAddForm,
@@ -56,7 +82,7 @@ export const PerguntasPage = () => {
     closeForm,
     handleSubmit,
     deleteItem
-  } = useCrud<Pergunta>({ initialData: mockPerguntas });
+  } = useApiCrud<Pergunta>({ endpoint: "/questions" });
 
   const [itemToDelete, setItemToDelete] = useState<Pergunta | null>(null);
 
@@ -64,12 +90,19 @@ export const PerguntasPage = () => {
     setItemToDelete(item);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (itemToDelete) {
-      deleteItem(itemToDelete);
+      await deleteItem(itemToDelete);
       setItemToDelete(null);
     }
   };
+
+  // Transform data for display
+  const transformedData = data.map(item => ({
+    ...item,
+    type: item.type === 1 ? "Qualitativa" : item.type === 2 ? "Quantitativa" : "Mista",
+    created_at: item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : "-"
+  }));
 
   return (
     <div className="space-y-6">
@@ -79,16 +112,30 @@ export const PerguntasPage = () => {
           Gerencie as perguntas de avaliação da FECITEL
         </p>
       </div>
+
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+      
+      {loading && (
+        <div className="flex items-center justify-center p-4">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <span className="ml-2">Carregando...</span>
+        </div>
+      )}
       
       {!isFormOpen ? (
         <DataTable
           title="Lista de Perguntas"
           columns={columns}
-          data={data}
+          data={transformedData}
           searchPlaceholder="Buscar por texto, tipo..."
           onAdd={openAddForm}
           onEdit={openEditForm}
           onDelete={handleDelete}
+          loading={loading}
         />
       ) : (
         <CrudForm
@@ -98,6 +145,7 @@ export const PerguntasPage = () => {
           onSubmit={handleSubmit}
           onCancel={closeForm}
           isEditing={!!editingItem}
+          loading={loading}
         />
       )}
 

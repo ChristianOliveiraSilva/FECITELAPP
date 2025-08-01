@@ -6,6 +6,7 @@ from app.models.school import School
 from app.schemas.student import (
     StudentCreate, StudentUpdate, StudentListResponse, StudentDetailResponse
 )
+from app.enums.school_grade import SchoolGrade
 from typing import Optional
 
 router = APIRouter()
@@ -31,10 +32,15 @@ async def get_students(
         
         student_data = []
         for student in students:
+            # Convert school_grade from int to string using enum
+            school_grade_enum = SchoolGrade(student.school_grade)
+            school_grade_label = school_grade_enum.get_label()
+            
             student_dict = {
                 "id": student.id,
                 "name": student.name,
-                "school_grade": student.school_grade,
+                "email": student.email,
+                "school_grade": school_grade_label,
                 "school_id": student.school_id,
                 "created_at": student.created_at,
                 "updated_at": student.updated_at,
@@ -96,10 +102,15 @@ async def get_student(
                 detail="Student not found"
             )
         
+        # Convert school_grade from int to string using enum
+        school_grade_enum = SchoolGrade(student.school_grade)
+        school_grade_label = school_grade_enum.get_label()
+        
         student_dict = {
             "id": student.id,
             "name": student.name,
-            "school_grade": student.school_grade,
+            "email": student.email,
+            "school_grade": school_grade_label,
             "school_id": student.school_id,
             "created_at": student.created_at,
             "updated_at": student.updated_at,
@@ -139,7 +150,6 @@ async def get_student(
 
 @router.post("/", response_model=StudentDetailResponse)
 async def create_student(student_data: StudentCreate, db: Session = Depends(get_db)):
-    """Create a new student"""
     try:
         # Check if school exists
         school = db.query(School).filter(School.id == student_data.school_id).first()
@@ -149,9 +159,23 @@ async def create_student(student_data: StudentCreate, db: Session = Depends(get_
                 detail="School not found"
             )
         
+        # Convert school_grade string to int using enum
+        school_grade_value = None
+        for grade_value, grade_label in SchoolGrade.get_values().items():
+            if grade_label == student_data.school_grade:
+                school_grade_value = grade_value
+                break
+        
+        if school_grade_value is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid school grade"
+            )
+        
         student = Student(
             name=student_data.name,
-            school_grade=student_data.school_grade,
+            email=student_data.email,
+            school_grade=school_grade_value,
             school_id=student_data.school_id
         )
         
@@ -159,10 +183,15 @@ async def create_student(student_data: StudentCreate, db: Session = Depends(get_
         db.commit()
         db.refresh(student)
         
+        # Convert back to string for response
+        school_grade_enum = SchoolGrade(student.school_grade)
+        school_grade_label = school_grade_enum.get_label()
+        
         student_dict = {
             "id": student.id,
             "name": student.name,
-            "school_grade": student.school_grade,
+            "email": student.email,
+            "school_grade": school_grade_label,
             "school_id": student.school_id,
             "created_at": student.created_at,
             "updated_at": student.updated_at,
@@ -201,27 +230,51 @@ async def update_student(
                 detail="Student not found"
             )
         
-        # Check if school exists if school_id is being updated
-        if student_data.school_id and student_data.school_id != student.school_id:
+        # Update fields if provided
+        if student_data.name is not None:
+            student.name = student_data.name
+        
+        if student_data.email is not None:
+            student.email = student_data.email
+        
+        if student_data.school_grade is not None:
+            # Convert school_grade string to int using enum
+            school_grade_value = None
+            for grade_value, grade_label in SchoolGrade.get_values().items():
+                if grade_label == student_data.school_grade:
+                    school_grade_value = grade_value
+                    break
+            
+            if school_grade_value is None:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid school grade"
+                )
+            
+            student.school_grade = school_grade_value
+        
+        if student_data.school_id is not None:
+            # Check if school exists
             school = db.query(School).filter(School.id == student_data.school_id).first()
             if not school:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="School not found"
                 )
-        
-        # Update fields
-        update_data = student_data.dict(exclude_unset=True)
-        for field, value in update_data.items():
-            setattr(student, field, value)
+            student.school_id = student_data.school_id
         
         db.commit()
         db.refresh(student)
         
+        # Convert back to string for response
+        school_grade_enum = SchoolGrade(student.school_grade)
+        school_grade_label = school_grade_enum.get_label()
+        
         student_dict = {
             "id": student.id,
             "name": student.name,
-            "school_grade": student.school_grade,
+            "email": student.email,
+            "school_grade": school_grade_label,
             "school_id": student.school_id,
             "created_at": student.created_at,
             "updated_at": student.updated_at,
@@ -246,7 +299,7 @@ async def update_student(
 
 @router.delete("/{student_id}")
 async def delete_student(student_id: int, db: Session = Depends(get_db)):
-    """Soft delete a student"""
+    """Delete a student (soft delete)"""
     try:
         student = db.query(Student).filter(Student.id == student_id).first()
         
@@ -259,7 +312,6 @@ async def delete_student(student_id: int, db: Session = Depends(get_db)):
         # Soft delete
         from datetime import datetime
         student.deleted_at = datetime.utcnow()
-        
         db.commit()
         
         return {
