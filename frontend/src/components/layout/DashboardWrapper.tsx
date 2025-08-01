@@ -13,7 +13,7 @@ import {
   Trophy,
   HelpCircle,
   Home,
-  CheckCircle
+  FileText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -24,13 +24,13 @@ const menuItems = [
   { id: "avaliacoes", label: "Avaliações", icon: BarChart3, path: "/dashboard/avaliacoes" },
   { id: "areas", label: "Áreas", icon: FolderOpen, path: "/dashboard/areas" },
   { id: "projetos", label: "Projetos", icon: FolderOpen, path: "/dashboard/projetos" },
+  { id: "perguntas", label: "Perguntas", icon: HelpCircle, path: "/dashboard/perguntas" },
   { id: "avaliadores", label: "Avaliadores", icon: UserCheck, path: "/dashboard/avaliadores" },
   { id: "estudantes", label: "Estudantes", icon: GraduationCap, path: "/dashboard/estudantes" },
   { id: "escolas", label: "Escolas", icon: School, path: "/dashboard/escolas" },
   { id: "usuarios", label: "Usuários", icon: Users, path: "/dashboard/usuarios" },
   { id: "premiacoes", label: "Premiações", icon: Trophy, path: "/dashboard/premiacoes" },
-  { id: "perguntas", label: "Perguntas", icon: HelpCircle, path: "/dashboard/perguntas" },
-  { id: "documentos", label: "Documentos", icon: CheckCircle, path: "/dashboard/documentos" },
+  { id: "documentos", label: "Documentos", icon: FileText, path: "/dashboard/documentos" },
 ];
 
 export const DashboardWrapper = () => {
