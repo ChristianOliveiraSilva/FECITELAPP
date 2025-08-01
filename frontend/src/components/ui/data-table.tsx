@@ -9,8 +9,10 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Plus, Edit, Trash2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Search, Plus, Edit, Trash2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { useState } from "react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Column {
   key: string;
@@ -21,12 +23,17 @@ interface Column {
 interface DataTableProps {
   title: string;
   columns: Column[];
-  data: Record<string, any>[];
+  data: Record<string, unknown>[];
   onAdd?: () => void;
-  onEdit?: (item: Record<string, any>) => void;
-  onDelete?: (item: Record<string, any>) => void;
+  onEdit?: (item: Record<string, unknown>) => void;
+  onDelete?: (item: Record<string, unknown>) => void;
   searchPlaceholder?: string;
   loading?: boolean;
+  selectable?: boolean;
+  onSelectionChange?: (selectedItems: Record<string, unknown>[]) => void;
+  actionButtons?: React.ReactNode;
+  pageSize?: number;
+  pageSizeOptions?: number[];
 }
 
 export const DataTable = ({
@@ -37,11 +44,19 @@ export const DataTable = ({
   onEdit,
   onDelete,
   searchPlaceholder = "Buscar...",
-  loading = false
+  loading = false,
+  selectable = false,
+  onSelectionChange,
+  actionButtons,
+  pageSize = 15,
+  pageSizeOptions = [10, 15, 25, 50, 100]
 }: DataTableProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [selectedItems, setSelectedItems] = useState<Record<string, unknown>[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPageSize, setCurrentPageSize] = useState(pageSize);
 
   const filteredData = data.filter((item) =>
     Object.values(item).some(
@@ -72,17 +87,82 @@ export const DataTable = ({
     }
   };
 
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedItems([...sortedData]);
+    } else {
+      setSelectedItems([]);
+    }
+    onSelectionChange?.(checked ? sortedData : []);
+  };
+
+  const handleSelectItem = (item: Record<string, unknown>, checked: boolean) => {
+    let newSelectedItems;
+    if (checked) {
+      newSelectedItems = [...selectedItems, item];
+    } else {
+      newSelectedItems = selectedItems.filter(selected => {
+        // Comparar por ID se disponível, senão por referência
+        if (selected.id && item.id) {
+          return selected.id !== item.id;
+        }
+        return selected !== item;
+      });
+    }
+    setSelectedItems(newSelectedItems);
+    onSelectionChange?.(newSelectedItems);
+  };
+
+  const isItemSelected = (item: Record<string, unknown>) => {
+    const isSelected = selectedItems.some(selected => {
+      // Comparar por ID se disponível, senão por referência
+      if (selected.id && item.id) {
+        return selected.id === item.id;
+      }
+      return selected === item;
+    });
+    return isSelected;
+  };
+
+  // Paginação
+  const totalPages = Math.ceil(sortedData.length / currentPageSize);
+  const startIndex = (currentPage - 1) * currentPageSize;
+  const endIndex = startIndex + currentPageSize;
+  const paginatedData = sortedData.slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handlePageSizeChange = (newPageSize: string) => {
+    const size = parseInt(newPageSize);
+    setCurrentPageSize(size);
+    setCurrentPage(1); // Reset para primeira página
+  };
+
+  const goToFirstPage = () => setCurrentPage(1);
+  const goToPreviousPage = () => setCurrentPage(Math.max(1, currentPage - 1));
+  const goToNextPage = () => setCurrentPage(Math.min(totalPages, currentPage + 1));
+  const goToLastPage = () => setCurrentPage(totalPages);
+
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-ifms-green-dark">{title}</CardTitle>
-          {onAdd && (
-            <Button onClick={onAdd} className="bg-ifms-green hover:bg-ifms-green-dark">
-              <Plus className="h-4 w-4 mr-2" />
-              Adicionar
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            {actionButtons && selectedItems.length > 0 && (
+              <div className="flex gap-2">
+                {actionButtons}
+              </div>
+            )}
+            {onAdd && (
+              <Button onClick={onAdd} className="bg-ifms-green hover:bg-ifms-green-dark">
+                <Plus className="h-4 w-4 mr-2" />
+                Adicionar
+              </Button>
+            )}
+          </div>
         </div>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -99,6 +179,14 @@ export const DataTable = ({
           <Table>
             <TableHeader>
               <TableRow>
+                {selectable && (
+                  <TableHead className="w-12">
+                    <Checkbox
+                      checked={selectedItems.length === sortedData.length && sortedData.length > 0}
+                      onCheckedChange={handleSelectAll}
+                    />
+                  </TableHead>
+                )}
                 {columns.map((column) => (
                   <TableHead
                     key={column.key}
@@ -124,7 +212,7 @@ export const DataTable = ({
               {loading ? (
                 <TableRow>
                   <TableCell
-                    colSpan={columns.length + (onEdit || onDelete ? 1 : 0)}
+                    colSpan={columns.length + (onEdit || onDelete ? 1 : 0) + (selectable ? 1 : 0)}
                     className="text-center py-8 text-muted-foreground"
                   >
                     <div className="flex items-center justify-center">
@@ -133,9 +221,18 @@ export const DataTable = ({
                     </div>
                   </TableCell>
                 </TableRow>
-              ) : sortedData.length > 0 ? (
-                sortedData.map((item, index) => (
+              ) : paginatedData.length > 0 ? (
+                paginatedData.map((item, index) => (
                   <TableRow key={index}>
+                    {selectable && (
+                      <TableCell>
+                        <Checkbox
+                          key={`checkbox-${item.id || index}`}
+                          checked={isItemSelected(item)}
+                          onCheckedChange={(checked) => handleSelectItem(item, checked as boolean)}
+                        />
+                      </TableCell>
+                    )}
                     {columns.map((column) => (
                       <TableCell key={column.key}>
                         {item[column.key]?.toString() || "-"}
@@ -170,7 +267,7 @@ export const DataTable = ({
               ) : (
                 <TableRow>
                   <TableCell
-                    colSpan={columns.length + (onEdit || onDelete ? 1 : 0)}
+                    colSpan={columns.length + (onEdit || onDelete ? 1 : 0) + (selectable ? 1 : 0)}
                     className="text-center py-8 text-muted-foreground"
                   >
                     Nenhum resultado encontrado
@@ -181,9 +278,91 @@ export const DataTable = ({
           </Table>
         </div>
         <div className="flex items-center justify-between pt-4">
-          <div className="text-sm text-muted-foreground">
-            Mostrando {sortedData.length} de {data.length} registros
+          <div className="flex items-center gap-4">
+            <div className="text-sm text-muted-foreground">
+              Mostrando {startIndex + 1}-{Math.min(endIndex, sortedData.length)} de {sortedData.length} registros
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Linhas por página:</span>
+              <Select value={currentPageSize.toString()} onValueChange={handlePageSizeChange}>
+                <SelectTrigger className="w-20">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {pageSizeOptions.map((size) => (
+                    <SelectItem key={size} value={size.toString()}>
+                      {size}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
+          
+          {totalPages > 1 && (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={goToFirstPage}
+                disabled={currentPage === 1}
+              >
+                <ChevronsLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={goToPreviousPage}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNumber;
+                  if (totalPages <= 5) {
+                    pageNumber = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNumber = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNumber = totalPages - 4 + i;
+                  } else {
+                    pageNumber = currentPage - 2 + i;
+                  }
+                  
+                  return (
+                    <Button
+                      key={pageNumber}
+                      variant={currentPage === pageNumber ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => handlePageChange(pageNumber)}
+                      className="w-8 h-8"
+                    >
+                      {pageNumber}
+                    </Button>
+                  );
+                })}
+              </div>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={goToNextPage}
+                disabled={currentPage === totalPages}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={goToLastPage}
+                disabled={currentPage === totalPages}
+              >
+                <ChevronsRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

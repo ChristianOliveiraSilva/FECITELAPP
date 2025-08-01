@@ -7,4 +7,5 @@ export { EstudantesPage } from "./EstudantesPage";
 export { PerguntasPage } from "./PerguntasPage";
 export { PremiacoesPage } from "./PremiacoesPage";
 export { ProjetosPage } from "./ProjetosPage";
-export { UsuariosPage } from "./UsuariosPage"; 
+export { UsuariosPage } from "./UsuariosPage";
+export { FinalizacaoPage } from "./FinalizacaoPage"; 

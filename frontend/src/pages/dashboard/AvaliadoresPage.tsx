@@ -4,7 +4,8 @@ import { CrudForm } from "@/components/ui/crud-form";
 import { useApiCrud } from "@/hooks/use-api-crud";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Loader2, FileText, ClipboardList } from "lucide-react";
 
 interface Avaliador extends Record<string, unknown> {
   id?: number;
@@ -83,6 +84,30 @@ export const AvaliadoresPage = () => {
     }
   };
 
+  const handleGerarCertificado = () => {
+    // TODO: Implementar geração de certificado dos avaliadores
+    console.log("Gerando certificado dos avaliadores...");
+  };
+
+  const handleGerarCheckIn = () => {
+    // TODO: Implementar geração de folha de check-in dos avaliadores
+    console.log("Gerando folha de check-in dos avaliadores...");
+  };
+
+  const [selectedAvaliadores, setSelectedAvaliadores] = useState<Avaliador[]>([]);
+
+  const handleSelectionChange = (selectedItems: Avaliador[]) => {
+    setSelectedAvaliadores(selectedItems);
+  };
+
+  const handleGerarCertificadoSelecionados = () => {
+    console.log("Gerando certificado para:", selectedAvaliadores.length, "avaliadores selecionados");
+  };
+
+  const handleGerarCheckInSelecionados = () => {
+    console.log("Gerando check-in para:", selectedAvaliadores.length, "avaliadores selecionados");
+  };
+
   // Transform data for display
   const transformedData = data.map(item => ({
     ...item,
@@ -125,6 +150,30 @@ export const AvaliadoresPage = () => {
           onEdit={openEditForm}
           onDelete={handleDelete}
           loading={loading}
+          selectable={true}
+          onSelectionChange={handleSelectionChange}
+          pageSize={15}
+          pageSizeOptions={[10, 15, 25, 50, 100]}
+          actionButtons={
+            <>
+              <Button 
+                onClick={handleGerarCertificadoSelecionados}
+                variant="outline"
+                className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
+              >
+                <FileText className="h-4 w-4" />
+                Certificado
+              </Button>
+              <Button 
+                onClick={handleGerarCheckInSelecionados}
+                variant="outline"
+                className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
+              >
+                <ClipboardList className="h-4 w-4" />
+                Check-in
+              </Button>
+            </>
+          }
         />
       ) : (
         <CrudForm

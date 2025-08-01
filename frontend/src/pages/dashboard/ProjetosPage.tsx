@@ -4,7 +4,8 @@ import { CrudForm } from "@/components/ui/crud-form";
 import { useApiCrud } from "@/hooks/use-api-crud";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Loader2, FileText } from "lucide-react";
 
 interface Projeto extends Record<string, unknown> {
   id?: number;
@@ -64,7 +65,7 @@ const formFields = [
     type: "select" as const,
     required: true,
     placeholder: "Selecione a categoria",
-    options: [] // Will be populated dynamically
+    options: []
   },
   {
     name: "projectType",
@@ -72,8 +73,8 @@ const formFields = [
     type: "select" as const,
     required: true,
     options: [
-      { value: 1, label: "Científico" },
-      { value: 2, label: "Tecnológico" }
+      { value: "1", label: "Científico" },
+      { value: "2", label: "Tecnológico" }
     ]
   },
   {
@@ -110,6 +111,21 @@ export const ProjetosPage = () => {
       await deleteItem(itemToDelete);
       setItemToDelete(null);
     }
+  };
+
+  const handleGerarFichasBanner = () => {
+    // TODO: Implementar geração das fichas de identificação do banner
+    console.log("Gerando fichas de identificação do banner...");
+  };
+
+  const [selectedProjetos, setSelectedProjetos] = useState<Projeto[]>([]);
+
+  const handleSelectionChange = (selectedItems: Projeto[]) => {
+    setSelectedProjetos(selectedItems);
+  };
+
+  const handleGerarFichasBannerSelecionados = () => {
+    console.log("Gerando fichas de banner para:", selectedProjetos.length, "projetos selecionados");
   };
 
   // Transform data for display
@@ -153,6 +169,20 @@ export const ProjetosPage = () => {
           onEdit={openEditForm}
           onDelete={handleDelete}
           loading={loading}
+          selectable={true}
+          onSelectionChange={handleSelectionChange}
+          pageSize={15}
+          pageSizeOptions={[10, 15, 25, 50, 100]}
+          actionButtons={
+            <Button 
+              onClick={handleGerarFichasBannerSelecionados}
+              variant="outline"
+              className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
+            >
+              <FileText className="h-4 w-4" />
+              Fichas de Banner
+            </Button>
+          }
         />
       ) : (
         <CrudForm
