@@ -3,10 +3,17 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/projects_provider.dart';
+import 'providers/theme_provider.dart';
+import 'services/event_service.dart';
 import 'screens/login_screen.dart';
 import 'screens/list_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize theme from API on app start
+  await EventService.initializeTheme();
+  
   runApp(const MyApp());
 }
 
@@ -19,56 +26,63 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => ProjectsProvider()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
-      child: MaterialApp(
-        title: 'Fecitel App',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF56BA54),
-            primary: const Color(0xFF56BA54),
-          ),
-          useMaterial3: true,
-        ),
-        home: const AuthWrapper(),
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, child) {
+          return MaterialApp(
+            title: 'Fecitel App',
+            debugShowCheckedModeBanner: false,
+            theme: themeProvider.themeData,
+            darkTheme: themeProvider.darkThemeData,
+            home: const AppInitializer(),
+          );
+        },
       ),
     );
   }
 }
 
-class AuthWrapper extends StatefulWidget {
-  const AuthWrapper({super.key});
+class AppInitializer extends StatefulWidget {
+  const AppInitializer({super.key});
 
   @override
-  State<AuthWrapper> createState() => _AuthWrapperState();
+  State<AppInitializer> createState() => _AppInitializerState();
 }
 
-class _AuthWrapperState extends State<AuthWrapper> {
+class _AppInitializerState extends State<AppInitializer> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<AuthProvider>().loadStoredAuth();
-    });
+    _initializeApp();
+  }
+
+  Future<void> _initializeApp() async {
+    // Initialize theme from stored preferences
+    await context.read<ThemeProvider>().initializeFromStorage();
+    
+    // Load stored auth
+    await context.read<AuthProvider>().loadStoredAuth();
+    
+    // Refresh theme from API in background
+    context.read<ThemeProvider>().refreshTheme();
   }
 
   @override
   Widget build(BuildContext context) {
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: const SystemUiOverlayStyle(
-        statusBarColor: Color(0xFF4CAF50),
-        statusBarIconBrightness: Brightness.light,
-        statusBarBrightness: Brightness.dark,
-      ),
-      child: Consumer<AuthProvider>(
-        builder: (context, authProvider, child) {
-          if (authProvider.isAuthenticated) {
-            return const ListScreen();
-          } else {
-            return const LoginScreen();
-          }
-        },
-      ),
+    return Consumer2<ThemeProvider, AuthProvider>(
+      builder: (context, themeProvider, authProvider, child) {
+        return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: SystemUiOverlayStyle(
+            statusBarColor: themeProvider.primaryColor,
+            statusBarIconBrightness: Brightness.light,
+            statusBarBrightness: Brightness.dark,
+          ),
+          child: authProvider.isAuthenticated 
+            ? const ListScreen() 
+            : const LoginScreen(),
+        );
+      },
     );
   }
 }

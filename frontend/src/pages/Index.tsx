@@ -21,7 +21,7 @@ const Index = () => {
       
       toast({
         title: "Login realizado com sucesso!",
-        description: `Bem-vindo, ${user?.name}!`,
+        description: `Bem-vindo!`,
       });
       
       navigate("/dashboard");

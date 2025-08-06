@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Eye, EyeOff, LogIn, ArrowLeft, Mail } from "lucide-react";
 import { authService } from "@/services/auth";
 import { useToast } from "@/hooks/use-toast";
@@ -15,6 +16,7 @@ interface LoginFormProps {
 export const LoginForm = ({ onLogin, isLoading: externalLoading }: LoginFormProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [year, setYear] = useState(new Date().getFullYear().toString());
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -22,11 +24,22 @@ export const LoginForm = ({ onLogin, isLoading: externalLoading }: LoginFormProp
   const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
   const { toast } = useToast();
 
+  // Generate years from 2024 to current year
+  const generateYears = () => {
+    const currentYear = new Date().getFullYear();
+    const years = [];
+    for (let year = 2024; year <= currentYear; year++) {
+      years.push(year.toString());
+    }
+    return years;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
     try {
+      localStorage.setItem('year', year);
       await onLogin(email, password);
     } finally {
       setIsLoading(false);
@@ -168,6 +181,21 @@ export const LoginForm = ({ onLogin, isLoading: externalLoading }: LoginFormProp
                   )}
                 </Button>
               </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="year">Ano</Label>
+              <Select value={year} onValueChange={setYear}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o ano" />
+                </SelectTrigger>
+                <SelectContent>
+                  {generateYears().map((yearOption) => (
+                    <SelectItem key={yearOption} value={yearOption}>
+                      {yearOption}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
                           <Button 
                 type="submit" 

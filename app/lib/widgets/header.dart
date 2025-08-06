@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../providers/theme_provider.dart';
 import '../screens/profile_screen.dart';
 import '../screens/list_screen.dart';
 import '../screens/certificates_screen.dart';
@@ -10,15 +11,28 @@ class Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: const Color(0xFF4CAF50),
-      padding: const EdgeInsets.all(20),
-      child: Row(
-        children: [
-          Image.asset(
-            'assets/images/fecitel-logo.png',
-            height: 30,
-          ),
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        return Container(
+          color: themeProvider.primaryColor,
+          padding: const EdgeInsets.all(20),
+          child: Row(
+            children: [
+              themeProvider.logoUrl.isNotEmpty
+                  ? Image.network(
+                      themeProvider.logoUrl,
+                      height: 30,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Image.asset(
+                          'assets/images/fecitel-logo.png',
+                          height: 30,
+                        );
+                      },
+                    )
+                  : Image.asset(
+                      'assets/images/fecitel-logo.png',
+                      height: 30,
+                    ),
           const Spacer(),
           Consumer<AuthProvider>(
             builder: (context, authProvider, child) {
@@ -139,6 +153,8 @@ class Header extends StatelessWidget {
           ),
         ],
       ),
+        );
+      },
     );
   }
 } 

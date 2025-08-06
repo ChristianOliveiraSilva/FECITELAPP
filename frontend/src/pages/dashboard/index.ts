@@ -3,6 +3,7 @@ export { AreasPage } from "./AreasPage";
 export { AvaliacoesPage } from "./AvaliacoesPage";
 export { AvaliadoresPage } from "./AvaliadoresPage";
 export { EscolasPage } from "./EscolasPage";
+export { EventosPage } from "./EventosPage";
 export { EstudantesPage } from "./EstudantesPage";
 export { PerguntasPage } from "./PerguntasPage";
 export { PremiacoesPage } from "./PremiacoesPage";

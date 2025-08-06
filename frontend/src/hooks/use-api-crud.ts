@@ -4,11 +4,17 @@ import { apiService, ApiResponse } from "@/lib/api";
 interface UseApiCrudProps<T> {
   endpoint: string;
   initialData?: T[];
+  customCreateEndpoint?: string;
+  customUpdateEndpoint?: string;
+  useFormData?: boolean;
 }
 
 export const useApiCrud = <T extends Record<string, unknown>>({ 
   endpoint, 
-  initialData = [] 
+  initialData = [],
+  customCreateEndpoint,
+  customUpdateEndpoint,
+  useFormData = false
 }: UseApiCrudProps<T>) => {
   const [data, setData] = useState<T[]>(initialData);
   const [loading, setLoading] = useState(false);
@@ -49,7 +55,23 @@ export const useApiCrud = <T extends Record<string, unknown>>({
     setError(null);
     
     try {
-      const response = await apiService.create<T>(endpoint, newItem);
+      let response;
+      
+      if (useFormData && customCreateEndpoint) {
+        // Create FormData for file uploads
+        const formData = new FormData();
+        Object.entries(newItem).forEach(([key, value]) => {
+          if (value instanceof File) {
+            formData.append(key, value);
+          } else if (value !== null && value !== undefined) {
+            formData.append(key, String(value));
+          }
+        });
+        
+        response = await apiService.createWithFormData<T>(customCreateEndpoint, formData);
+      } else {
+        response = await apiService.create<T>(endpoint, newItem);
+      }
       
       if (response.status) {
         await loadData(); // Reload data to get the new item
@@ -71,7 +93,26 @@ export const useApiCrud = <T extends Record<string, unknown>>({
     setError(null);
     
     try {
-      const response = await apiService.update<T>(endpoint, editingItem.id, updatedItem);
+      let response;
+      
+      // Check if there's a file in the updated item
+      const hasFile = Object.values(updatedItem).some(value => value instanceof File);
+      
+      if (useFormData && hasFile && customUpdateEndpoint) {
+        // Create FormData for file uploads in updates
+        const formData = new FormData();
+        Object.entries(updatedItem).forEach(([key, value]) => {
+          if (value instanceof File) {
+            formData.append(key, value);
+          } else if (value !== null && value !== undefined) {
+            formData.append(key, String(value));
+          }
+        });
+        
+        response = await apiService.updateWithFormData<T>(customUpdateEndpoint, editingItem.id, formData);
+      } else {
+        response = await apiService.update<T>(endpoint, editingItem.id, updatedItem);
+      }
       
       if (response.status) {
         await loadData(); // Reload data to get the updated item

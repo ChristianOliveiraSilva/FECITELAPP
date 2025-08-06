@@ -4,6 +4,7 @@ from app.seeders.school_seeder import SchoolSeeder
 from app.seeders.category_seeder import CategorySeeder
 from app.seeders.question_seeder import QuestionSeeder
 from app.seeders.test_seeder import TestSeeder
+from app.seeders.event_seeder import EventSeeder
 import os
 
 class DatabaseSeeder:
@@ -19,6 +20,7 @@ class DatabaseSeeder:
         CategorySeeder(self.db).run()
         QuestionSeeder(self.db).run()
         TestSeeder(self.db).run()
+        EventSeeder(self.db).run()
         
         # Criar usuários padrão
         self._create_default_users()

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/assessment.dart';
 import '../models/project.dart';
+import '../constants/app_theme.dart';
 
 class ProjectItem extends StatelessWidget {
   final Assessment assessment;
@@ -29,7 +30,7 @@ class ProjectItem extends StatelessWidget {
                 height: 50,
                 decoration: BoxDecoration(
                   color: isScientific 
-                      ? const Color(0xFF56BA54) 
+                      ? AppTheme.primaryColor(context)
                       : const Color(0xFF036DAA),
                   borderRadius: BorderRadius.circular(25),
                 ),

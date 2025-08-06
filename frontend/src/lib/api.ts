@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8000/api/v3';
+const API_BASE_URL = import.meta.env.VITE_API_URL + '/api/v3';
 
 export interface ApiResponse<T> {
   status: boolean;
@@ -59,21 +59,53 @@ class ApiService {
     return this.request<T>(`${endpoint}/${id}`);
   }
 
-  async create<T>(endpoint: string, data: any): Promise<ApiResponse<T>> {
+  async create<T>(endpoint: string, data: Record<string, unknown>): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
-  async update<T>(endpoint: string, id: string | number, data: any): Promise<ApiResponse<T>> {
+  async createWithFormData<T>(endpoint: string, formData: FormData): Promise<ApiResponse<T>> {
+    const url = `${API_BASE_URL}${endpoint}`;
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      body: formData,
+      // Don't set Content-Type header, let browser set it with boundary for multipart/form-data
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  async update<T>(endpoint: string, id: string | number, data: Record<string, unknown>): Promise<ApiResponse<T>> {
     return this.request<T>(`${endpoint}/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     });
   }
 
-  async delete(endpoint: string, id: string | number): Promise<ApiResponse<any>> {
+  async updateWithFormData<T>(endpoint: string, id: string | number, formData: FormData): Promise<ApiResponse<T>> {
+    const url = `${API_BASE_URL}${endpoint}/${id}`;
+    
+    const response = await fetch(url, {
+      method: 'PUT',
+      body: formData,
+      // Don't set Content-Type header, let browser set it with boundary for multipart/form-data
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  async delete(endpoint: string, id: string | number): Promise<ApiResponse<Record<string, unknown>>> {
     return this.request(`${endpoint}/${id}`, {
       method: 'DELETE',
     });

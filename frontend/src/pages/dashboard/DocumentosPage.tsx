@@ -175,7 +175,7 @@ export const DocumentosPage = () => {
   const navigate = useNavigate();
   
   // Flag para controlar se os downloads estão habilitados
-  const downloadsEnabled = false;
+  const downloadsEnabled = true;
 
   const handleConfiguracoes = () => {
     navigate("/dashboard/documentos/configuracoes");
@@ -183,7 +183,7 @@ export const DocumentosPage = () => {
 
   const handleDownload = async (documento: Documento) => {
     try {
-      const response = await fetch(`http://localhost:8000${documento.endpoint}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}${documento.endpoint}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

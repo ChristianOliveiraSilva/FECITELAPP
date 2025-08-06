@@ -11,10 +11,11 @@ import { X, Save, Plus } from "lucide-react";
 interface Field {
   name: string;
   label: string;
-  type: "text" | "email" | "textarea" | "select" | "number";
+  type: "text" | "email" | "textarea" | "select" | "number" | "file" | "color";
   required?: boolean;
   options?: { value: string; label: string }[];
   placeholder?: string;
+  accept?: string;
 }
 
 interface CrudFormProps {
@@ -92,6 +93,55 @@ export const CrudForm = ({
                     ))}
                   </SelectContent>
                 </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        );
+
+      case "file":
+        return (
+          <FormField
+            key={field.name}
+            control={form.control}
+            name={field.name}
+            rules={{ required: field.required && "Este campo é obrigatório" }}
+            render={({ field: formField }) => (
+              <FormItem>
+                <FormLabel>{field.label}</FormLabel>
+                <FormControl>
+                  <Input
+                    type="file"
+                    accept={field.accept}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      formField.onChange(file);
+                    }}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        );
+
+      case "color":
+        return (
+          <FormField
+            key={field.name}
+            control={form.control}
+            name={field.name}
+            rules={{ required: field.required && "Este campo é obrigatório" }}
+            render={({ field: formField }) => (
+              <FormItem>
+                <FormLabel>{field.label}</FormLabel>
+                <FormControl>
+                  <Input
+                    type="color"
+                    placeholder={field.placeholder}
+                    {...formField}
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}

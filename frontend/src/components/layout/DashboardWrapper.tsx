@@ -1,6 +1,7 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useState, useEffect } from "react";
 import { useNavigate, useLocation, Outlet } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Menu, 
   LogOut, 
@@ -13,7 +14,8 @@ import {
   Trophy,
   HelpCircle,
   Home,
-  FileText
+  FileText,
+  Calendar
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -28,6 +30,7 @@ const menuItems = [
   { id: "avaliadores", label: "Avaliadores", icon: UserCheck, path: "/dashboard/avaliadores" },
   { id: "estudantes", label: "Estudantes", icon: GraduationCap, path: "/dashboard/estudantes" },
   { id: "escolas", label: "Escolas", icon: School, path: "/dashboard/escolas" },
+  { id: "eventos", label: "Eventos", icon: Calendar, path: "/dashboard/eventos" },
   { id: "usuarios", label: "Usuários", icon: Users, path: "/dashboard/usuarios" },
   { id: "premiacoes", label: "Premiações", icon: Trophy, path: "/dashboard/premiacoes" },
   { id: "documentos", label: "Documentos", icon: FileText, path: "/dashboard/documentos" },
@@ -35,10 +38,28 @@ const menuItems = [
 
 export const DashboardWrapper = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [year, setYear] = useState(() => {
+    return localStorage.getItem('year') || new Date().getFullYear().toString();
+  });
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
   const { user, logout } = useAuth();
+
+  const generateYears = () => {
+    const currentYear = new Date().getFullYear();
+    const years = [];
+    for (let year = 2024; year <= currentYear; year++) {
+      years.push(year.toString());
+    }
+    return years;
+  };
+
+  const handleYearChange = (newYear: string) => {
+    setYear(newYear);
+    localStorage.setItem('year', newYear);
+    window.location.reload();
+  };
 
   const getCurrentPage = () => {
     const path = location.pathname;
@@ -93,15 +114,29 @@ export const DashboardWrapper = () => {
               </span>
             )}
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleLogout}
-            className="text-white hover:bg-ifms-green-dark"
-          >
-            <LogOut className="h-4 w-4 mr-2" />
-            Sair
-          </Button>
+          <div className="flex items-center space-x-3">
+            <Select value={year} onValueChange={handleYearChange}>
+              <SelectTrigger className="w-20 h-8 bg-white/10 border-white/20 text-white text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {generateYears().map((yearOption) => (
+                  <SelectItem key={yearOption} value={yearOption}>
+                    {yearOption}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleLogout}
+              className="text-white hover:bg-ifms-green-dark"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Sair
+            </Button>
+          </div>
         </div>
       </header>
 
