@@ -109,7 +109,7 @@ async def create_event(
     db: Session = Depends(get_db)
 ):
     try:
-        existing_event = db.query(Event).filter(Event.year == year).first()
+        existing_event = db.query(Event).filter(Event.year == year, Event.deleted_at == None).first()
         if existing_event:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
