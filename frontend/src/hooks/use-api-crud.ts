@@ -17,12 +17,12 @@ export const useApiCrud = <T extends Record<string, unknown>>({
   useFormData = false
 }: UseApiCrudProps<T>) => {
   const [data, setData] = useState<T[]>(initialData);
+  const [originalData, setOriginalData] = useState<T[]>(initialData);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<T | null>(null);
 
-  // Load data from API
   const loadData = async () => {
     setLoading(true);
     setError(null);
@@ -35,6 +35,7 @@ export const useApiCrud = <T extends Record<string, unknown>>({
       
       if (response.status) {
         setData(response.data);
+        setOriginalData(response.data);
       } else {
         setError(response.message);
       }
@@ -45,7 +46,6 @@ export const useApiCrud = <T extends Record<string, unknown>>({
     }
   };
 
-  // Load data on mount
   useEffect(() => {
     loadData();
   }, [endpoint]);
@@ -74,7 +74,7 @@ export const useApiCrud = <T extends Record<string, unknown>>({
       }
       
       if (response.status) {
-        await loadData(); // Reload data to get the new item
+        await loadData();
         setIsFormOpen(false);
       } else {
         setError(response.message);
@@ -115,7 +115,7 @@ export const useApiCrud = <T extends Record<string, unknown>>({
       }
       
       if (response.status) {
-        await loadData(); // Reload data to get the updated item
+        await loadData();
         setEditingItem(null);
         setIsFormOpen(false);
       } else {
@@ -138,7 +138,7 @@ export const useApiCrud = <T extends Record<string, unknown>>({
       const response = await apiService.delete(endpoint, itemToDelete.id);
       
       if (response.status) {
-        await loadData(); // Reload data to reflect the deletion
+        await loadData();
       } else {
         setError(response.message);
       }
@@ -156,7 +156,8 @@ export const useApiCrud = <T extends Record<string, unknown>>({
   };
 
   const openEditForm = (item: T) => {
-    setEditingItem(item);
+    const originalItem = originalData.find((orig: T) => orig.id === item.id);
+    setEditingItem(originalItem || item);
     setIsFormOpen(true);
     setError(null);
   };

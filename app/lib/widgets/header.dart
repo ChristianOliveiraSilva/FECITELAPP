@@ -33,97 +33,99 @@ class Header extends StatelessWidget {
                       'assets/images/fecitel-logo.png',
                       height: 30,
                     ),
-          const Spacer(),
-          Consumer<AuthProvider>(
-            builder: (context, authProvider, child) {
-              return PopupMenuButton<String>(
-                icon: const Icon(
+              const Spacer(),
+              Consumer<AuthProvider>(
+                builder: (context, authProvider, child) {
+                  return PopupMenuButton<String>(
+                                    icon: Icon(
                   Icons.menu,
-                  color: Colors.white,
+                  color: themeProvider.fontColor,
                   size: 30,
                 ),
-                onSelected: (value) {
-                  if (value == 'assessments') {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                        builder: (context) => const ListScreen(),
+                    onSelected: (value) {
+                      if (value == 'assessments') {
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(
+                            builder: (context) => const ListScreen(),
+                          ),
+                        );
+                      } else if (value == 'certificates') {
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(
+                            builder: (context) => const CertificatesScreen(),
+                          ),
+                        );
+                      } else if (value == 'profile') {
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(
+                            builder: (context) => const ProfileScreen(),
+                          ),
+                        );
+                      } else if (value == 'logout') {
+                        _showLogoutDialog(context);
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      const PopupMenuItem(
+                        value: 'assessments',
+                        child: Row(
+                          children: [
+                            Icon(Icons.assessment, color: Colors.black87),
+                            SizedBox(width: 10),
+                            Text(
+                              'Avaliações',
+                              style: TextStyle(color: Colors.black87),
+                            ),
+                          ],
+                        ),
                       ),
-                    );
-                  } else if (value == 'certificates') {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                        builder: (context) => const CertificatesScreen(),
+                      const PopupMenuItem(
+                        value: 'certificates',
+                        child: Row(
+                          children: [
+                            Icon(Icons.verified, color: Colors.black87),
+                            SizedBox(width: 10),
+                            Text(
+                              'Certificados',
+                              style: TextStyle(color: Colors.black87),
+                            ),
+                          ],
+                        ),
                       ),
-                    );
-                  } else if (value == 'profile') {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                        builder: (context) => const ProfileScreen(),
+                      const PopupMenuItem(
+                        value: 'profile',
+                        child: Row(
+                          children: [
+                            Icon(Icons.person, color: Colors.black87),
+                            SizedBox(width: 10),
+                            Text(
+                              'Perfil',
+                              style: TextStyle(color: Colors.black87),
+                            ),
+                          ],
+                        ),
                       ),
-                    );
-                  } else if (value == 'logout') {
-                    _showLogoutDialog(context);
-                  }
+                      const PopupMenuItem(
+                        value: 'logout',
+                        child: Row(
+                          children: [
+                            Icon(Icons.logout, color: Colors.red),
+                            SizedBox(width: 10),
+                            Text(
+                              'Sair',
+                              style: TextStyle(color: Colors.red),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
                 },
-                itemBuilder: (context) => [
-                  const PopupMenuItem(
-                    value: 'assessments',
-                    child: Row(
-                      children: [
-                        Icon(Icons.assessment, color: Colors.black87),
-                        SizedBox(width: 10),
-                        Text(
-                          'Avaliações',
-                          style: TextStyle(color: Colors.black87),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const PopupMenuItem(
-                    value: 'certificates',
-                    child: Row(
-                      children: [
-                        Icon(Icons.verified, color: Colors.black87),
-                        SizedBox(width: 10),
-                        Text(
-                          'Certificados',
-                          style: TextStyle(color: Colors.black87),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const PopupMenuItem(
-                    value: 'profile',
-                    child: Row(
-                      children: [
-                        Icon(Icons.person, color: Colors.black87),
-                        SizedBox(width: 10),
-                        Text(
-                          'Perfil',
-                          style: TextStyle(color: Colors.black87),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const PopupMenuItem(
-                    value: 'logout',
-                    child: Row(
-                      children: [
-                        Icon(Icons.logout, color: Colors.red),
-                        SizedBox(width: 10),
-                        Text(
-                          'Sair',
-                          style: TextStyle(color: Colors.red),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              );
-            },
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -153,8 +155,6 @@ class Header extends StatelessWidget {
           ),
         ],
       ),
-        );
-      },
     );
   }
 } 

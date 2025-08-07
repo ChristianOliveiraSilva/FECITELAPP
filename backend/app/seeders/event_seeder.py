@@ -22,6 +22,7 @@ class EventSeeder:
             event_data = {
                 'year': year,
                 'app_primary_color': '#56BA54',
+                'app_font_color': '#FFFFFF',
                 'app_logo_url': 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Instituto_Federal_de_Mato_Grosso_do_Sul_-_Marca_Vertical_2015.svg/250px-Instituto_Federal_de_Mato_Grosso_do_Sul_-_Marca_Vertical_2015.svg.png',
             }
             

@@ -20,7 +20,7 @@ async def get_assessments(
 ):
     """Get all assessments with optional pagination and relations"""
     try:
-        query = db.query(Assessment)
+        query = db.query(Assessment).filter(Assessment.deleted_at == None)
         
         if include_relations:
             query = query.options(
@@ -91,7 +91,7 @@ async def get_assessment(
 ):
     """Get a specific assessment by ID"""
     try:
-        query = db.query(Assessment)
+        query = db.query(Assessment).filter(Assessment.deleted_at == None)
         
         if include_relations:
             query = query.options(

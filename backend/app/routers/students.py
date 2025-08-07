@@ -20,7 +20,7 @@ async def get_students(
 ):
     """Get all students with optional pagination and relations"""
     try:
-        query = db.query(Student)
+        query = db.query(Student).filter(Student.deleted_at == None)
         
         if include_relations:
             query = query.options(
@@ -86,7 +86,7 @@ async def get_student(
 ):
     """Get a specific student by ID"""
     try:
-        query = db.query(Student)
+        query = db.query(Student).filter(Student.deleted_at == None)
         
         if include_relations:
             query = query.options(

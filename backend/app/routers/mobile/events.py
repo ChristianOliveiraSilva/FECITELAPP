@@ -26,6 +26,7 @@ async def get_current_year_event(db: Session = Depends(get_db)):
                     "id": None,
                     "year": current_year,
                     "app_primary_color": "#56BA54",
+                    "app_font_color": "#FFFFFF",
                     "app_logo_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Instituto_Federal_de_Mato_Grosso_do_Sul_-_Marca_Vertical_2015.svg/250px-Instituto_Federal_de_Mato_Grosso_do_Sul_-_Marca_Vertical_2015.svg.png",
                 }
             }
@@ -37,6 +38,7 @@ async def get_current_year_event(db: Session = Depends(get_db)):
                 "id": event.id,
                 "year": event.year,
                 "app_primary_color": event.app_primary_color,
+                "app_font_color": event.app_font_color,
                 "app_logo_url": event.app_logo_url,
             }
         }

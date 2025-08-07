@@ -18,7 +18,7 @@ async def get_awards(
 ):
     """Get all awards with optional pagination and relations"""
     try:
-        query = db.query(Award)
+        query = db.query(Award).filter(Award.deleted_at == None)
         
         if include_relations:
             query = query.options(joinedload(Award.questions))
@@ -69,7 +69,7 @@ async def get_award(
 ):
     """Get a specific award by ID"""
     try:
-        query = db.query(Award)
+        query = db.query(Award).filter(Award.deleted_at == None)
         
         if include_relations:
             query = query.options(joinedload(Award.questions))

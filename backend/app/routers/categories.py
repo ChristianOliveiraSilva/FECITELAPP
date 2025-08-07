@@ -18,7 +18,7 @@ async def get_categories(
 ):
     """Get all categories with optional pagination and relations"""
     try:
-        query = db.query(Category)
+        query = db.query(Category).filter(Category.deleted_at == None)
         
         if include_relations:
             query = query.options(
@@ -79,7 +79,7 @@ async def get_category(
 ):
     """Get a specific category by ID"""
     try:
-        query = db.query(Category)
+        query = db.query(Category).filter(Category.deleted_at == None)
         
         if include_relations:
             query = query.options(

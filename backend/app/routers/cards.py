@@ -16,36 +16,39 @@ async def get_cards_data(db: Session = Depends(get_db)):
     
     try:
         # Total de Projetos
-        total_projetos = db.query(Project).count()
+        total_projetos = db.query(Project).filter(Project.deleted_at == None).count()
         
         # Trabalhos para Avaliar (projetos que não têm assessments com respostas)
         projetos_sem_avaliacao = db.query(Project).filter(
+            Project.deleted_at == None,
             ~Project.id.in_(
-                db.query(Assessment.project_id).join(
+                db.query(Assessment.project_id).filter(Assessment.deleted_at == None).join(
                     Response, Assessment.id == Response.assessment_id
-                ).distinct()
+                ).filter(Response.deleted_at == None).distinct()
             )
         ).count()
         
         # Trabalhos Avaliados (projetos que têm pelo menos um assessment com resposta)
         projetos_avaliados = db.query(Project).filter(
+            Project.deleted_at == None,
             Project.id.in_(
-                db.query(Assessment.project_id).join(
+                db.query(Assessment.project_id).filter(Assessment.deleted_at == None).join(
                     Response, Assessment.id == Response.assessment_id
-                ).distinct()
+                ).filter(Response.deleted_at == None).distinct()
             )
         ).count()
         
         # Avaliadores Ativos
-        avaliadores_ativos = db.query(Evaluator).count()
+        avaliadores_ativos = db.query(Evaluator).filter(Evaluator.deleted_at == None).count()
         
         # Status das Avaliações (quantidade de projetos que ainda não foram avaliados)
         # Todos os projetos que não foram avaliados (sem assessments com respostas)
         projetos_nao_avaliados = db.query(Project).filter(
+            Project.deleted_at == None,
             ~Project.id.in_(
-                db.query(Assessment.project_id).join(
+                db.query(Assessment.project_id).filter(Assessment.deleted_at == None).join(
                     Response, Assessment.id == Response.assessment_id
-                ).distinct()
+                ).filter(Response.deleted_at == None).distinct()
             )
         ).count()
         
@@ -54,8 +57,10 @@ async def get_cards_data(db: Session = Depends(get_db)):
         projetos_com_assessments_sem_respostas = db.query(Project).join(
             Assessment, Project.id == Assessment.project_id
         ).filter(
+            Project.deleted_at == None,
+            Assessment.deleted_at == None,
             ~Assessment.id.in_(
-                db.query(Response.assessment_id).distinct()
+                db.query(Response.assessment_id).filter(Response.deleted_at == None).distinct()
             )
         ).distinct().count()
         
@@ -68,8 +73,9 @@ async def get_cards_data(db: Session = Depends(get_db)):
         
         # Faltam 3 avaliações = projetos que não têm assessments
         projetos_sem_assessments = db.query(Project).filter(
+            Project.deleted_at == None,
             ~Project.id.in_(
-                db.query(Assessment.project_id).distinct()
+                db.query(Assessment.project_id).filter(Assessment.deleted_at == None).distinct()
             )
         ).count()
         

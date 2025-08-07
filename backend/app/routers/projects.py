@@ -19,7 +19,7 @@ async def get_projects(
 ):
     """Get all projects with optional pagination and relations"""
     try:
-        query = db.query(Project)
+        query = db.query(Project).filter(Project.deleted_at == None)
         
         if include_relations:
             query = query.options(
@@ -93,7 +93,7 @@ async def get_project(
 ):
     """Get a specific project by ID"""
     try:
-        query = db.query(Project)
+        query = db.query(Project).filter(Project.deleted_at == None)
         
         if include_relations:
             query = query.options(

@@ -23,14 +23,14 @@ interface Column {
 interface DataTableProps {
   title: string;
   columns: Column[];
-  data: Record<string, unknown>[];
+  data: Record<string, React.ReactNode>[];
   onAdd?: () => void;
-  onEdit?: (item: Record<string, unknown>) => void;
-  onDelete?: (item: Record<string, unknown>) => void;
+  onEdit?: (item: Record<string, React.ReactNode>) => void;
+  onDelete?: (item: Record<string, React.ReactNode>) => void;
   searchPlaceholder?: string;
   loading?: boolean;
   selectable?: boolean;
-  onSelectionChange?: (selectedItems: Record<string, unknown>[]) => void;
+  onSelectionChange?: (selectedItems: Record<string, React.ReactNode>[]) => void;
   actionButtons?: React.ReactNode;
   pageSize?: number;
   pageSizeOptions?: number[];
@@ -235,7 +235,9 @@ export const DataTable = ({
                     )}
                     {columns.map((column) => (
                       <TableCell key={column.key}>
-                        {item[column.key]?.toString() || "-"}
+                        {item[column.key] !== undefined && item[column.key] !== null
+                          ? item[column.key]
+                          : "-"}
                       </TableCell>
                     ))}
                     {(onEdit || onDelete) && (

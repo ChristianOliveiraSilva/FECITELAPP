@@ -38,7 +38,6 @@ class ApiService {
     return response.json();
   }
 
-  // Generic CRUD methods
   async getList<T>(
     endpoint: string,
     params: PaginationParams = {}
@@ -72,7 +71,6 @@ class ApiService {
     const response = await fetch(url, {
       method: 'POST',
       body: formData,
-      // Don't set Content-Type header, let browser set it with boundary for multipart/form-data
     });
 
     if (!response.ok) {

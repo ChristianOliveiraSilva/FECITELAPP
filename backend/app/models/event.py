@@ -8,6 +8,7 @@ class Event(Base):
     id = Column(Integer, primary_key=True, index=True)
     year = Column(Integer, nullable=False, unique=True)
     app_primary_color = Column(String(7), nullable=True)
+    app_font_color = Column(String(7), nullable=True)
     app_logo_url = Column(String(500), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

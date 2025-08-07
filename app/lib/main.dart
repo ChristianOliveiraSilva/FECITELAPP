@@ -75,7 +75,7 @@ class _AppInitializerState extends State<AppInitializer> {
         return AnnotatedRegion<SystemUiOverlayStyle>(
           value: SystemUiOverlayStyle(
             statusBarColor: themeProvider.primaryColor,
-            statusBarIconBrightness: Brightness.light,
+            statusBarIconBrightness: themeProvider.fontColor.computeLuminance() > 0.5 ? Brightness.dark : Brightness.light,
             statusBarBrightness: Brightness.dark,
           ),
           child: authProvider.isAuthenticated 

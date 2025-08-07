@@ -18,7 +18,7 @@ async def get_schools(
 ):
     """Get all schools with optional pagination and relations"""
     try:
-        query = db.query(School)
+        query = db.query(School).filter(School.deleted_at == None)
         
         if include_relations:
             query = query.options(joinedload(School.students))
@@ -67,7 +67,7 @@ async def get_school(
 ):
     """Get a specific school by ID"""
     try:
-        query = db.query(School)
+        query = db.query(School).filter(School.deleted_at == None)
         
         if include_relations:
             query = query.options(joinedload(School.students))

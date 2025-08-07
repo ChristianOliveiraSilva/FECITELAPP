@@ -18,7 +18,7 @@ async def get_users(
 ):
     """Get all users with optional pagination and relations"""
     try:
-        query = db.query(User)
+        query = db.query(User).filter(User.deleted_at == None)
         
         if include_relations:
             query = query.options(joinedload(User.evaluator))
@@ -68,7 +68,7 @@ async def get_user(
 ):
     """Get a specific user by ID"""
     try:
-        query = db.query(User)
+        query = db.query(User).filter(User.deleted_at == None)
         
         if include_relations:
             query = query.options(joinedload(User.evaluator))

@@ -20,7 +20,7 @@ async def get_evaluators(
 ):
     """Get all evaluators with optional pagination and relations"""
     try:
-        query = db.query(Evaluator)
+        query = db.query(Evaluator).filter(Evaluator.deleted_at == None)
         
         if include_relations:
             query = query.options(
@@ -90,7 +90,7 @@ async def get_evaluator(
 ):
     """Get a specific evaluator by ID"""
     try:
-        query = db.query(Evaluator)
+        query = db.query(Evaluator).filter(Evaluator.deleted_at == None)
         
         if include_relations:
             query = query.options(

@@ -20,7 +20,7 @@ async def get_responses(
 ):
     """Get all responses with optional pagination and relations"""
     try:
-        query = db.query(Response)
+        query = db.query(Response).filter(Response.deleted_at == None)
         
         if include_relations:
             query = query.options(
@@ -83,7 +83,7 @@ async def get_response(
 ):
     """Get a specific response by ID"""
     try:
-        query = db.query(Response)
+        query = db.query(Response).filter(Response.deleted_at == None)
         
         if include_relations:
             query = query.options(

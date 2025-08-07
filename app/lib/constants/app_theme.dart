@@ -9,6 +9,11 @@ class AppTheme {
     return context.watch<ThemeProvider>().primaryColor;
   }
 
+  /// Get the font color from ThemeProvider
+  static Color fontColor(BuildContext context) {
+    return context.watch<ThemeProvider>().fontColor;
+  }
+
   /// Get the logo URL from ThemeProvider
   static String logoUrl(BuildContext context) {
     return context.watch<ThemeProvider>().logoUrl;
@@ -58,19 +63,19 @@ class AppTheme {
           onPressed: isLoading ? null : onPressed,
           style: ElevatedButton.styleFrom(
             backgroundColor: themeProvider.primaryColor,
-            foregroundColor: Colors.white,
+            foregroundColor: themeProvider.fontColor,
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
             ),
           ),
           child: isLoading
-              ? const SizedBox(
+              ? SizedBox(
                   width: 20,
                   height: 20,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    valueColor: AlwaysStoppedAnimation<Color>(themeProvider.fontColor),
                   ),
                 )
               : Row(
@@ -136,5 +141,54 @@ class AppTheme {
   static Color primaryColorDark(BuildContext context, [double factor = 0.1]) {
     final primaryColor = AppTheme.primaryColor(context);
     return Color.lerp(primaryColor, Colors.black, factor) ?? primaryColor;
+  }
+
+  /// Create a text widget with dynamic font color
+  static Widget themedText(
+    String text, {
+    required BuildContext context,
+    TextStyle? style,
+    TextAlign? textAlign,
+    int? maxLines,
+    TextOverflow? overflow,
+  }) {
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, _) {
+        return Text(
+          text,
+          style: (style ?? const TextStyle()).copyWith(
+            color: themeProvider.fontColor,
+          ),
+          textAlign: textAlign,
+          maxLines: maxLines,
+          overflow: overflow,
+        );
+      },
+    );
+  }
+
+  /// Create a container with primary color background and themed text
+  static Widget primaryContainer({
+    required Widget child,
+    required BuildContext context,
+    EdgeInsetsGeometry? padding,
+    EdgeInsetsGeometry? margin,
+    double? borderRadius,
+  }) {
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, _) {
+        return Container(
+          padding: padding,
+          margin: margin,
+          decoration: BoxDecoration(
+            color: themeProvider.primaryColor,
+            borderRadius: borderRadius != null 
+              ? BorderRadius.circular(borderRadius) 
+              : null,
+          ),
+          child: child,
+        );
+      },
+    );
   }
 }

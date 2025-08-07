@@ -18,7 +18,7 @@ async def get_questions(
 ):
     """Get all questions with optional pagination and relations"""
     try:
-        query = db.query(Question)
+        query = db.query(Question).filter(Question.deleted_at == None)
         
         if include_relations:
             query = query.options(
@@ -82,7 +82,7 @@ async def get_question(
 ):
     """Get a specific question by ID"""
     try:
-        query = db.query(Question)
+        query = db.query(Question).filter(Question.deleted_at == None)
         
         if include_relations:
             query = query.options(

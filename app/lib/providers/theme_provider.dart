@@ -3,11 +3,13 @@ import '../services/event_service.dart';
 
 class ThemeProvider extends ChangeNotifier {
   Color _primaryColor = const Color(0xFF56BA54); // Default green
+  Color _fontColor = Colors.white; // Default white
   String _logoUrl = '';
   int _eventYear = 0;
   bool _isLoading = false;
 
   Color get primaryColor => _primaryColor;
+  Color get fontColor => _fontColor;
   String get logoUrl => _logoUrl;
   int get eventYear => _eventYear;
   bool get isLoading => _isLoading;
@@ -16,10 +18,12 @@ class ThemeProvider extends ChangeNotifier {
   Future<void> initializeFromStorage() async {
     try {
       final colorHex = await EventService.getPrimaryColor();
+      final fontColorHex = await EventService.getFontColor();
       final logoUrl = await EventService.getLogoUrl();
       final year = await EventService.getEventYear();
 
       _primaryColor = Color(EventService.hexToColor(colorHex));
+      _fontColor = Color(EventService.hexToColor(fontColorHex));
       _logoUrl = logoUrl;
       _eventYear = year;
 
