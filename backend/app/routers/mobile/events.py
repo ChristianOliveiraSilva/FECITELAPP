@@ -4,6 +4,7 @@ from app.database import get_db
 from app.models.event import Event
 from datetime import datetime
 from typing import Optional
+import os
 
 router = APIRouter()
 
@@ -39,7 +40,7 @@ async def get_current_year_event(db: Session = Depends(get_db)):
                 "year": event.year,
                 "app_primary_color": event.app_primary_color,
                 "app_font_color": event.app_font_color,
-                "app_logo_url": event.app_logo_url,
+                "app_logo_url": f"{os.getenv('API_BASE_URL')}{event.app_logo_url}" if event.app_logo_url and not event.app_logo_url.startswith('http') else event.app_logo_url,
             }
         }
     except HTTPException:
