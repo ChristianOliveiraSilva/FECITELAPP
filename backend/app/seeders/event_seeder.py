@@ -7,7 +7,6 @@ class EventSeeder:
         self.db = db
     
     def run(self):
-        """Executa o seeder de eventos"""
         print("📅 Iniciando seeder de eventos...")
         
         existing_events = self.db.query(Event).count()

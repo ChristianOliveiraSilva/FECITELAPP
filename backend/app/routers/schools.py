@@ -16,7 +16,6 @@ async def get_schools(
     include_relations: bool = Query(False, description="Include related data"),
     db: Session = Depends(get_db)
 ):
-    """Get all schools with optional pagination and relations"""
     try:
         query = db.query(School).filter(School.deleted_at == None)
         
@@ -65,7 +64,6 @@ async def get_school(
     include_relations: bool = Query(False, description="Include related data"),
     db: Session = Depends(get_db)
 ):
-    """Get a specific school by ID"""
     try:
         query = db.query(School).filter(School.deleted_at == None)
         
@@ -114,7 +112,6 @@ async def get_school(
 
 @router.post("/", response_model=SchoolDetailResponse)
 async def create_school(school_data: SchoolCreate, db: Session = Depends(get_db)):
-    """Create a new school"""
     try:
         school = School(name=school_data.name)
         
@@ -149,7 +146,6 @@ async def update_school(
     school_data: SchoolUpdate,
     db: Session = Depends(get_db)
 ):
-    """Update an existing school"""
     try:
         school = db.query(School).filter(School.id == school_id).first()
         
@@ -191,7 +187,6 @@ async def update_school(
 
 @router.delete("/{school_id}")
 async def delete_school(school_id: int, db: Session = Depends(get_db)):
-    """Soft delete a school"""
     try:
         school = db.query(School).filter(School.id == school_id).first()
         

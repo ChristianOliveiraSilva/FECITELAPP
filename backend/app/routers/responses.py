@@ -18,7 +18,6 @@ async def get_responses(
     include_relations: bool = Query(False, description="Include related data"),
     db: Session = Depends(get_db)
 ):
-    """Get all responses with optional pagination and relations"""
     try:
         query = db.query(Response).filter(Response.deleted_at == None)
         
@@ -81,7 +80,6 @@ async def get_response(
     include_relations: bool = Query(False, description="Include related data"),
     db: Session = Depends(get_db)
 ):
-    """Get a specific response by ID"""
     try:
         query = db.query(Response).filter(Response.deleted_at == None)
         
@@ -144,7 +142,6 @@ async def get_response(
 
 @router.post("/", response_model=ResponseDetailResponse)
 async def create_response(response_data: ResponseCreate, db: Session = Depends(get_db)):
-    """Create a new response"""
     try:
         question = db.query(Question).filter(Question.id == response_data.question_id).first()
         if not question:
@@ -215,7 +212,6 @@ async def update_response(
     response_data: ResponseUpdate,
     db: Session = Depends(get_db)
 ):
-    """Update an existing response"""
     try:
         response = db.query(Response).filter(Response.id == response_id).first()
         
@@ -290,7 +286,6 @@ async def update_response(
 
 @router.delete("/{response_id}")
 async def delete_response(response_id: int, db: Session = Depends(get_db)):
-    """Soft delete a response"""
     try:
         response = db.query(Response).filter(Response.id == response_id).first()
         

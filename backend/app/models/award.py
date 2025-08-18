@@ -55,7 +55,6 @@ class Award(Base):
         return assessment.project.students[0].name
     
     def get_winner_score(self, position: int, db) -> str:
-        """Get winner score for a specific position"""
         from .question import Question
         from .response import Response
         from app.enums.question_type import QuestionType

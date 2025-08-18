@@ -16,7 +16,6 @@ async def get_categories(
     include_relations: bool = Query(False, description="Include related data"),
     db: Session = Depends(get_db)
 ):
-    """Get all categories with optional pagination and relations"""
     try:
         query = db.query(Category).filter(Category.deleted_at == None)
         
@@ -77,7 +76,6 @@ async def get_category(
     include_relations: bool = Query(False, description="Include related data"),
     db: Session = Depends(get_db)
 ):
-    """Get a specific category by ID"""
     try:
         query = db.query(Category).filter(Category.deleted_at == None)
         
@@ -138,7 +136,6 @@ async def get_category(
 
 @router.post("/", response_model=CategoryDetailResponse)
 async def create_category(category_data: CategoryCreate, db: Session = Depends(get_db)):
-    """Create a new category"""
     try:
         category = Category(name=category_data.name)
         
@@ -174,7 +171,6 @@ async def update_category(
     category_data: CategoryUpdate,
     db: Session = Depends(get_db)
 ):
-    """Update an existing category"""
     try:
         category = db.query(Category).filter(Category.id == category_id).first()
         
@@ -217,7 +213,6 @@ async def update_category(
 
 @router.delete("/{category_id}")
 async def delete_category(category_id: int, db: Session = Depends(get_db)):
-    """Soft delete a category"""
     try:
         category = db.query(Category).filter(Category.id == category_id).first()
         

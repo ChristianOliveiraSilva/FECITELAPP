@@ -21,7 +21,6 @@ class Evaluator(Base):
     
     @staticmethod
     def generate_random_pin(db) -> str:
-        """Generate a random PIN that doesn't exist in the database"""
         while True:
             pin = str(random.randint(1111, 9999))
             existing_pin = db.query(Evaluator).filter(Evaluator.PIN == pin).first()

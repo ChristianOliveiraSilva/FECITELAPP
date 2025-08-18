@@ -19,10 +19,8 @@ class Category(Base):
     
     @classmethod
     def main_categories(cls, db):
-        """Get all main categories (without parent)"""
         return db.query(cls).filter(cls.main_category_id.is_(None)).all()
     
     @property
     def is_main_category(self) -> bool:
-        """Check if this is a main category"""
         return self.main_category_id is None 

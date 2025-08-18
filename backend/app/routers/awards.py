@@ -16,7 +16,6 @@ async def get_awards(
     include_relations: bool = Query(False, description="Include related data"),
     db: Session = Depends(get_db)
 ):
-    """Get all awards with optional pagination and relations"""
     try:
         query = db.query(Award).filter(Award.deleted_at == None)
         
@@ -67,7 +66,6 @@ async def get_award(
     include_relations: bool = Query(False, description="Include related data"),
     db: Session = Depends(get_db)
 ):
-    """Get a specific award by ID"""
     try:
         query = db.query(Award).filter(Award.deleted_at == None)
         
@@ -118,7 +116,6 @@ async def get_award(
 
 @router.post("/", response_model=AwardDetailResponse)
 async def create_award(award_data: AwardCreate, db: Session = Depends(get_db)):
-    """Create a new award"""
     try:
         award = Award(
             name=award_data.name,
@@ -157,7 +154,6 @@ async def update_award(
     award_data: AwardUpdate,
     db: Session = Depends(get_db)
 ):
-    """Update an existing award"""
     try:
         award = db.query(Award).filter(Award.id == award_id).first()
         
@@ -200,7 +196,6 @@ async def update_award(
 
 @router.delete("/{award_id}")
 async def delete_award(award_id: int, db: Session = Depends(get_db)):
-    """Soft delete an award"""
     try:
         award = db.query(Award).filter(Award.id == award_id).first()
         

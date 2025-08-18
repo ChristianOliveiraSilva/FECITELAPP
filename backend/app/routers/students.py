@@ -90,7 +90,6 @@ async def get_student(
     include_relations: bool = Query(False, description="Include related data"),
     db: Session = Depends(get_db)
 ):
-    """Get a specific student by ID"""
     try:
         query = db.query(Student).filter(Student.deleted_at == None)
         
@@ -224,7 +223,6 @@ async def update_student(
     student_data: StudentUpdate,
     db: Session = Depends(get_db)
 ):
-    """Update an existing student"""
     try:
         student = db.query(Student).filter(Student.id == student_id).first()
         
@@ -302,7 +300,6 @@ async def update_student(
 
 @router.delete("/{student_id}")
 async def delete_student(student_id: int, db: Session = Depends(get_db)):
-    """Delete a student (soft delete)"""
     try:
         student = db.query(Student).filter(Student.id == student_id).first()
         

@@ -15,7 +15,6 @@ async def get_password_reset_configs(
     limit: int = Query(100, ge=1, le=1000),
     db: Session = Depends(get_db)
 ):
-    """Get all password reset configs with optional pagination"""
     try:
         query = db.query(PasswordResetConfig).filter(PasswordResetConfig.deleted_at == None)
         configs = query.offset(skip).limit(limit).all()
@@ -47,7 +46,6 @@ async def get_password_reset_config(
     config_id: int,
     db: Session = Depends(get_db)
 ):
-    """Get a specific password reset config by ID"""
     try:
         config = db.query(PasswordResetConfig).filter(
             PasswordResetConfig.id == config_id,
@@ -86,7 +84,6 @@ async def create_password_reset_config(
     config_data: PasswordResetConfigCreate, 
     db: Session = Depends(get_db)
 ):
-    """Create a new password reset config"""
     try:
         config = PasswordResetConfig(mail_template=config_data.mail_template)
         
@@ -120,7 +117,6 @@ async def update_password_reset_config(
     config_data: PasswordResetConfigUpdate,
     db: Session = Depends(get_db)
 ):
-    """Update an existing password reset config"""
     try:
         config = db.query(PasswordResetConfig).filter(
             PasswordResetConfig.id == config_id,
@@ -164,7 +160,6 @@ async def update_password_reset_config(
 
 @router.delete("/{config_id}")
 async def delete_password_reset_config(config_id: int, db: Session = Depends(get_db)):
-    """Soft delete a password reset config"""
     try:
         config = db.query(PasswordResetConfig).filter(
             PasswordResetConfig.id == config_id,

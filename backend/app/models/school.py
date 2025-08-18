@@ -18,7 +18,6 @@ class School(Base):
     
     @property
     def full_name(self) -> str:
-        """Get full name with city and state"""
         parts = [self.name]
         
         if self.city:

@@ -16,7 +16,6 @@ async def get_users(
     include_relations: bool = Query(False, description="Include related data"),
     db: Session = Depends(get_db)
 ):
-    """Get all users with optional pagination and relations"""
     try:
         query = db.query(User).filter(User.deleted_at == None)
         
@@ -66,7 +65,6 @@ async def get_user(
     include_relations: bool = Query(False, description="Include related data"),
     db: Session = Depends(get_db)
 ):
-    """Get a specific user by ID"""
     try:
         query = db.query(User).filter(User.deleted_at == None)
         
@@ -116,7 +114,6 @@ async def get_user(
 
 @router.post("/", response_model=UserDetailResponse)
 async def create_user(user_data: UserCreate, db: Session = Depends(get_db)):
-    """Create a new user"""
     try:
         existing_user = db.query(User).filter(User.email == user_data.email).first()
         if existing_user:
@@ -171,7 +168,6 @@ async def update_user(
     user_data: UserUpdate,
     db: Session = Depends(get_db)
 ):
-    """Update an existing user"""
     try:
         user = db.query(User).filter(User.id == user_id).first()
         
@@ -229,7 +225,6 @@ async def update_user(
 
 @router.delete("/{user_id}")
 async def delete_user(user_id: int, db: Session = Depends(get_db)):
-    """Soft delete a user"""
     try:
         user = db.query(User).filter(User.id == user_id).first()
         

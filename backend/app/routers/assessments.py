@@ -18,7 +18,6 @@ async def get_assessments(
     include_relations: bool = Query(False, description="Include related data"),
     db: Session = Depends(get_db)
 ):
-    """Get all assessments with optional pagination and relations"""
     try:
         query = db.query(Assessment).filter(Assessment.deleted_at == None)
         
@@ -89,7 +88,6 @@ async def get_assessment(
     include_relations: bool = Query(False, description="Include related data"),
     db: Session = Depends(get_db)
 ):
-    """Get a specific assessment by ID"""
     try:
         query = db.query(Assessment).filter(Assessment.deleted_at == None)
         
@@ -160,7 +158,6 @@ async def get_assessment(
 
 @router.post("/", response_model=AssessmentDetailResponse)
 async def create_assessment(assessment_data: AssessmentCreate, db: Session = Depends(get_db)):
-    """Create a new assessment"""
     try:
         evaluator = db.query(Evaluator).filter(Evaluator.id == assessment_data.evaluator_id).first()
         if not evaluator:

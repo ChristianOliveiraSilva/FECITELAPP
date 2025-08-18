@@ -17,7 +17,6 @@ UPLOAD_DIR = "uploads/projects"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 async def save_upload_file(upload_file: UploadFile) -> str:
-    """Salva o arquivo enviado e retorna o nome do arquivo"""
     file_name = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{upload_file.filename}"
     file_path = os.path.join(UPLOAD_DIR, file_name)
     
@@ -34,7 +33,6 @@ async def get_projects(
     include_relations: bool = Query(False, description="Include related data"),
     db: Session = Depends(get_db)
 ):
-    """Get all projects with optional pagination and relations"""
     try:
         filter_year = year if year is not None else datetime.now().year
         
@@ -115,7 +113,6 @@ async def get_project(
     include_relations: bool = Query(False, description="Include related data"),
     db: Session = Depends(get_db)
 ):
-    """Get a specific project by ID"""
     try:
         query = db.query(Project).filter(Project.deleted_at == None)
         
@@ -200,7 +197,6 @@ async def create_project(
     file: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db)
 ):
-    """Create a new project"""
     try:
         category = db.query(Category).filter(Category.id == category_id).first()
         if not category:
@@ -270,7 +266,6 @@ async def update_project(
     file: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db)
 ):
-    """Update an existing project"""
     try:
         project = db.query(Project).filter(Project.id == project_id).first()
         
@@ -341,7 +336,6 @@ async def update_project(
 
 @router.delete("/{project_id}")
 async def delete_project(project_id: int, db: Session = Depends(get_db)):
-    """Soft delete a project"""
     try:
         project = db.query(Project).filter(Project.id == project_id).first()
         

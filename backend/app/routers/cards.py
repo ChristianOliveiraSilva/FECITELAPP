@@ -12,8 +12,6 @@ router = APIRouter()
 
 @router.get("/", response_model=CardsResponse)
 async def get_cards_data(db: Session = Depends(get_db)):
-    """Busca dados para os cards do dashboard"""
-    
     try:
         total_projetos = db.query(Project).filter(Project.deleted_at == None).count()
         

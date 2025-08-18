@@ -18,9 +18,7 @@ def main():
     try:
         seeder = DatabaseSeeder(db)
         seeder.run()
-        
         print("🎉 Seeders executados com sucesso!")
-        
     except Exception as e:
         print(f"❌ Erro ao executar seeders: {e}")
         db.rollback()

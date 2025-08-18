@@ -20,7 +20,6 @@ class TestSeeder:
         self.db = db
     
     def run(self):
-        """Executa o seeder de testes"""
         print("🧪 Iniciando seeder de testes...")
         
         existing_evaluators = self.db.query(Evaluator).count()

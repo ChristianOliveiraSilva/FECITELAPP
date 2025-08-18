@@ -16,7 +16,6 @@ UPLOAD_DIR = Path("uploads/events")
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 def save_uploaded_file(file: UploadFile) -> str:
-    """Save uploaded file and return the accessible URL"""
     file_extension = file.filename.split('.')[-1] if '.' in file.filename else 'jpg'
     unique_filename = f"{uuid.uuid4()}.{file_extension}"
     file_path = UPLOAD_DIR / unique_filename
@@ -32,7 +31,6 @@ async def get_events(
     limit: int = Query(100, ge=1, le=1000),
     db: Session = Depends(get_db)
 ):
-    """Get all events with optional pagination"""
     try:
         events = db.query(Event).filter(Event.deleted_at == None).offset(skip).limit(limit).all()
         
@@ -66,7 +64,6 @@ async def get_event(
     event_id: int,
     db: Session = Depends(get_db)
 ):
-    """Get a specific event by ID"""
     try:
         event = db.query(Event).filter(Event.id == event_id, Event.deleted_at == None).first()
         
@@ -179,7 +176,6 @@ async def update_event(
     logo: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db)
 ):
-    """Update an existing event"""
     try:
         event = db.query(Event).filter(Event.id == event_id, Event.deleted_at == None).first()
         
@@ -259,7 +255,6 @@ async def update_event(
 
 @router.delete("/{event_id}")
 async def delete_event(event_id: int, db: Session = Depends(get_db)):
-    """Soft delete an event"""
     try:
         event = db.query(Event).filter(Event.id == event_id).first()
         

@@ -18,7 +18,6 @@ async def get_questions(
     include_relations: bool = Query(False, description="Include related data"),
     db: Session = Depends(get_db)
 ):
-    """Get all questions with optional pagination and relations"""
     try:
         filter_year = year if year is not None else datetime.now().year
         
@@ -88,7 +87,6 @@ async def get_question(
     include_relations: bool = Query(False, description="Include related data"),
     db: Session = Depends(get_db)
 ):
-    """Get a specific question by ID"""
     try:
         query = db.query(Question).filter(Question.deleted_at == None)
         
@@ -153,7 +151,6 @@ async def get_question(
 
 @router.post("/", response_model=QuestionDetailResponse)
 async def create_question(question_data: QuestionCreate, db: Session = Depends(get_db)):
-    """Create a new question"""
     try:
         question = Question(
             scientific_text=question_data.scientific_text,
@@ -198,7 +195,6 @@ async def update_question(
     question_data: QuestionUpdate,
     db: Session = Depends(get_db)
 ):
-    """Update an existing question"""
     try:
         question = db.query(Question).filter(Question.id == question_id).first()
         
@@ -247,7 +243,6 @@ async def update_question(
 
 @router.delete("/{question_id}")
 async def delete_question(question_id: int, db: Session = Depends(get_db)):
-    """Soft delete a question"""
     try:
         question = db.query(Question).filter(Question.id == question_id).first()
         

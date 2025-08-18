@@ -7,7 +7,6 @@ class QuestionSeeder:
         self.db = db
     
     def run(self):
-        """Executa o seeder de questões"""
         print("❓ Iniciando seeder de questões...")
         
         existing_questions = self.db.query(Question).count()

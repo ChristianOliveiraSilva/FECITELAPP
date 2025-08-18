@@ -6,7 +6,6 @@ class SchoolSeeder:
         self.db = db
     
     def run(self):
-        """Executa o seeder de escolas"""
         print("🏫 Iniciando seeder de escolas...")
         
         existing_schools = self.db.query(School).count()

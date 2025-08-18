@@ -6,7 +6,6 @@ class CategorySeeder:
         self.db = db
     
     def run(self):
-        """Executa o seeder de categorias"""
         print("📂 Iniciando seeder de categorias...")
         
         existing_categories = self.db.query(Category).count()

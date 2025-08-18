@@ -20,7 +20,6 @@ async def get_evaluators(
     include_relations: bool = Query(False, description="Include related data"),
     db: Session = Depends(get_db)
 ):
-    """Get all evaluators with optional pagination and relations"""
     try:
         filter_year = year if year is not None else datetime.now().year
         
@@ -96,7 +95,6 @@ async def get_evaluator(
     include_relations: bool = Query(False, description="Include related data"),
     db: Session = Depends(get_db)
 ):
-    """Get a specific evaluator by ID"""
     try:
         query = db.query(Evaluator).filter(Evaluator.deleted_at == None)
         
@@ -232,7 +230,6 @@ async def update_evaluator(
     evaluator_data: EvaluatorUpdate,
     db: Session = Depends(get_db)
 ):
-    """Update an existing evaluator"""
     try:
         evaluator = db.query(Evaluator).filter(Evaluator.id == evaluator_id).first()
         

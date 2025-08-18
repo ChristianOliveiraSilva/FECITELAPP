@@ -62,7 +62,6 @@ async def get_document(
     document_id: int,
     db: Session = Depends(get_db)
 ):
-    """Get a specific document by ID"""
     try:
         document = db.query(Document).filter(Document.id == document_id, Document.deleted_at == None).first()
         
@@ -100,7 +99,6 @@ async def get_document(
 
 @router.post("/", response_model=DocumentDetailResponse)
 async def create_document(document_data: DocumentCreate, db: Session = Depends(get_db)):
-    """Create a new document"""
     try:
         document = Document(
             name=document_data.name,
@@ -146,7 +144,6 @@ async def update_document(
     document_data: DocumentUpdate,
     db: Session = Depends(get_db)
 ):
-    """Update an existing document"""
     try:
         document = db.query(Document).filter(Document.id == document_id, Document.deleted_at == None).first()
         
@@ -220,12 +217,10 @@ async def delete_document(document_id: int, db: Session = Depends(get_db)):
         )
 
 def create_temp_dir():
-    """Cria um diretório temporário para os documentos"""
     temp_dir = tempfile.mkdtemp(prefix="fecitel_docs_")
     return temp_dir
 
 def create_anais_doc():
-    """Cria o documento Anais FECITEL.doc"""
     doc = DocxDocument()
     doc.add_heading('ANAIS FECITEL', 0)
     doc.add_paragraph('Feira de Ciência e Tecnologia')
@@ -243,7 +238,6 @@ def create_anais_doc():
     return doc
 
 def create_apresentacao_pdf():
-    """Cria o PDF da apresentação da feira"""
     temp_dir = create_temp_dir()
     filename = os.path.join(temp_dir, "apresentacao_feira.pdf")
     
@@ -269,7 +263,6 @@ def create_apresentacao_pdf():
     return filename
 
 def create_instrucoes_doc():
-    """Cria o documento de instruções para avaliação"""
     doc = DocxDocument()
     doc.add_heading('INSTRUÇÕES PARA AVALIAÇÃO DE TRABALHOS NA FECITEL', 0)
     
@@ -288,7 +281,6 @@ def create_instrucoes_doc():
     return doc
 
 def create_mensagem_avaliador_doc():
-    """Cria a mensagem para o avaliador"""
     doc = DocxDocument()
     doc.add_heading('MENSAGEM AO AVALIADOR', 0)
     
@@ -304,7 +296,6 @@ def create_mensagem_avaliador_doc():
     return doc
 
 def create_premiacao_pdf():
-    """Cria o PDF da premiação"""
     temp_dir = create_temp_dir()
     filename = os.path.join(temp_dir, "premiacao.pdf")
     
@@ -332,7 +323,6 @@ def create_premiacao_pdf():
     return filename
 
 def create_relacao_trabalhos_pptx():
-    """Cria a apresentação com relação de trabalhos"""
     prs = Presentation()
     
     title_slide_layout = prs.slide_layouts[0]
@@ -403,7 +393,6 @@ def create_slide_fecitel_odp():
     return filename
 
 def create_certificado_feiras_doc():
-    """Cria o certificado de feiras"""
     doc = DocxDocument()
     doc.add_heading('CERTIFICADO', 0)
     doc.add_paragraph('')
@@ -420,7 +409,6 @@ def create_certificado_feiras_doc():
     return doc
 
 def create_ficha_avaliacao_pdf():
-    """Cria a ficha de avaliação em PDF"""
     temp_dir = create_temp_dir()
     filename = os.path.join(temp_dir, "ficha_avaliacao.pdf")
     
@@ -522,7 +510,6 @@ async def generate_relacao_trabalhos():
 
 @router.get("/generate/script-encerramento")
 async def generate_script_encerramento():
-    """Gera o script de encerramento"""
     try:
         doc = create_script_encerramento_doc()
         temp_dir = create_temp_dir()
@@ -534,7 +521,6 @@ async def generate_script_encerramento():
 
 @router.get("/generate/slide-fecitel")
 async def generate_slide_fecitel():
-    """Gera o slide da FECITEL"""
     try:
         filename = create_slide_fecitel_odp()
         return FileResponse(filename, media_type="application/vnd.oasis.opendocument.text", filename="slide_fecitel.odp")
@@ -543,7 +529,6 @@ async def generate_slide_fecitel():
 
 @router.get("/generate/certificado")
 async def generate_certificado():
-    """Gera o certificado de feiras"""
     try:
         doc = create_certificado_feiras_doc()
         temp_dir = create_temp_dir()
@@ -555,7 +540,6 @@ async def generate_certificado():
 
 @router.get("/generate/ficha-avaliacao")
 async def generate_ficha_avaliacao():
-    """Gera a ficha de avaliação em PDF"""
     try:
         filename = create_ficha_avaliacao_pdf()
         return FileResponse(filename, media_type="application/pdf", filename="ficha_avaliacao.pdf")
