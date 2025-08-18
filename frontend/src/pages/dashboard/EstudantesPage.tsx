@@ -97,7 +97,6 @@ export const EstudantesPage = () => {
     }
   };
 
-  // Transform data for display
   const transformedData = data.map(item => ({
     ...item,
     email: item.email || "-",

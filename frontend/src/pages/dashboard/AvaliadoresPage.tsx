@@ -46,7 +46,7 @@ const formFields = [
     type: "select" as const,
     required: true,
     placeholder: "Selecione o usuário",
-    options: [] // Will be populated dynamically
+    options: []
   },
   {
     name: "PIN",
@@ -85,12 +85,10 @@ export const AvaliadoresPage = () => {
   };
 
   const handleGerarCertificado = () => {
-    // TODO: Implementar geração de certificado dos avaliadores
     console.log("Gerando certificado dos avaliadores...");
   };
 
   const handleGerarCheckIn = () => {
-    // TODO: Implementar geração de folha de check-in dos avaliadores
     console.log("Gerando folha de check-in dos avaliadores...");
   };
 
@@ -108,7 +106,6 @@ export const AvaliadoresPage = () => {
     console.log("Gerando check-in para:", selectedAvaliadores.length, "avaliadores selecionados");
   };
 
-  // Transform data for display
   const transformedData = data.map(item => ({
     ...item,
     user_name: item.user?.name || "-",

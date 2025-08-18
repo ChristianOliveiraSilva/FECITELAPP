@@ -66,7 +66,6 @@ export const AreasPage = () => {
     }
   };
 
-  // Transform data for display
   const transformedData = data.map(item => ({
     ...item,
     projects_count: item.projects?.length || 0,

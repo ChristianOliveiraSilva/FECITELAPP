@@ -34,7 +34,7 @@ class EmailService:
             msg['To'] = to_email
             msg['Subject'] = "Recuperação de Senha - IFMS FECITEL"
             
-            reset_url = f"http://localhost:8080/reset-password?token={reset_token}"
+            reset_url = f"{os.getenv('API_BASE_URL')}/reset-password?token={reset_token}"
             
             template = self.get_mail_template()
             body = template.format(user_name=user_name, reset_url=reset_url)

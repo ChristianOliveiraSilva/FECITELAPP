@@ -61,7 +61,6 @@ export const EscolasPage = () => {
     }
   };
 
-  // Transform data for display
   const transformedData = data.map(item => ({
     ...item,
     students_count: item.students?.length || 0,

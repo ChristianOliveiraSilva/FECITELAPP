@@ -83,7 +83,6 @@ export const UsuariosPage = () => {
     }
   };
 
-  // Transform data for display
   const transformedData = data.map(item => ({
     ...item,
     active: item.active ? "Sim" : "Não",

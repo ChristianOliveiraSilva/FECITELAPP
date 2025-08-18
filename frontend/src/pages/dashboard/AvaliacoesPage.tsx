@@ -85,7 +85,6 @@ export const AvaliacoesPage = () => {
     }
   };
 
-  // Transform data for display
   const transformedData = data.map(item => ({
     ...item,
     evaluator_name: item.evaluator?.PIN || `Avaliador ${item.evaluator_id}`,

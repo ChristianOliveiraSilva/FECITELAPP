@@ -27,7 +27,7 @@ const PasswordResetConfigPage: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   useEffect(() => {
     fetchConfig();
@@ -44,11 +44,9 @@ const PasswordResetConfigPage: React.FC = () => {
           setConfig(firstConfig);
           setMailTemplate(firstConfig.mail_template);
         } else if (!Array.isArray(result.data) && result.data) {
-          // Caso seja uma resposta única
           setConfig(result.data);
           setMailTemplate(result.data.mail_template);
         } else {
-          // Se não existir configuração, criar uma padrão
           setMailTemplate(getDefaultTemplate());
         }
       } else {
@@ -61,7 +59,6 @@ const PasswordResetConfigPage: React.FC = () => {
         description: "Não foi possível carregar a configuração de reset de senha",
         variant: "destructive",
       });
-      // Usar template padrão em caso de erro
       setMailTemplate(getDefaultTemplate());
     } finally {
       setIsLoading(false);
@@ -91,7 +88,6 @@ Equipe Fecitel`;
       let response;
       
       if (config) {
-        // Atualizar configuração existente
         response = await fetch(`${API_BASE_URL}/api/v3/password-reset-configs/${config.id}`, {
           method: 'PUT',
           headers: {
@@ -102,7 +98,6 @@ Equipe Fecitel`;
           }),
         });
       } else {
-        // Criar nova configuração
         response = await fetch(`${API_BASE_URL}/api/v3/password-reset-configs/`, {
           method: 'POST',
           headers: {

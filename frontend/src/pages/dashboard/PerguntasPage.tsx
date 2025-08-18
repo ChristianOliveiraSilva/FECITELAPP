@@ -96,7 +96,6 @@ export const PerguntasPage = () => {
     }
   };
 
-  // Transform data for display
   const transformedData = data.map(item => ({
     ...item,
     type: item.type === 1 ? "Múltipla Escolha" : item.type === 2 ? "Texto" : "Desconhecido",

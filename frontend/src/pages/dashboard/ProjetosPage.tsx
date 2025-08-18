@@ -133,7 +133,6 @@ export const ProjetosPage = () => {
   };
 
   const handleGerarFichasBanner = () => {
-    // TODO: Implementar geração das fichas de identificação do banner
     console.log("Gerando fichas de identificação do banner...");
   };
 
@@ -147,7 +146,6 @@ export const ProjetosPage = () => {
     console.log("Gerando fichas de banner para:", selectedProjetos.length, "projetos selecionados");
   };
 
-  // Transform data for display
   const transformedData: Record<string, ReactNode>[] = data.map(item => ({
     id: item.id,
     title: item.title,

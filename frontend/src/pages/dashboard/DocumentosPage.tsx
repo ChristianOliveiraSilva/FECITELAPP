@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { apiService } from "@/lib/api";
 import { 
   FileText, 
   Download, 
@@ -183,26 +184,15 @@ export const DocumentosPage = () => {
 
   const handleDownload = async (documento: Documento) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}${documento.endpoint}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Erro ${response.status}: ${response.statusText}`);
-      }
-
-      // Criar blob e fazer download
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
+      const blob = await apiService.downloadFile(documento.endpoint);
+      
+      const downloadUrl = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url;
+      a.href = downloadUrl;
       a.download = `${documento.nome}.${documento.tipo}`;
       document.body.appendChild(a);
       a.click();
-      window.URL.revokeObjectURL(url);
+      window.URL.revokeObjectURL(downloadUrl);
       document.body.removeChild(a);
 
       toast({

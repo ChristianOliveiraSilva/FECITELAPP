@@ -118,7 +118,6 @@ export const EventosPage = () => {
     handleSubmit(cleanData as Evento);
   };
 
-  // Transform data for display
   const transformedData = data.map(item => ({
     ...item,
     app_primary_color: item.app_primary_color ? (

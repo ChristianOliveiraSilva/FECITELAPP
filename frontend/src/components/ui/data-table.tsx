@@ -102,7 +102,6 @@ export const DataTable = ({
       newSelectedItems = [...selectedItems, item];
     } else {
       newSelectedItems = selectedItems.filter(selected => {
-        // Comparar por ID se disponível, senão por referência
         if (selected.id && item.id) {
           return selected.id !== item.id;
         }
@@ -115,7 +114,6 @@ export const DataTable = ({
 
   const isItemSelected = (item: Record<string, unknown>) => {
     const isSelected = selectedItems.some(selected => {
-      // Comparar por ID se disponível, senão por referência
       if (selected.id && item.id) {
         return selected.id === item.id;
       }
@@ -124,7 +122,6 @@ export const DataTable = ({
     return isSelected;
   };
 
-  // Paginação
   const totalPages = Math.ceil(sortedData.length / currentPageSize);
   const startIndex = (currentPage - 1) * currentPageSize;
   const endIndex = startIndex + currentPageSize;
@@ -137,7 +134,7 @@ export const DataTable = ({
   const handlePageSizeChange = (newPageSize: string) => {
     const size = parseInt(newPageSize);
     setCurrentPageSize(size);
-    setCurrentPage(1); // Reset para primeira página
+    setCurrentPage(1);
   };
 
   const goToFirstPage = () => setCurrentPage(1);

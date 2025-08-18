@@ -24,7 +24,6 @@ export const LoginForm = ({ onLogin, isLoading: externalLoading }: LoginFormProp
   const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
   const { toast } = useToast();
 
-  // Generate years from 2024 to current year
   const generateYears = () => {
     const currentYear = new Date().getFullYear();
     const years = [];

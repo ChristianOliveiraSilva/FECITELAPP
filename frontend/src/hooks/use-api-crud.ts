@@ -28,7 +28,7 @@ export const useApiCrud = <T extends Record<string, unknown>>({
     setError(null);
     
     try {
-      const response = await apiService.getList<T>(endpoint, {
+      const response = await apiService.get<T>(endpoint, {
         limit: 1000,
         include_relations: true
       });
@@ -58,7 +58,6 @@ export const useApiCrud = <T extends Record<string, unknown>>({
       let response;
       
       if (useFormData && customCreateEndpoint) {
-        // Create FormData for file uploads
         const formData = new FormData();
         Object.entries(newItem).forEach(([key, value]) => {
           if (value instanceof File) {
@@ -95,11 +94,9 @@ export const useApiCrud = <T extends Record<string, unknown>>({
     try {
       let response;
       
-      // Check if there's a file in the updated item
       const hasFile = Object.values(updatedItem).some(value => value instanceof File);
       
       if (useFormData && hasFile && customUpdateEndpoint) {
-        // Create FormData for file uploads in updates
         const formData = new FormData();
         Object.entries(updatedItem).forEach(([key, value]) => {
           if (value instanceof File) {
