@@ -184,7 +184,6 @@ async def update_category(
                 detail="Category not found"
             )
         
-        # Update fields
         update_data = category_data.dict(exclude_unset=True)
         for field, value in update_data.items():
             setattr(category, field, value)
@@ -228,7 +227,6 @@ async def delete_category(category_id: int, db: Session = Depends(get_db)):
                 detail="Category not found"
             )
         
-        # Soft delete
         from datetime import datetime
         category.deleted_at = datetime.utcnow()
         

@@ -8,6 +8,7 @@ from app.schemas.evaluator import (
 )
 from typing import Optional
 import random
+from datetime import datetime
 
 router = APIRouter()
 
@@ -15,12 +16,18 @@ router = APIRouter()
 async def get_evaluators(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
+    year: Optional[int] = Query(None, description="Filter by year (defaults to current year)"),
     include_relations: bool = Query(False, description="Include related data"),
     db: Session = Depends(get_db)
 ):
     """Get all evaluators with optional pagination and relations"""
     try:
-        query = db.query(Evaluator).filter(Evaluator.deleted_at == None)
+        filter_year = year if year is not None else datetime.now().year
+        
+        query = db.query(Evaluator).filter(
+            Evaluator.deleted_at == None,
+            Evaluator.year == filter_year
+        )
         
         if include_relations:
             query = query.options(
@@ -37,6 +44,7 @@ async def get_evaluators(
                 "id": evaluator.id,
                 "user_id": evaluator.user_id,
                 "PIN": evaluator.PIN,
+                "year": evaluator.year,
                 "created_at": evaluator.created_at,
                 "updated_at": evaluator.updated_at,
                 "deleted_at": evaluator.deleted_at,
@@ -73,7 +81,7 @@ async def get_evaluators(
         
         return EvaluatorListResponse(
             status=True,
-            message="Evaluators retrieved successfully",
+            message=f"Evaluators retrieved successfully for year {filter_year}",
             data=evaluator_data
         )
     except Exception as e:
@@ -111,6 +119,7 @@ async def get_evaluator(
             "id": evaluator.id,
             "user_id": evaluator.user_id,
             "PIN": evaluator.PIN,
+            "year": evaluator.year,
             "created_at": evaluator.created_at,
             "updated_at": evaluator.updated_at,
             "deleted_at": evaluator.deleted_at,
@@ -158,9 +167,7 @@ async def get_evaluator(
 
 @router.post("/", response_model=EvaluatorDetailResponse)
 async def create_evaluator(evaluator_data: EvaluatorCreate, db: Session = Depends(get_db)):
-    """Create a new evaluator"""
     try:
-        # Check if user exists
         user = db.query(User).filter(User.id == evaluator_data.user_id).first()
         if not user:
             raise HTTPException(
@@ -168,7 +175,6 @@ async def create_evaluator(evaluator_data: EvaluatorCreate, db: Session = Depend
                 detail="User not found"
             )
         
-        # Check if user already has an evaluator
         existing_evaluator = db.query(Evaluator).filter(Evaluator.user_id == evaluator_data.user_id).first()
         if existing_evaluator:
             raise HTTPException(
@@ -176,10 +182,8 @@ async def create_evaluator(evaluator_data: EvaluatorCreate, db: Session = Depend
                 detail="User already has an evaluator profile"
             )
         
-        # Generate PIN if not provided
         pin = evaluator_data.PIN
         if not pin:
-            # Generate unique PIN
             while True:
                 pin = str(random.randint(1111, 9999))
                 existing_pin = db.query(Evaluator).filter(Evaluator.PIN == pin).first()
@@ -188,7 +192,8 @@ async def create_evaluator(evaluator_data: EvaluatorCreate, db: Session = Depend
         
         evaluator = Evaluator(
             user_id=evaluator_data.user_id,
-            PIN=pin
+            PIN=pin,
+            year=getattr(evaluator_data, 'year', datetime.now().year)
         )
         
         db.add(evaluator)
@@ -237,7 +242,6 @@ async def update_evaluator(
                 detail="Evaluator not found"
             )
         
-        # Check if user exists if user_id is being updated
         if evaluator_data.user_id and evaluator_data.user_id != evaluator.user_id:
             user = db.query(User).filter(User.id == evaluator_data.user_id).first()
             if not user:
@@ -246,7 +250,6 @@ async def update_evaluator(
                     detail="User not found"
                 )
             
-            # Check if new user already has an evaluator
             existing_evaluator = db.query(Evaluator).filter(
                 Evaluator.user_id == evaluator_data.user_id,
                 Evaluator.id != evaluator_id
@@ -257,7 +260,6 @@ async def update_evaluator(
                     detail="User already has an evaluator profile"
                 )
         
-        # Check if PIN is unique if being updated
         if evaluator_data.PIN and evaluator_data.PIN != evaluator.PIN:
             existing_pin = db.query(Evaluator).filter(
                 Evaluator.PIN == evaluator_data.PIN,
@@ -269,10 +271,12 @@ async def update_evaluator(
                     detail="PIN already exists"
                 )
         
-        # Update fields
         update_data = evaluator_data.dict(exclude_unset=True)
         for field, value in update_data.items():
             setattr(evaluator, field, value)
+        
+        if not hasattr(evaluator_data, 'year') or evaluator_data.year is None:
+            evaluator.year = datetime.now().year
         
         db.commit()
         db.refresh(evaluator)
@@ -305,7 +309,6 @@ async def update_evaluator(
 
 @router.delete("/{evaluator_id}")
 async def delete_evaluator(evaluator_id: int, db: Session = Depends(get_db)):
-    """Soft delete an evaluator"""
     try:
         evaluator = db.query(Evaluator).filter(Evaluator.id == evaluator_id).first()
         
@@ -315,8 +318,6 @@ async def delete_evaluator(evaluator_id: int, db: Session = Depends(get_db)):
                 detail="Evaluator not found"
             )
         
-        # Soft delete
-        from datetime import datetime
         evaluator.deleted_at = datetime.utcnow()
         
         db.commit()

@@ -13,7 +13,6 @@ class Category(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     deleted_at = Column(DateTime(timezone=True), nullable=True)
     
-    # Relationships
     projects = relationship("Project", back_populates="category")
     evaluators = relationship("Evaluator", secondary="evaluator_categories", back_populates="categories")
     main_category = relationship("Category", remote_side=[id], backref="sub_categories")

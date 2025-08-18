@@ -14,7 +14,6 @@ class School(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     deleted_at = Column(DateTime(timezone=True), nullable=True)
     
-    # Relationships
     students = relationship("Student", back_populates="school")
     
     @property

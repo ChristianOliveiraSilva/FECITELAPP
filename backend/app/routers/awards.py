@@ -167,7 +167,6 @@ async def update_award(
                 detail="Award not found"
             )
         
-        # Update fields
         update_data = award_data.dict(exclude_unset=True)
         for field, value in update_data.items():
             setattr(award, field, value)
@@ -211,7 +210,6 @@ async def delete_award(award_id: int, db: Session = Depends(get_db)):
                 detail="Award not found"
             )
         
-        # Soft delete
         from datetime import datetime
         award.deleted_at = datetime.utcnow()
         

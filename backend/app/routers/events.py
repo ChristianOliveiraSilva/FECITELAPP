@@ -116,7 +116,6 @@ async def create_event(
                 detail=f"Event for year {year} already exists"
             )
         
-        # Validate and save logo
         allowed_types = ["image/jpeg", "image/png", "image/jpg", "image/gif", "image/webp"]
         if logo.content_type not in allowed_types:
             raise HTTPException(
@@ -124,7 +123,6 @@ async def create_event(
                 detail="Invalid file type. Only JPEG, PNG, GIF, and WebP images are allowed."
             )
         
-        # Validate file size (max 5MB)
         logo.file.seek(0, 2)
         file_size = logo.file.tell()
         logo.file.seek(0)
@@ -135,10 +133,8 @@ async def create_event(
                 detail="File too large. Maximum size is 5MB."
             )
         
-        # Save logo
         logo_url = save_uploaded_file(logo)
         
-        # Create event
         event = Event(
             year=year,
             app_primary_color=app_primary_color,
@@ -193,7 +189,6 @@ async def update_event(
                 detail="Event not found"
             )
         
-        # Check if year is being updated and if it conflicts with existing event
         if year is not None and year != event.year:
             existing_event = db.query(Event).filter(
                 Event.year == year,
@@ -206,7 +201,6 @@ async def update_event(
                     detail=f"Event for year {year} already exists"
                 )
         
-        # Update basic fields
         if year is not None:
             event.year = year
         if app_primary_color is not None:
@@ -214,9 +208,7 @@ async def update_event(
         if app_font_color is not None:
             event.app_font_color = app_font_color
         
-        # Handle logo upload if provided
         if logo is not None:
-            # Validate logo file type
             allowed_types = ["image/jpeg", "image/png", "image/jpg", "image/gif", "image/webp"]
             if logo.content_type not in allowed_types:
                 raise HTTPException(
@@ -224,7 +216,6 @@ async def update_event(
                     detail="Invalid file type. Only JPEG, PNG, GIF, and WebP images are allowed."
                 )
             
-            # Validate file size (max 5MB)
             logo.file.seek(0, 2)
             file_size = logo.file.tell()
             logo.file.seek(0)
@@ -235,7 +226,6 @@ async def update_event(
                     detail="File too large. Maximum size is 5MB."
                 )
             
-            # Save new logo
             logo_url = save_uploaded_file(logo)
             event.app_logo_url = logo_url
         
@@ -279,7 +269,6 @@ async def delete_event(event_id: int, db: Session = Depends(get_db)):
                 detail="Event not found"
             )
         
-        # Soft delete
         from datetime import datetime
         event.deleted_at = datetime.utcnow()
         

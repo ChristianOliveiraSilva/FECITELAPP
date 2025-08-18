@@ -2,7 +2,6 @@ from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.database import Base
-from app.enums.project_type import ProjectType
 
 class Project(Base):
     __tablename__ = "projects"
@@ -12,13 +11,13 @@ class Project(Base):
     description = Column(Text, nullable=True)
     year = Column(Integer, nullable=False)
     category_id = Column(Integer, ForeignKey("categories.id"), nullable=False)
-    projectType = Column(Integer, nullable=False)  # ProjectType enum
+    projectType = Column(Integer, nullable=False)
     external_id = Column(String(255), nullable=True)
+    file = Column(String(255), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     deleted_at = Column(DateTime(timezone=True), nullable=True)
     
-    # Relationships
     category = relationship("Category", back_populates="projects")
     students = relationship("Student", secondary="student_projects", back_populates="projects")
     assessments = relationship("Assessment", back_populates="project")

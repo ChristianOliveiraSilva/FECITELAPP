@@ -15,10 +15,8 @@ async def get_cards_data(db: Session = Depends(get_db)):
     """Busca dados para os cards do dashboard"""
     
     try:
-        # Total de Projetos
         total_projetos = db.query(Project).filter(Project.deleted_at == None).count()
         
-        # Trabalhos para Avaliar (projetos que não têm assessments com respostas)
         projetos_sem_avaliacao = db.query(Project).filter(
             Project.deleted_at == None,
             ~Project.id.in_(
@@ -28,7 +26,6 @@ async def get_cards_data(db: Session = Depends(get_db)):
             )
         ).count()
         
-        # Trabalhos Avaliados (projetos que têm pelo menos um assessment com resposta)
         projetos_avaliados = db.query(Project).filter(
             Project.deleted_at == None,
             Project.id.in_(
@@ -38,11 +35,8 @@ async def get_cards_data(db: Session = Depends(get_db)):
             )
         ).count()
         
-        # Avaliadores Ativos
         avaliadores_ativos = db.query(Evaluator).filter(Evaluator.deleted_at == None).count()
         
-        # Status das Avaliações (quantidade de projetos que ainda não foram avaliados)
-        # Todos os projetos que não foram avaliados (sem assessments com respostas)
         projetos_nao_avaliados = db.query(Project).filter(
             Project.deleted_at == None,
             ~Project.id.in_(
@@ -52,8 +46,6 @@ async def get_cards_data(db: Session = Depends(get_db)):
             )
         ).count()
         
-        # Distribuir os projetos não avaliados de forma mais realista
-        # Faltam 1 avaliação = projetos que têm assessments mas sem respostas
         projetos_com_assessments_sem_respostas = db.query(Project).join(
             Assessment, Project.id == Assessment.project_id
         ).filter(
@@ -64,14 +56,10 @@ async def get_cards_data(db: Session = Depends(get_db)):
             )
         ).distinct().count()
         
-        # Faltam 2 avaliações = projetos que têm assessments mas ainda não foram totalmente avaliados
-        # Para simplificar, vamos considerar que faltam 2 avaliações = metade dos projetos com assessments sem respostas
         faltam_2_avaliacoes = projetos_com_assessments_sem_respostas // 2
         
-        # Faltam 1 avaliação = resto dos projetos com assessments sem respostas
         faltam_1_avaliacao = projetos_com_assessments_sem_respostas - faltam_2_avaliacoes
         
-        # Faltam 3 avaliações = projetos que não têm assessments
         projetos_sem_assessments = db.query(Project).filter(
             Project.deleted_at == None,
             ~Project.id.in_(
@@ -81,7 +69,6 @@ async def get_cards_data(db: Session = Depends(get_db)):
         
         faltam_3_avaliacoes = projetos_sem_assessments
         
-        # Progresso Geral (porcentagem entre Total de Projetos e Trabalhos Avaliados)
         progresso_geral = 0
         if total_projetos > 0:
             progresso_geral = round((projetos_avaliados / total_projetos) * 100)

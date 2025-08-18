@@ -159,7 +159,6 @@ async def update_school(
                 detail="School not found"
             )
         
-        # Update fields
         update_data = school_data.dict(exclude_unset=True)
         for field, value in update_data.items():
             setattr(school, field, value)
@@ -202,7 +201,6 @@ async def delete_school(school_id: int, db: Session = Depends(get_db)):
                 detail="School not found"
             )
         
-        # Soft delete
         from datetime import datetime
         school.deleted_at = datetime.utcnow()
         

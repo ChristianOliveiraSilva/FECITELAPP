@@ -18,7 +18,6 @@ async def store_responses(
     db: Session = Depends(get_db)
 ):
     try:
-        # Get assessment
         assessment = db.query(Assessment).filter(Assessment.id == request.assessment).first()
         
         if not assessment:
@@ -27,16 +26,13 @@ async def store_responses(
                 message="Avaliação não encontrada"
             )
         
-        # Delete existing responses if any
         if assessment.has_response:
             db.query(Response).filter(Response.assessment_id == assessment.id).delete()
         
-        # Create new responses
         for response_item in request.responses:
             response_value = None
             score_value = None
             
-            # Determine if it's text or multiple choice based on question type
             question = db.query(Question).filter(Question.id == response_item.question_id).first()
             
             if not question:
@@ -45,7 +41,6 @@ async def store_responses(
                     message=f"Pergunta com ID {response_item.question_id} não encontrada"
                 )
             
-            # Validate question type matches the expected type
             if question.type != response_item.type:
                 return ResponseResponse(
                     status=False,
@@ -63,7 +58,6 @@ async def store_responses(
                         message=f"Valor inválido para questão de múltipla escolha: {response_item.value}"
                     )
             
-            # Create response
             new_response = Response(
                 question_id=response_item.question_id,
                 assessment_id=assessment.id,
@@ -74,10 +68,8 @@ async def store_responses(
         
         db.commit()
         
-        # Reload assessment with responses
         db.refresh(assessment)
         
-        # Prepare response data
         assessment_data = {
             "id": assessment.id,
             "evaluator_id": assessment.evaluator_id,
@@ -102,7 +94,7 @@ async def store_responses(
         
     except Exception as e:
         db.rollback()
-        print(f"Erro ao salvar respostas: {str(e)}")  # Log para debug
+        print(f"Erro ao salvar respostas: {str(e)}")
         return ResponseResponse(
             status=False,
             message=f"Erro ao salvar respostas: {str(e)}"

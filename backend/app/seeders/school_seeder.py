@@ -9,7 +9,6 @@ class SchoolSeeder:
         """Executa o seeder de escolas"""
         print("🏫 Iniciando seeder de escolas...")
         
-        # Verificar se já existem escolas
         existing_schools = self.db.query(School).count()
         if existing_schools > 0:
             print("ℹ️  Escolas já existem, pulando criação")

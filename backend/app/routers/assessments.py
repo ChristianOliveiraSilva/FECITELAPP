@@ -162,7 +162,6 @@ async def get_assessment(
 async def create_assessment(assessment_data: AssessmentCreate, db: Session = Depends(get_db)):
     """Create a new assessment"""
     try:
-        # Check if evaluator exists
         evaluator = db.query(Evaluator).filter(Evaluator.id == assessment_data.evaluator_id).first()
         if not evaluator:
             raise HTTPException(
@@ -170,7 +169,6 @@ async def create_assessment(assessment_data: AssessmentCreate, db: Session = Dep
                 detail="Evaluator not found"
             )
         
-        # Check if project exists
         project = db.query(Project).filter(Project.id == assessment_data.project_id).first()
         if not project:
             raise HTTPException(
@@ -178,7 +176,6 @@ async def create_assessment(assessment_data: AssessmentCreate, db: Session = Dep
                 detail="Project not found"
             )
         
-        # Check if assessment already exists for this evaluator and project
         existing_assessment = db.query(Assessment).filter(
             Assessment.evaluator_id == assessment_data.evaluator_id,
             Assessment.project_id == assessment_data.project_id
@@ -231,7 +228,6 @@ async def update_assessment(
     assessment_data: AssessmentUpdate,
     db: Session = Depends(get_db)
 ):
-    """Update an existing assessment"""
     try:
         assessment = db.query(Assessment).filter(Assessment.id == assessment_id).first()
         
@@ -241,7 +237,6 @@ async def update_assessment(
                 detail="Assessment not found"
             )
         
-        # Check if evaluator exists if evaluator_id is being updated
         if assessment_data.evaluator_id and assessment_data.evaluator_id != assessment.evaluator_id:
             evaluator = db.query(Evaluator).filter(Evaluator.id == assessment_data.evaluator_id).first()
             if not evaluator:
@@ -250,7 +245,6 @@ async def update_assessment(
                     detail="Evaluator not found"
                 )
         
-        # Check if project exists if project_id is being updated
         if assessment_data.project_id and assessment_data.project_id != assessment.project_id:
             project = db.query(Project).filter(Project.id == assessment_data.project_id).first()
             if not project:
@@ -259,7 +253,6 @@ async def update_assessment(
                     detail="Project not found"
                 )
         
-        # Check for duplicate assessment if both evaluator_id and project_id are being updated
         if assessment_data.evaluator_id and assessment_data.project_id:
             existing_assessment = db.query(Assessment).filter(
                 Assessment.evaluator_id == assessment_data.evaluator_id,
@@ -273,7 +266,6 @@ async def update_assessment(
                     detail="Assessment already exists for this evaluator and project"
                 )
         
-        # Update fields
         update_data = assessment_data.dict(exclude_unset=True)
         for field, value in update_data.items():
             setattr(assessment, field, value)
@@ -309,7 +301,6 @@ async def update_assessment(
 
 @router.delete("/{assessment_id}")
 async def delete_assessment(assessment_id: int, db: Session = Depends(get_db)):
-    """Soft delete an assessment"""
     try:
         assessment = db.query(Assessment).filter(Assessment.id == assessment_id).first()
         
@@ -319,7 +310,6 @@ async def delete_assessment(assessment_id: int, db: Session = Depends(get_db)):
                 detail="Assessment not found"
             )
         
-        # Soft delete
         from datetime import datetime
         assessment.deleted_at = datetime.utcnow()
         

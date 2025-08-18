@@ -9,6 +9,7 @@ class ProjectBase(BaseModel):
     category_id: int
     projectType: int
     external_id: Optional[str] = None
+    file: Optional[str] = None
 
 class ProjectCreate(ProjectBase):
     pass
@@ -20,6 +21,7 @@ class ProjectUpdate(BaseModel):
     category_id: Optional[int] = None
     projectType: Optional[int] = None
     external_id: Optional[str] = None
+    file: Optional[str] = None
 
 class ProjectResponse(ProjectBase):
     id: int

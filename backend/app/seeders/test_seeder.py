@@ -23,13 +23,13 @@ class TestSeeder:
         """Executa o seeder de testes"""
         print("🧪 Iniciando seeder de testes...")
         
-        # Verificar se já existem dados de teste
         existing_evaluators = self.db.query(Evaluator).count()
         if existing_evaluators > 0:
             print("ℹ️  Dados de teste já existem, pulando criação")
             return
         
-        # Criar usuários para avaliadores
+        current_year = datetime.now().year
+        
         users = []
         for i in range(5):
             user = User(
@@ -44,12 +44,12 @@ class TestSeeder:
         self.db.commit()
         print(f"👤 Criados {len(users)} usuários para avaliadores")
         
-        # Criar avaliadores
         evaluators = []
         for user in users:
             evaluator = Evaluator(
                 PIN=random.randint(1000, 9999),
-                user_id=user.id
+                user_id=user.id,
+                year=current_year
             )
             self.db.add(evaluator)
             evaluators.append(evaluator)
@@ -57,7 +57,6 @@ class TestSeeder:
         self.db.commit()
         print(f"👨‍💼 Criados {len(evaluators)} avaliadores")
         
-        # Criar estudantes para cada escola
         schools = self.db.query(School).all()
         students = []
         
@@ -67,7 +66,8 @@ class TestSeeder:
                     name=fake.name(),
                     email=fake.unique.email(),
                     school_id=school.id,
-                    school_grade=random.choice([SchoolGrade.FUNDAMENTAL, SchoolGrade.MEDIO]).value
+                    school_grade=random.choice([SchoolGrade.FUNDAMENTAL, SchoolGrade.MEDIO]).value,
+                    year=current_year
                 )
                 self.db.add(student)
                 students.append(student)
@@ -75,7 +75,6 @@ class TestSeeder:
         self.db.commit()
         print(f"👨‍🎓 Criados {len(students)} estudantes")
         
-        # Criar projetos para cada categoria
         categories = self.db.query(Category).all()
         projects = []
         
@@ -86,10 +85,11 @@ class TestSeeder:
                 project = Project(
                     title=fake.sentence(nb_words=3),
                     description=fake.paragraph(),
-                    year=datetime.now().year,
+                    year=current_year,
                     projectType=project_type.value,
                     category_id=category.id,
-                    external_id=random.randint(1000, 9999)
+                    external_id=random.randint(1000, 9999),
+                    file="teste.docx"
                 )
                 self.db.add(project)
                 projects.append(project)
@@ -97,7 +97,6 @@ class TestSeeder:
         self.db.commit()
         print(f"📋 Criados {len(projects)} projetos")
         
-        # Associar estudantes aos projetos
         for project in projects:
             project_students = random.sample(students, random.randint(1, min(3, len(students))))
             for student in project_students:
@@ -106,11 +105,9 @@ class TestSeeder:
         self.db.commit()
         print("✅ Estudantes associados aos projetos")
         
-        # Criar avaliações
         evaluator_project_count = {}
         
         for project in projects:
-            # Filtrar avaliadores que ainda não têm 3 projetos
             available_evaluators = [
                 eval for eval in evaluators 
                 if evaluator_project_count.get(eval.id, 0) < 3
@@ -119,11 +116,9 @@ class TestSeeder:
             if not available_evaluators:
                 break
             
-            # Selecionar avaliadores aleatórios para o projeto
             project_evaluators = random.sample(
                 available_evaluators, 
-                random.randint(1, min(3, len(available_evaluators)))
-            )
+                random.randint(1, min(3, len(available_evaluators))))
             
             for evaluator in project_evaluators:
                 assessment = Assessment(
@@ -133,13 +128,11 @@ class TestSeeder:
                 print('assessment criado!')
                 self.db.add(assessment)
                 
-                # Atualizar contador de projetos do avaliador
                 evaluator_project_count[evaluator.id] = evaluator_project_count.get(evaluator.id, 0) + 1
         
         self.db.commit()
         print("✅ Avaliações criadas")
         
-        # Associar categorias aos avaliadores
         main_categories = self.db.query(Category).filter(Category.main_category_id.is_(None)).limit(5).all()
         
         for evaluator in evaluators:
@@ -149,4 +142,4 @@ class TestSeeder:
         self.db.commit()
         print("✅ Categorias associadas aos avaliadores")
         
-        print("✅ Seeder de testes concluído!") 
+        print("✅ Seeder de testes concluído!")

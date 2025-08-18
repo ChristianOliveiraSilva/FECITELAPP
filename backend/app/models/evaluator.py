@@ -10,11 +10,11 @@ class Evaluator(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     PIN = Column(String(4), unique=True, nullable=False)
+    year = Column(Integer, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     deleted_at = Column(DateTime(timezone=True), nullable=True)
     
-    # Relationships
     user = relationship("User", back_populates="evaluator")
     assessments = relationship("Assessment", back_populates="evaluator")
     categories = relationship("Category", secondary="evaluator_categories", back_populates="evaluators")
@@ -24,7 +24,6 @@ class Evaluator(Base):
         """Generate a random PIN that doesn't exist in the database"""
         while True:
             pin = str(random.randint(1111, 9999))
-            # Check if PIN exists in database
             existing_pin = db.query(Evaluator).filter(Evaluator.PIN == pin).first()
             if not existing_pin:
                 return pin

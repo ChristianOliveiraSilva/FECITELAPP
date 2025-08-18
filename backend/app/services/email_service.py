@@ -15,16 +15,13 @@ class EmailService:
     def send_password_reset_email(self, to_email: str, reset_token: str, user_name: str):
         """Send password reset email"""
         try:
-            # Criar mensagem
             msg = MIMEMultipart()
             msg['From'] = self.from_email
             msg['To'] = to_email
             msg['Subject'] = "Recuperação de Senha - IFMS FECITEL"
             
-            # URL de reset (ajustar conforme necessário)
             reset_url = f"http://localhost:8080/reset-password?token={reset_token}"
             
-            # Corpo do email
             body = f"""
             <html>
             <body>
@@ -43,7 +40,6 @@ class EmailService:
             
             msg.attach(MIMEText(body, 'html'))
             
-            # Enviar email
             server = smtplib.SMTP(self.smtp_server, self.smtp_port)
             server.starttls()
             server.login(self.smtp_username, self.smtp_password)
@@ -57,5 +53,4 @@ class EmailService:
             print(f"Erro ao enviar email: {e}")
             return False
 
-# Instância global do serviço de email
 email_service = EmailService() 

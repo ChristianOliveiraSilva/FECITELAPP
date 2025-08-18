@@ -146,7 +146,6 @@ async def get_response(
 async def create_response(response_data: ResponseCreate, db: Session = Depends(get_db)):
     """Create a new response"""
     try:
-        # Check if question exists
         question = db.query(Question).filter(Question.id == response_data.question_id).first()
         if not question:
             raise HTTPException(
@@ -154,7 +153,6 @@ async def create_response(response_data: ResponseCreate, db: Session = Depends(g
                 detail="Question not found"
             )
         
-        # Check if assessment exists
         assessment = db.query(Assessment).filter(Assessment.id == response_data.assessment_id).first()
         if not assessment:
             raise HTTPException(
@@ -162,7 +160,6 @@ async def create_response(response_data: ResponseCreate, db: Session = Depends(g
                 detail="Assessment not found"
             )
         
-        # Check if response already exists for this question and assessment
         existing_response = db.query(Response).filter(
             Response.question_id == response_data.question_id,
             Response.assessment_id == response_data.assessment_id
@@ -228,7 +225,6 @@ async def update_response(
                 detail="Response not found"
             )
         
-        # Check if question exists if question_id is being updated
         if response_data.question_id and response_data.question_id != response.question_id:
             question = db.query(Question).filter(Question.id == response_data.question_id).first()
             if not question:
@@ -237,7 +233,6 @@ async def update_response(
                     detail="Question not found"
                 )
         
-        # Check if assessment exists if assessment_id is being updated
         if response_data.assessment_id and response_data.assessment_id != response.assessment_id:
             assessment = db.query(Assessment).filter(Assessment.id == response_data.assessment_id).first()
             if not assessment:
@@ -246,7 +241,6 @@ async def update_response(
                     detail="Assessment not found"
                 )
         
-        # Check for duplicate response if both question_id and assessment_id are being updated
         if response_data.question_id and response_data.assessment_id:
             existing_response = db.query(Response).filter(
                 Response.question_id == response_data.question_id,
@@ -260,7 +254,6 @@ async def update_response(
                     detail="Response already exists for this question and assessment"
                 )
         
-        # Update fields
         update_data = response_data.dict(exclude_unset=True)
         for field, value in update_data.items():
             setattr(response, field, value)
@@ -307,7 +300,6 @@ async def delete_response(response_id: int, db: Session = Depends(get_db)):
                 detail="Response not found"
             )
         
-        # Soft delete
         from datetime import datetime
         response.deleted_at = datetime.utcnow()
         

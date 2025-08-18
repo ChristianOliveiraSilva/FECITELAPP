@@ -18,7 +18,6 @@ router = APIRouter()
 @router.post("/login", response_model=WebLoginResponse)
 async def web_login(request: WebLoginRequest, db: Session = Depends(get_db)):
     try:
-        # Buscar usuário por email
         user = db.query(User).filter(User.email == request.email).first()
         
         if not user:
@@ -27,22 +26,19 @@ async def web_login(request: WebLoginRequest, db: Session = Depends(get_db)):
                 detail="Email ou senha inválidos"
             )
         
-        # Verificar senha
         if not User.verify_password(request.password, user.password):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Email ou senha inválidos"
             )
         
-        # Verificar se o usuário está ativo
         if not user.active:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Usuário inativo"
             )
         
-        # Create access token
-        access_token_expires = timedelta(hours=8)  # Token mais longo para web
+        access_token_expires = timedelta(hours=8)
         access_token = create_access_token(
             data={"sub": str(user.id)}, expires_delta=access_token_expires
         )

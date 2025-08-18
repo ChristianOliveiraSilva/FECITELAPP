@@ -13,7 +13,6 @@ class Assessment(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     deleted_at = Column(DateTime(timezone=True), nullable=True)
     
-    # Relationships
     evaluator = relationship("Evaluator", back_populates="assessments")
     project = relationship("Project", back_populates="assessments")
     responses = relationship("Response", back_populates="assessment")

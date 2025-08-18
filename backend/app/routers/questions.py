@@ -6,6 +6,7 @@ from app.schemas.question import (
     QuestionCreate, QuestionUpdate, QuestionListResponse, QuestionDetailResponse
 )
 from typing import Optional
+from datetime import datetime
 
 router = APIRouter()
 
@@ -13,12 +14,18 @@ router = APIRouter()
 async def get_questions(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
+    year: Optional[int] = Query(None, description="Filter by year (defaults to current year)"),
     include_relations: bool = Query(False, description="Include related data"),
     db: Session = Depends(get_db)
 ):
     """Get all questions with optional pagination and relations"""
     try:
-        query = db.query(Question).filter(Question.deleted_at == None)
+        filter_year = year if year is not None else datetime.now().year
+        
+        query = db.query(Question).filter(
+            Question.deleted_at == None,
+            Question.year == filter_year
+        )
         
         if include_relations:
             query = query.options(
@@ -36,6 +43,7 @@ async def get_questions(
                 "technological_text": question.technological_text,
                 "type": question.type,
                 "number_alternatives": question.number_alternatives,
+                "year": question.year,
                 "created_at": question.created_at,
                 "updated_at": question.updated_at,
                 "deleted_at": question.deleted_at,
@@ -65,7 +73,7 @@ async def get_questions(
         
         return QuestionListResponse(
             status=True,
-            message="Questions retrieved successfully",
+            message=f"Questions retrieved successfully for year {filter_year}",
             data=question_data
         )
     except Exception as e:
@@ -104,6 +112,7 @@ async def get_question(
             "technological_text": question.technological_text,
             "type": question.type,
             "number_alternatives": question.number_alternatives,
+            "year": question.year,
             "created_at": question.created_at,
             "updated_at": question.updated_at,
             "deleted_at": question.deleted_at,
@@ -150,7 +159,8 @@ async def create_question(question_data: QuestionCreate, db: Session = Depends(g
             scientific_text=question_data.scientific_text,
             technological_text=question_data.technological_text,
             type=question_data.type,
-            number_alternatives=question_data.number_alternatives
+            number_alternatives=question_data.number_alternatives,
+            year=getattr(question_data, 'year', datetime.now().year)
         )
         
         db.add(question)
@@ -198,10 +208,12 @@ async def update_question(
                 detail="Question not found"
             )
         
-        # Update fields
         update_data = question_data.dict(exclude_unset=True)
         for field, value in update_data.items():
             setattr(question, field, value)
+        
+        if not hasattr(question_data, 'year') or question_data.year is None:
+            question.year = datetime.now().year
         
         db.commit()
         db.refresh(question)
@@ -245,8 +257,6 @@ async def delete_question(question_id: int, db: Session = Depends(get_db)):
                 detail="Question not found"
             )
         
-        # Soft delete
-        from datetime import datetime
         question.deleted_at = datetime.utcnow()
         
         db.commit()
