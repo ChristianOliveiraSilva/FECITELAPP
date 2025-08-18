@@ -15,7 +15,8 @@ import {
   HelpCircle,
   Home,
   FileText,
-  Calendar
+  Calendar,
+  Settings
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -34,6 +35,7 @@ const menuItems = [
   { id: "usuarios", label: "Usuários", icon: Users, path: "/dashboard/usuarios" },
   { id: "premiacoes", label: "Premiações", icon: Trophy, path: "/dashboard/premiacoes" },
   { id: "documentos", label: "Documentos", icon: FileText, path: "/dashboard/documentos" },
+  { id: "password-reset-config", label: "Config. Reset Senha", icon: Settings, path: "/dashboard/password-reset-config" },
 ];
 
 export const DashboardWrapper = () => {

@@ -22,6 +22,7 @@ import { PremiacoesPage } from "@/pages/dashboard/PremiacoesPage";
 import { PerguntasPage } from "@/pages/dashboard/PerguntasPage";
 import { DocumentosPage } from "@/pages/dashboard/DocumentosPage";
 import { DocumentosConfiguracoesPage } from "@/pages/dashboard/DocumentosConfiguracoesPage";
+import PasswordResetConfigPage from "@/pages/dashboard/PasswordResetConfigPage";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +55,7 @@ const App = () => (
               <Route path="perguntas" element={<PerguntasPage />} />
               <Route path="documentos" element={<DocumentosPage />} />
               <Route path="documentos/configuracoes" element={<DocumentosConfiguracoesPage />} />
+              <Route path="password-reset-config" element={<PasswordResetConfigPage />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
