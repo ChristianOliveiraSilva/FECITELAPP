@@ -144,5 +144,6 @@ dmypy.json
 Thumbs.db 
 
 uploads/*
+!uploads/projects/
 uploads/projects/*
 !uploads/projects/teste.docx
