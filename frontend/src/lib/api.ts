@@ -45,7 +45,13 @@ class ApiService {
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      let errorBody: any
+      try {
+        errorBody = await response.json()
+      } catch {
+        errorBody = null
+      }
+      throw { status: response.status, body: errorBody }
     }
 
     return response.json();
@@ -106,7 +112,13 @@ class ApiService {
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      let errorBody: any
+      try {
+        errorBody = await response.json()
+      } catch {
+        errorBody = null
+      }
+      throw { status: response.status, body: errorBody }
     }
 
     return response.json();
@@ -114,9 +126,6 @@ class ApiService {
 
   async update<T>(endpoint: string, id: string | number, data: Record<string, unknown>): Promise<ApiResponse<T>> {
     const year = this.getYear();
-    if (year) {
-      data.year = year;
-    }
 
     return this.request<T>(`${endpoint}/${id}`, {
       method: 'PUT',
@@ -146,7 +155,13 @@ class ApiService {
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      let errorBody: any
+      try {
+        errorBody = await response.json()
+      } catch {
+        errorBody = null
+      }
+      throw { status: response.status, body: errorBody }
     }
 
     return response.json();
@@ -174,7 +189,13 @@ class ApiService {
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      let errorBody: any
+      try {
+        errorBody = await response.json()
+      } catch {
+        errorBody = null
+      }
+      throw { status: response.status, body: errorBody }
     }
 
     return response.blob();

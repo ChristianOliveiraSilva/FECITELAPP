@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from app.database import get_db
-from backend.app.models.document import Document
+from app.models.document import Document
 from app.schemas.documents import (
     DocumentCreate, DocumentUpdate, DocumentListResponse, DocumentDetailResponse
 )

@@ -26,11 +26,6 @@ class DatabaseSeeder:
         print("✅ Seeders concluídos com sucesso!")
     
     def _create_default_users(self):
-        existing_users = self.db.query(User).count()
-        if existing_users > 0:
-            print("ℹ️  Usuários já existem, pulando criação de usuários padrão")
-            return
-        
         default_users = [
             {
                 'name': 'Rogério Alves dos Santos Antoniassi',
