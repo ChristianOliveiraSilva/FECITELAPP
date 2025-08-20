@@ -5,6 +5,7 @@ import { useApiCrud } from "@/hooks/use-api-crud";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
+import { ReactNode } from "react";
 
 interface Escola extends Record<string, unknown> {
   id?: number;
@@ -19,9 +20,27 @@ interface Escola extends Record<string, unknown> {
 }
 
 const columns = [
-  { key: "name", label: "Nome da Escola", sortable: true },
-  { key: "students_count", label: "Estudantes", sortable: false },
-  { key: "created_at", label: "Criado em", sortable: true }
+  { 
+    key: "name", 
+    label: "Nome da Escola", 
+    sortable: true, 
+    filterable: true, 
+    filterType: 'text' as const 
+  },
+  { 
+    key: "students_count", 
+    label: "Estudantes", 
+    sortable: false, 
+    filterable: true, 
+    filterType: 'number' as const 
+  },
+  { 
+    key: "created_at", 
+    label: "Criado em", 
+    sortable: true, 
+    filterable: true, 
+    filterType: 'date' as const 
+  }
 ];
 
 const formFields = [
@@ -50,8 +69,12 @@ export const EscolasPage = () => {
 
   const [itemToDelete, setItemToDelete] = useState<Escola | null>(null);
 
-  const handleDelete = (item: Escola) => {
-    setItemToDelete(item);
+  const handleEdit = (item: Record<string, ReactNode>) => {
+    openEditForm(item as Escola);
+  };
+
+  const handleDelete = (item: Record<string, ReactNode>) => {
+    setItemToDelete(item as Escola);
   };
 
   const confirmDelete = async () => {
@@ -61,10 +84,12 @@ export const EscolasPage = () => {
     }
   };
 
-  const transformedData = data.map(item => ({
-    ...item,
+  const transformedData: Record<string, ReactNode>[] = data.map(item => ({
+    id: item.id,
+    name: item.name,
     students_count: item.students?.length || 0,
-    created_at: item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : "-"
+    created_at: item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : "-",
+    updated_at: item.updated_at
   }));
 
   return (
@@ -96,9 +121,10 @@ export const EscolasPage = () => {
           data={transformedData}
           searchPlaceholder="Buscar por nome da escola..."
           onAdd={openAddForm}
-          onEdit={openEditForm}
+          onEdit={handleEdit}
           onDelete={handleDelete}
           loading={loading}
+          baseEndpoint="/schools"
         />
       ) : (
         <CrudForm

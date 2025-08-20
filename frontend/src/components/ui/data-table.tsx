@@ -10,14 +10,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, Plus, Edit, Trash2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { Search, Plus, Edit, Trash2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, MoreHorizontal, Download, Upload, FileDown, Filter, X } from "lucide-react";
 import { useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface Column {
   key: string;
   label: string;
   sortable?: boolean;
+  filterable?: boolean;
+  filterType?: 'text' | 'select' | 'date' | 'number';
+  filterOptions?: { value: string; label: string }[];
 }
 
 interface DataTableProps {
@@ -34,6 +43,11 @@ interface DataTableProps {
   actionButtons?: React.ReactNode;
   pageSize?: number;
   pageSizeOptions?: number[];
+  // Novas props para o kebab menu
+  baseEndpoint?: string;
+  onImport?: () => void;
+  onDownloadTemplate?: () => void;
+  onExportCsv?: () => void;
 }
 
 export const DataTable = ({
@@ -49,7 +63,11 @@ export const DataTable = ({
   onSelectionChange,
   actionButtons,
   pageSize = 15,
-  pageSizeOptions = [10, 15, 25, 50, 100]
+  pageSizeOptions = [10, 15, 25, 50, 100],
+  baseEndpoint,
+  onImport,
+  onDownloadTemplate,
+  onExportCsv
 }: DataTableProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortColumn, setSortColumn] = useState<string | null>(null);
@@ -57,14 +75,31 @@ export const DataTable = ({
   const [selectedItems, setSelectedItems] = useState<Record<string, unknown>[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [currentPageSize, setCurrentPageSize] = useState(pageSize);
+  
+  // Estado para filtros por coluna
+  const [columnFilters, setColumnFilters] = useState<Record<string, string>>({});
+  const [showFilters, setShowFilters] = useState(false);
 
-  const filteredData = data.filter((item) =>
-    Object.values(item).some(
+  const filteredData = data.filter((item) => {
+    // Filtro global de busca
+    const matchesSearch = searchTerm === "" || Object.values(item).some(
       (value) =>
         value &&
         value.toString().toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  );
+    );
+
+    // Filtros por coluna
+    const matchesColumnFilters = Object.entries(columnFilters).every(([columnKey, filterValue]) => {
+      if (!filterValue) return true;
+      
+      const itemValue = item[columnKey];
+      if (!itemValue) return false;
+      
+      return itemValue.toString().toLowerCase().includes(filterValue.toLowerCase());
+    });
+
+    return matchesSearch && matchesColumnFilters;
+  });
 
   const sortedData = sortColumn
     ? [...filteredData].sort((a, b) => {
@@ -85,6 +120,29 @@ export const DataTable = ({
       setSortColumn(column);
       setSortDirection("asc");
     }
+  };
+
+  const handleColumnFilter = (columnKey: string, value: string) => {
+    setColumnFilters(prev => ({
+      ...prev,
+      [columnKey]: value
+    }));
+    setCurrentPage(1); // Reset para primeira página ao filtrar
+  };
+
+  const clearColumnFilter = (columnKey: string) => {
+    setColumnFilters(prev => {
+      const newFilters = { ...prev };
+      delete newFilters[columnKey];
+      return newFilters;
+    });
+    setCurrentPage(1);
+  };
+
+  const clearAllFilters = () => {
+    setColumnFilters({});
+    setSearchTerm("");
+    setCurrentPage(1);
   };
 
   const handleSelectAll = (checked: boolean) => {
@@ -142,6 +200,104 @@ export const DataTable = ({
   const goToNextPage = () => setCurrentPage(Math.min(totalPages, currentPage + 1));
   const goToLastPage = () => setCurrentPage(totalPages);
 
+  // Funções para o kebab menu
+  const handleImport = () => {
+    if (onImport) {
+      onImport();
+    } else if (baseEndpoint) {
+      // Redirecionar para a rota de importação
+      window.open(`${baseEndpoint}/import`, '_blank');
+    }
+  };
+
+  const handleDownloadTemplate = () => {
+    if (onDownloadTemplate) {
+      onDownloadTemplate();
+    } else if (baseEndpoint) {
+      // Redirecionar para a rota de download do molde
+      window.open(`${baseEndpoint}/import/molde`, '_blank');
+    }
+  };
+
+  const handleExportCsv = () => {
+    if (onExportCsv) {
+      onExportCsv();
+    } else if (baseEndpoint) {
+      // Redirecionar para a rota de exportação CSV
+      window.open(`${baseEndpoint}/export/csv`, '_blank');
+    }
+  };
+
+  // Renderizar filtro para uma coluna
+  const renderColumnFilter = (column: Column) => {
+    if (!column.filterable) return null;
+
+    const filterValue = columnFilters[column.key] || '';
+
+    switch (column.filterType) {
+      case 'select':
+        return (
+          <Select value={filterValue} onValueChange={(value) => handleColumnFilter(column.key, value)}>
+            <SelectTrigger className="h-8 w-full">
+              <SelectValue placeholder="Filtrar" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Todos</SelectItem>
+              {column.filterOptions?.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        );
+      
+      case 'date':
+        return (
+          <Input
+            type="date"
+            value={filterValue}
+            onChange={(e) => handleColumnFilter(column.key, e.target.value)}
+            className="h-8 w-full"
+            placeholder="Filtrar data"
+          />
+        );
+      
+      case 'number':
+        return (
+          <Input
+            type="number"
+            value={filterValue}
+            onChange={(e) => handleColumnFilter(column.key, e.target.value)}
+            className="h-8 w-full"
+            placeholder="Filtrar número"
+          />
+        );
+      
+      default: // text
+        return (
+          <div className="relative">
+            <Input
+              value={filterValue}
+              onChange={(e) => handleColumnFilter(column.key, e.target.value)}
+              className="h-8 w-full pr-8"
+              placeholder="Filtrar"
+            />
+            {filterValue && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute right-0 top-0 h-8 w-8 p-0"
+                onClick={() => clearColumnFilter(column.key)}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            )}
+          </div>
+        );
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -153,6 +309,44 @@ export const DataTable = ({
                 {actionButtons}
               </div>
             )}
+            
+            {/* Botão para mostrar/ocultar filtros */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center gap-2"
+            >
+              <Filter className="h-4 w-4" />
+              <span className="hidden sm:inline">Filtros</span>
+            </Button>
+            
+            {/* Kebab menu para ações em lote */}
+            {(baseEndpoint || onImport || onDownloadTemplate || onExportCsv) && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="flex items-center gap-2">
+                    <MoreHorizontal className="h-4 w-4" />
+                    <span className="hidden sm:inline">Ações</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem onClick={handleImport} className="cursor-pointer">
+                    <Upload className="h-4 w-4 mr-2" />
+                    Importar
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleDownloadTemplate} className="cursor-pointer">
+                    <FileDown className="h-4 w-4 mr-2" />
+                    Baixar Molde de Importe
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleExportCsv} className="cursor-pointer">
+                    <Download className="h-4 w-4 mr-2" />
+                    Exportar CSV
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+            
             {onAdd && (
               <Button onClick={onAdd} className="bg-ifms-green hover:bg-ifms-green-dark">
                 <Plus className="h-4 w-4 mr-2" />
@@ -161,6 +355,8 @@ export const DataTable = ({
             )}
           </div>
         </div>
+        
+        {/* Barra de busca global */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <Input
@@ -170,6 +366,33 @@ export const DataTable = ({
             className="pl-10"
           />
         </div>
+
+        {/* Filtros por coluna */}
+        {showFilters && (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-muted-foreground">Filtros por Coluna</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearAllFilters}
+                className="h-6 px-2 text-xs"
+              >
+                Limpar Todos
+              </Button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+              {columns.map((column) => (
+                <div key={column.key} className="space-y-2">
+                  <label className="text-xs font-medium text-muted-foreground">
+                    {column.label}
+                  </label>
+                  {renderColumnFilter(column)}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </CardHeader>
       <CardContent>
         <div className="rounded-md border">

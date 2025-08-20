@@ -24,15 +24,15 @@ app.add_middleware(
 )
 
 # Rotas de autenticação para o aplicativo mobile
-app.include_router(auth.router, prefix="/api/v3/mobile", tags=["auth"])
+app.include_router(auth.router, prefix="/api/v3/mobile", tags=["mobile"])
 # Rotas de avaliações para o aplicativo mobile
-app.include_router(mobile_assessments.router, prefix="/api/v3/mobile", tags=["assessments"])
+app.include_router(mobile_assessments.router, prefix="/api/v3/mobile", tags=["mobile"])
 # Rotas de questões para o aplicativo mobile
-app.include_router(mobile_questions.router, prefix="/api/v3/mobile", tags=["questions"])
+app.include_router(mobile_questions.router, prefix="/api/v3/mobile", tags=["mobile"])
 # Rotas de respostas para o aplicativo mobile
-app.include_router(mobile_responses.router, prefix="/api/v3/mobile", tags=["responses"])
+app.include_router(mobile_responses.router, prefix="/api/v3/mobile", tags=["mobile"])
 # Rotas de eventos para o aplicativo mobile
-app.include_router(mobile_events.router, prefix="/api/v3/mobile/events", tags=["events"])
+app.include_router(mobile_events.router, prefix="/api/v3/mobile/events", tags=["mobile"])
 
 # Rotas de autenticação para o sistema web
 app.include_router(web_auth.router, prefix="/api/v3/auth", tags=["auth"])

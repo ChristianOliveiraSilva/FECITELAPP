@@ -31,13 +31,58 @@ interface Projeto extends Record<string, unknown> {
 }
 
 const columns = [
-  { key: "title", label: "Título", sortable: true },
-  { key: "year", label: "Ano", sortable: true },
-  { key: "category_name", label: "Categoria", sortable: true },
-  { key: "projectType", label: "Tipo", sortable: true },
-  { key: "file", label: "Arquivo", sortable: false },
-  { key: "students_count", label: "Estudantes", sortable: false },
-  { key: "created_at", label: "Criado em", sortable: true }
+  { 
+    key: "title", 
+    label: "Título", 
+    sortable: true, 
+    filterable: true, 
+    filterType: 'text' as const 
+  },
+  { 
+    key: "year", 
+    label: "Ano", 
+    sortable: true, 
+    filterable: true, 
+    filterType: 'number' as const 
+  },
+  { 
+    key: "category_name", 
+    label: "Categoria", 
+    sortable: true, 
+    filterable: true, 
+    filterType: 'text' as const 
+  },
+  { 
+    key: "projectType", 
+    label: "Tipo", 
+    sortable: true, 
+    filterable: true, 
+    filterType: 'select' as const,
+    filterOptions: [
+      { value: "Científico", label: "Científico" },
+      { value: "Tecnológico", label: "Tecnológico" }
+    ]
+  },
+  { 
+    key: "file", 
+    label: "Arquivo", 
+    sortable: false, 
+    filterable: false 
+  },
+  { 
+    key: "students_count", 
+    label: "Estudantes", 
+    sortable: false, 
+    filterable: true, 
+    filterType: 'number' as const 
+  },
+  { 
+    key: "created_at", 
+    label: "Criado em", 
+    sortable: true, 
+    filterable: true, 
+    filterType: 'date' as const 
+  }
 ];
 
 const formFields = [
@@ -206,6 +251,7 @@ export const ProjetosPage = () => {
           onSelectionChange={handleSelectionChange}
           pageSize={15}
           pageSizeOptions={[10, 15, 25, 50, 100]}
+          baseEndpoint="/projects"
           actionButtons={
             <Button 
               onClick={handleGerarFichasBannerSelecionados}

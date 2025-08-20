@@ -4,6 +4,7 @@ import { CrudForm } from "@/components/ui/crud-form";
 import { useCrud } from "@/hooks/use-crud";
 import { mockPremiacoes } from "@/data/mockData";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { ReactNode } from "react";
 
 interface Premiacao extends Record<string, unknown> {
   id?: string;
@@ -15,11 +16,49 @@ interface Premiacao extends Record<string, unknown> {
 }
 
 const columns = [
-  { key: "nome", label: "Nome", sortable: true },
-  { key: "grau_escolaridade", label: "Grau de Escolaridade", sortable: true },
-  { key: "total_colocacoes", label: "Total de colocações", sortable: true },
-  { key: "usar_graus_escolaridade", label: "Usar Graus de escolaridade?", sortable: true },
-  { key: "usar_areas", label: "Usar Áreas?", sortable: true }
+  { 
+    key: "nome", 
+    label: "Nome", 
+    sortable: true, 
+    filterable: true, 
+    filterType: 'text' as const 
+  },
+  { 
+    key: "grau_escolaridade", 
+    label: "Grau de Escolaridade", 
+    sortable: true, 
+    filterable: true, 
+    filterType: 'text' as const 
+  },
+  { 
+    key: "total_colocacoes", 
+    label: "Total de Colocações", 
+    sortable: true, 
+    filterable: true, 
+    filterType: 'number' as const 
+  },
+  { 
+    key: "usar_graus_escolaridade", 
+    label: "Usar Graus", 
+    sortable: true, 
+    filterable: true, 
+    filterType: 'select' as const,
+    filterOptions: [
+      { value: "true", label: "Sim" },
+      { value: "false", label: "Não" }
+    ]
+  },
+  { 
+    key: "usar_areas", 
+    label: "Usar Áreas", 
+    sortable: true, 
+    filterable: true, 
+    filterType: 'select' as const,
+    filterOptions: [
+      { value: "true", label: "Sim" },
+      { value: "false", label: "Não" }
+    ]
+  }
 ];
 
 const formFields = [
@@ -85,8 +124,12 @@ export const PremiacoesPage = () => {
 
   const [itemToDelete, setItemToDelete] = useState<Premiacao | null>(null);
 
-  const handleDelete = (item: Premiacao) => {
-    setItemToDelete(item);
+  const handleEdit = (item: Record<string, ReactNode>) => {
+    openEditForm(item as Premiacao);
+  };
+
+  const handleDelete = (item: Record<string, ReactNode>) => {
+    setItemToDelete(item as Premiacao);
   };
 
   const confirmDelete = () => {
@@ -95,6 +138,15 @@ export const PremiacoesPage = () => {
       setItemToDelete(null);
     }
   };
+
+  const transformedData: Record<string, ReactNode>[] = data.map(item => ({
+    id: item.id,
+    nome: item.nome,
+    grau_escolaridade: item.grau_escolaridade,
+    total_colocacoes: item.total_colocacoes,
+    usar_graus_escolaridade: item.usar_graus_escolaridade,
+    usar_areas: item.usar_areas
+  }));
 
   return (
     <div className="space-y-6">
@@ -109,11 +161,12 @@ export const PremiacoesPage = () => {
         <DataTable
           title="Lista de Premiações"
           columns={columns}
-          data={data}
-          searchPlaceholder="Buscar por nome, grau de escolaridade..."
+          data={transformedData}
+          searchPlaceholder="Buscar por nome da premiação..."
           onAdd={openAddForm}
-          onEdit={openEditForm}
+          onEdit={handleEdit}
           onDelete={handleDelete}
+          baseEndpoint="/awards"
         />
       ) : (
         <CrudForm

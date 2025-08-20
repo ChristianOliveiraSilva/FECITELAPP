@@ -20,8 +20,8 @@ class CardsService {
     try {
       const response = await apiService.get<CardsData>('/cards');
 
-      if (response.data && response.data.length > 0) {
-        return response.data[0];
+      if (response) {
+        return response;
       } else {
         throw new Error('Erro ao buscar dados dos cards');
       }

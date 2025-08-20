@@ -5,6 +5,7 @@ import { useApiCrud } from "@/hooks/use-api-crud";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
+import { ReactNode } from "react";
 
 interface Pergunta extends Record<string, unknown> {
   id?: number;
@@ -28,11 +29,59 @@ interface Pergunta extends Record<string, unknown> {
 }
 
 const columns = [
-  { key: "scientific_text", label: "Texto Científico", sortable: false },
-  { key: "technological_text", label: "Texto Tecnológico", sortable: false },
-  { key: "type", label: "Tipo", sortable: true },
-  { key: "number_alternatives", label: "Alternativas", sortable: true },
-  { key: "created_at", label: "Criado em", sortable: true }
+  { 
+    key: "scientific_text", 
+    label: "Texto Científico", 
+    sortable: false, 
+    filterable: true, 
+    filterType: 'text' as const 
+  },
+  { 
+    key: "technological_text", 
+    label: "Texto Tecnológico", 
+    sortable: false, 
+    filterable: true, 
+    filterType: 'text' as const 
+  },
+  { 
+    key: "type", 
+    label: "Tipo", 
+    sortable: true, 
+    filterable: true, 
+    filterType: 'select' as const,
+    filterOptions: [
+      { value: "1", label: "Científico" },
+      { value: "2", label: "Tecnológico" }
+    ]
+  },
+  { 
+    key: "number_alternatives", 
+    label: "Alternativas", 
+    sortable: true, 
+    filterable: true, 
+    filterType: 'number' as const 
+  },
+  { 
+    key: "responses_count", 
+    label: "Respostas", 
+    sortable: false, 
+    filterable: true, 
+    filterType: 'number' as const 
+  },
+  { 
+    key: "awards_count", 
+    label: "Premiações", 
+    sortable: false, 
+    filterable: true, 
+    filterType: 'number' as const 
+  },
+  { 
+    key: "created_at", 
+    label: "Criado em", 
+    sortable: true, 
+    filterable: true, 
+    filterType: 'date' as const 
+  }
 ];
 
 const formFields = [
@@ -85,8 +134,12 @@ export const PerguntasPage = () => {
 
   const [itemToDelete, setItemToDelete] = useState<Pergunta | null>(null);
 
-  const handleDelete = (item: Pergunta) => {
-    setItemToDelete(item);
+  const handleEdit = (item: Record<string, ReactNode>) => {
+    openEditForm(item as Pergunta);
+  };
+
+  const handleDelete = (item: Record<string, ReactNode>) => {
+    setItemToDelete(item as Pergunta);
   };
 
   const confirmDelete = async () => {
@@ -96,10 +149,16 @@ export const PerguntasPage = () => {
     }
   };
 
-  const transformedData = data.map(item => ({
-    ...item,
-    type: item.type === 1 ? "Múltipla Escolha" : item.type === 2 ? "Texto" : "Desconhecido",
-    created_at: item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : "-"
+  const transformedData: Record<string, ReactNode>[] = data.map(item => ({
+    id: item.id,
+    scientific_text: item.scientific_text,
+    technological_text: item.technological_text,
+    type: item.type === 1 ? "Científico" : "Tecnológico",
+    number_alternatives: item.number_alternatives,
+    responses_count: item.responses?.length || 0,
+    awards_count: item.awards?.length || 0,
+    created_at: item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : "-",
+    updated_at: item.updated_at
   }));
 
   return (
@@ -129,11 +188,12 @@ export const PerguntasPage = () => {
           title="Lista de Perguntas"
           columns={columns}
           data={transformedData}
-          searchPlaceholder="Buscar por texto, tipo..."
+          searchPlaceholder="Buscar por texto da pergunta..."
           onAdd={openAddForm}
-          onEdit={openEditForm}
+          onEdit={handleEdit}
           onDelete={handleDelete}
           loading={loading}
+          baseEndpoint="/questions"
         />
       ) : (
         <CrudForm

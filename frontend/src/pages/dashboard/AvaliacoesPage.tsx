@@ -5,6 +5,7 @@ import { useApiCrud } from "@/hooks/use-api-crud";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
+import { ReactNode } from "react";
 
 interface Avaliacao extends Record<string, unknown> {
   id?: number;
@@ -22,6 +23,10 @@ interface Avaliacao extends Record<string, unknown> {
     title: string;
     year: number;
     category_id: number;
+    category?: {
+      id: number;
+      name: string;
+    };
   };
   responses?: Array<{
     id: number;
@@ -32,11 +37,59 @@ interface Avaliacao extends Record<string, unknown> {
 }
 
 const columns = [
-  { key: "evaluator_name", label: "Avaliador", sortable: true },
-  { key: "project_title", label: "Projeto", sortable: true },
-  { key: "project_year", label: "Ano", sortable: true },
-  { key: "has_responses", label: "Possui Respostas", sortable: true },
-  { key: "created_at", label: "Criado em", sortable: true }
+  { 
+    key: "evaluator_name", 
+    label: "Avaliador", 
+    sortable: true, 
+    filterable: true, 
+    filterType: 'text' as const 
+  },
+  { 
+    key: "project_title", 
+    label: "Projeto", 
+    sortable: true, 
+    filterable: true, 
+    filterType: 'text' as const 
+  },
+  { 
+    key: "project_year", 
+    label: "Ano", 
+    sortable: true, 
+    filterable: true, 
+    filterType: 'number' as const 
+  },
+  { 
+    key: "project_category", 
+    label: "Categoria", 
+    sortable: true, 
+    filterable: true, 
+    filterType: 'text' as const 
+  },
+  { 
+    key: "has_response", 
+    label: "Respondido", 
+    sortable: true, 
+    filterable: true, 
+    filterType: 'select' as const,
+    filterOptions: [
+      { value: "true", label: "Sim" },
+      { value: "false", label: "Não" }
+    ]
+  },
+  { 
+    key: "note", 
+    label: "Nota", 
+    sortable: true, 
+    filterable: true, 
+    filterType: 'number' as const 
+  },
+  { 
+    key: "created_at", 
+    label: "Criado em", 
+    sortable: true, 
+    filterable: true, 
+    filterType: 'date' as const 
+  }
 ];
 
 const formFields = [
@@ -74,8 +127,12 @@ export const AvaliacoesPage = () => {
 
   const [itemToDelete, setItemToDelete] = useState<Avaliacao | null>(null);
 
-  const handleDelete = (item: Avaliacao) => {
-    setItemToDelete(item);
+  const handleEdit = (item: Record<string, ReactNode>) => {
+    openEditForm(item as Avaliacao);
+  };
+
+  const handleDelete = (item: Record<string, ReactNode>) => {
+    setItemToDelete(item as Avaliacao);
   };
 
   const confirmDelete = async () => {
@@ -85,13 +142,19 @@ export const AvaliacoesPage = () => {
     }
   };
 
-  const transformedData = data.map(item => ({
-    ...item,
+  const transformedData: Record<string, ReactNode>[] = data.map(item => ({
+    id: item.id,
+    evaluator_id: item.evaluator_id,
+    project_id: item.project_id,
     evaluator_name: item.evaluator?.PIN || `Avaliador ${item.evaluator_id}`,
     project_title: item.project?.title || `Projeto ${item.project_id}`,
     project_year: item.project?.year || "-",
-    has_responses: item.responses && item.responses.length > 0 ? "Sim" : "Não",
-    created_at: item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : "-"
+    project_category: item.project?.category?.name || "-",
+    has_response: item.responses && item.responses.length > 0 ? "Sim" : "Não",
+    note: item.responses && item.responses.length > 0 ? 
+      (item.responses.reduce((sum, r) => sum + (r.score || 0), 0) / item.responses.length).toFixed(2) : "0.00",
+    created_at: item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : "-",
+    updated_at: item.updated_at
   }));
 
   return (
@@ -121,11 +184,12 @@ export const AvaliacoesPage = () => {
           title="Lista de Avaliações"
           columns={columns}
           data={transformedData}
-          searchPlaceholder="Buscar por avaliador, projeto..."
+          searchPlaceholder="Buscar por projeto, avaliador..."
           onAdd={openAddForm}
-          onEdit={openEditForm}
+          onEdit={handleEdit}
           onDelete={handleDelete}
           loading={loading}
+          baseEndpoint="/assessments"
         />
       ) : (
         <CrudForm

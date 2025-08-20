@@ -6,6 +6,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Loader2, FileText, ClipboardList } from "lucide-react";
+import { ReactNode } from "react";
 
 interface Avaliador extends Record<string, unknown> {
   id?: number;
@@ -31,12 +32,41 @@ interface Avaliador extends Record<string, unknown> {
 }
 
 const columns = [
-  { key: "user_name", label: "Nome", sortable: true },
-  { key: "user_email", label: "E-mail", sortable: true },
-  { key: "PIN", label: "PIN", sortable: true },
-  { key: "assessments_count", label: "Avaliações", sortable: false },
-  { key: "categories_count", label: "Categorias", sortable: false },
-  { key: "created_at", label: "Criado em", sortable: true }
+  { 
+    key: "PIN", 
+    label: "PIN", 
+    sortable: true, 
+    filterable: true, 
+    filterType: 'text' as const 
+  },
+  { 
+    key: "user_name", 
+    label: "Nome", 
+    sortable: true, 
+    filterable: true, 
+    filterType: 'text' as const 
+  },
+  { 
+    key: "user_email", 
+    label: "Email", 
+    sortable: true, 
+    filterable: true, 
+    filterType: 'text' as const 
+  },
+  { 
+    key: "assessments_count", 
+    label: "Avaliações", 
+    sortable: false, 
+    filterable: true, 
+    filterType: 'number' as const 
+  },
+  { 
+    key: "created_at", 
+    label: "Criado em", 
+    sortable: true, 
+    filterable: true, 
+    filterType: 'date' as const 
+  }
 ];
 
 const formFields = [
@@ -73,8 +103,12 @@ export const AvaliadoresPage = () => {
 
   const [itemToDelete, setItemToDelete] = useState<Avaliador | null>(null);
 
-  const handleDelete = (item: Avaliador) => {
-    setItemToDelete(item);
+  const handleEdit = (item: Record<string, ReactNode>) => {
+    openEditForm(item as Avaliador);
+  };
+
+  const handleDelete = (item: Record<string, ReactNode>) => {
+    setItemToDelete(item as Avaliador);
   };
 
   const confirmDelete = async () => {
@@ -106,13 +140,16 @@ export const AvaliadoresPage = () => {
     console.log("Gerando check-in para:", selectedAvaliadores.length, "avaliadores selecionados");
   };
 
-  const transformedData = data.map(item => ({
-    ...item,
+  const transformedData: Record<string, ReactNode>[] = data.map(item => ({
+    id: item.id,
+    user_id: item.user_id,
+    PIN: item.PIN,
     user_name: item.user?.name || "-",
     user_email: item.user?.email || "-",
     assessments_count: item.assessments?.length || 0,
     categories_count: item.categories?.length || 0,
-    created_at: item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : "-"
+    created_at: item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : "-",
+    updated_at: item.updated_at
   }));
 
   return (
@@ -142,35 +179,12 @@ export const AvaliadoresPage = () => {
           title="Lista de Avaliadores"
           columns={columns}
           data={transformedData}
-          searchPlaceholder="Buscar por nome, email, PIN..."
+          searchPlaceholder="Buscar por PIN, usuário..."
           onAdd={openAddForm}
-          onEdit={openEditForm}
+          onEdit={handleEdit}
           onDelete={handleDelete}
           loading={loading}
-          selectable={true}
-          onSelectionChange={handleSelectionChange}
-          pageSize={15}
-          pageSizeOptions={[10, 15, 25, 50, 100]}
-          actionButtons={
-            <>
-              <Button 
-                onClick={handleGerarCertificadoSelecionados}
-                variant="outline"
-                className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
-              >
-                <FileText className="h-4 w-4" />
-                Certificado
-              </Button>
-              <Button 
-                onClick={handleGerarCheckInSelecionados}
-                variant="outline"
-                className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
-              >
-                <ClipboardList className="h-4 w-4" />
-                Check-in
-              </Button>
-            </>
-          }
+          baseEndpoint="/evaluators"
         />
       ) : (
         <CrudForm
