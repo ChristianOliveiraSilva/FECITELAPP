@@ -49,7 +49,6 @@ class EmailService:
             server.quit()
             
             return True
-            
         except Exception as e:
             print(f"Erro ao enviar email: {e}")
             return False

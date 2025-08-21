@@ -32,13 +32,13 @@ async def get_password_reset_configs(
         
         return PasswordResetConfigListResponse(
             status=True,
-            message="Password reset configs retrieved successfully",
+            message="Configurações de redefinição de senha recuperadas com sucesso",
             data=config_data
         )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error retrieving password reset configs: {str(e)}"
+            detail=f"Erro ao recuperar configurações de redefinição de senha: {str(e)}"
         )
 
 @router.get("/{config_id}", response_model=PasswordResetConfigDetailResponse)
@@ -55,7 +55,7 @@ async def get_password_reset_config(
         if not config:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Password reset config not found"
+                detail="Configuração de redefinição de senha não encontrada"
             )
         
         config_dict = {
@@ -68,7 +68,7 @@ async def get_password_reset_config(
         
         return PasswordResetConfigDetailResponse(
             status=True,
-            message="Password reset config retrieved successfully",
+            message="Configuração de redefinição de senha recuperada com sucesso",
             data=config_dict
         )
     except HTTPException:
@@ -76,39 +76,7 @@ async def get_password_reset_config(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error retrieving password reset config: {str(e)}"
-        )
-
-@router.post("/", response_model=PasswordResetConfigDetailResponse)
-async def create_password_reset_config(
-    config_data: PasswordResetConfigCreate, 
-    db: Session = Depends(get_db)
-):
-    try:
-        config = PasswordResetConfig(mail_template=config_data.mail_template)
-        
-        db.add(config)
-        db.commit()
-        db.refresh(config)
-        
-        config_dict = {
-            "id": config.id,
-            "mail_template": config.mail_template,
-            "created_at": config.created_at,
-            "updated_at": config.updated_at,
-            "deleted_at": config.deleted_at
-        }
-        
-        return PasswordResetConfigDetailResponse(
-            status=True,
-            message="Password reset config created successfully",
-            data=config_dict
-        )
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error creating password reset config: {str(e)}"
+            detail=f"Erro ao recuperar configuração de redefinição de senha: {str(e)}"
         )
 
 @router.put("/{config_id}", response_model=PasswordResetConfigDetailResponse)
@@ -126,7 +94,7 @@ async def update_password_reset_config(
         if not config:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Password reset config not found"
+                detail="Configuração de redefinição de senha não encontrada"
             )
         
         update_data = config_data.dict(exclude_unset=True)
@@ -146,7 +114,7 @@ async def update_password_reset_config(
         
         return PasswordResetConfigDetailResponse(
             status=True,
-            message="Password reset config updated successfully",
+            message="Configuração de redefinição de senha atualizada com sucesso",
             data=config_dict
         )
     except HTTPException:
@@ -155,37 +123,5 @@ async def update_password_reset_config(
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error updating password reset config: {str(e)}"
-        )
-
-@router.delete("/{config_id}")
-async def delete_password_reset_config(config_id: int, db: Session = Depends(get_db)):
-    try:
-        config = db.query(PasswordResetConfig).filter(
-            PasswordResetConfig.id == config_id,
-            PasswordResetConfig.deleted_at == None
-        ).first()
-        
-        if not config:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Password reset config not found"
-            )
-        
-        from datetime import datetime
-        config.deleted_at = datetime.utcnow()
-        
-        db.commit()
-        
-        return {
-            "status": True,
-            "message": "Password reset config deleted successfully"
-        }
-    except HTTPException:
-        raise
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error deleting password reset config: {str(e)}"
+            detail=f"Erro ao atualizar configuração de redefinição de senha: {str(e)}"
         )

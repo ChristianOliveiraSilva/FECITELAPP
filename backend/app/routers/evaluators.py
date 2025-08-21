@@ -17,7 +17,6 @@ async def get_evaluators(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
     year: Optional[int] = Query(None, description="Filter by year (defaults to current year)"),
-    include_relations: bool = Query(False, description="Include related data"),
     db: Session = Depends(get_db)
 ):
     try:
@@ -26,14 +25,11 @@ async def get_evaluators(
         query = db.query(Evaluator).filter(
             Evaluator.deleted_at == None,
             Evaluator.year == filter_year
+        ).options(
+            joinedload(Evaluator.user),
+            joinedload(Evaluator.assessments),
+            joinedload(Evaluator.categories)
         )
-        
-        if include_relations:
-            query = query.options(
-                joinedload(Evaluator.user),
-                joinedload(Evaluator.assessments),
-                joinedload(Evaluator.categories)
-            )
         
         evaluators = query.offset(skip).limit(limit).all()
         
@@ -52,81 +48,6 @@ async def get_evaluators(
                 "categories": []
             }
             
-            if include_relations:
-                if evaluator.user:
-                    evaluator_dict["user"] = {
-                        "id": evaluator.user.id,
-                        "name": evaluator.user.name,
-                        "email": evaluator.user.email,
-                        "active": evaluator.user.active
-                    }
-                
-                evaluator_dict["assessments"] = [
-                    {
-                        "id": assessment.id,
-                        "project_id": assessment.project_id,
-                        "created_at": assessment.created_at
-                    } for assessment in evaluator.assessments
-                ]
-                
-                evaluator_dict["categories"] = [
-                    {
-                        "id": category.id,
-                        "name": category.name
-                    } for category in evaluator.categories
-                ]
-            
-            evaluator_data.append(evaluator_dict)
-        
-        return EvaluatorListResponse(
-            status=True,
-            message=f"Evaluators retrieved successfully for year {filter_year}",
-            data=evaluator_data
-        )
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error retrieving evaluators: {str(e)}"
-        )
-
-@router.get("/{evaluator_id}", response_model=EvaluatorDetailResponse)
-async def get_evaluator(
-    evaluator_id: int,
-    include_relations: bool = Query(False, description="Include related data"),
-    db: Session = Depends(get_db)
-):
-    try:
-        query = db.query(Evaluator).filter(Evaluator.deleted_at == None)
-        
-        if include_relations:
-            query = query.options(
-                joinedload(Evaluator.user),
-                joinedload(Evaluator.assessments),
-                joinedload(Evaluator.categories)
-            )
-        
-        evaluator = query.filter(Evaluator.id == evaluator_id).first()
-        
-        if not evaluator:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Evaluator not found"
-            )
-        
-        evaluator_dict = {
-            "id": evaluator.id,
-            "user_id": evaluator.user_id,
-            "PIN": evaluator.PIN,
-            "year": evaluator.year,
-            "created_at": evaluator.created_at,
-            "updated_at": evaluator.updated_at,
-            "deleted_at": evaluator.deleted_at,
-            "user": None,
-            "assessments": [],
-            "categories": []
-        }
-        
-        if include_relations:
             if evaluator.user:
                 evaluator_dict["user"] = {
                     "id": evaluator.user.id,
@@ -149,6 +70,75 @@ async def get_evaluator(
                     "name": category.name
                 } for category in evaluator.categories
             ]
+            
+            evaluator_data.append(evaluator_dict)
+        
+        return EvaluatorListResponse(
+            status=True,
+            message=f"Evaluators retrieved successfully for year {filter_year}",
+            data=evaluator_data
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error retrieving evaluators: {str(e)}"
+        )
+
+@router.get("/{evaluator_id}", response_model=EvaluatorDetailResponse)
+async def get_evaluator(
+    evaluator_id: int,
+    db: Session = Depends(get_db)
+):
+    try:
+        query = db.query(Evaluator).filter(Evaluator.deleted_at == None).options(
+            joinedload(Evaluator.user),
+            joinedload(Evaluator.assessments),
+            joinedload(Evaluator.categories)
+        )
+        
+        evaluator = query.filter(Evaluator.id == evaluator_id).first()
+        
+        if not evaluator:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Evaluator not found"
+            )
+        
+        evaluator_dict = {
+            "id": evaluator.id,
+            "user_id": evaluator.user_id,
+            "PIN": evaluator.PIN,
+            "year": evaluator.year,
+            "created_at": evaluator.created_at,
+            "updated_at": evaluator.updated_at,
+            "deleted_at": evaluator.deleted_at,
+            "user": None,
+            "assessments": [],
+            "categories": []
+        }
+        
+        if evaluator.user:
+            evaluator_dict["user"] = {
+                "id": evaluator.user.id,
+                "name": evaluator.user.name,
+                "email": evaluator.user.email,
+                "active": evaluator.user.active
+            }
+        
+        evaluator_dict["assessments"] = [
+            {
+                "id": assessment.id,
+                "project_id": assessment.project_id,
+                "created_at": assessment.created_at
+            } for assessment in evaluator.assessments
+        ]
+        
+        evaluator_dict["categories"] = [
+            {
+                "id": category.id,
+                "name": category.name
+            } for category in evaluator.categories
+        ]
         
         return EvaluatorDetailResponse(
             status=True,
@@ -170,18 +160,25 @@ async def create_evaluator(evaluator_data: EvaluatorCreate, db: Session = Depend
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="User not found"
+                detail="Usuário não encontrado"
             )
-        
+
         existing_evaluator = db.query(Evaluator).filter(Evaluator.user_id == evaluator_data.user_id).first()
         if existing_evaluator:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="User already has an evaluator profile"
+                detail="Usuário já possui um perfil de avaliador"
             )
-        
+
         pin = evaluator_data.PIN
-        if not pin:
+        if pin:
+            existing_pin = db.query(Evaluator).filter(Evaluator.PIN == pin).first()
+            if existing_pin:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="PIN já está em uso, por favor escolha outro"
+                )
+        else:
             while True:
                 pin = str(random.randint(1111, 9999))
                 existing_pin = db.query(Evaluator).filter(Evaluator.PIN == pin).first()
@@ -202,6 +199,7 @@ async def create_evaluator(evaluator_data: EvaluatorCreate, db: Session = Depend
             "id": evaluator.id,
             "user_id": evaluator.user_id,
             "PIN": evaluator.PIN,
+            "year": evaluator.year,
             "created_at": evaluator.created_at,
             "updated_at": evaluator.updated_at,
             "deleted_at": evaluator.deleted_at,
@@ -209,6 +207,30 @@ async def create_evaluator(evaluator_data: EvaluatorCreate, db: Session = Depend
             "assessments": [],
             "categories": []
         }
+        
+        
+        if evaluator.user:
+            evaluator_dict["user"] = {
+                "id": evaluator.user.id,
+                "name": evaluator.user.name,
+                "email": evaluator.user.email,
+                "active": evaluator.user.active
+            }
+        
+        evaluator_dict["assessments"] = [
+            {
+                "id": assessment.id,
+                "project_id": assessment.project_id,
+                "created_at": assessment.created_at
+            } for assessment in evaluator.assessments
+        ]
+        
+        evaluator_dict["categories"] = [
+            {
+                "id": category.id,
+                "name": category.name
+            } for category in evaluator.categories
+        ]
         
         return EvaluatorDetailResponse(
             status=True,
@@ -236,7 +258,7 @@ async def update_evaluator(
         if not evaluator:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Evaluator not found"
+                detail="Avaliador não encontrado"
             )
         
         if evaluator_data.user_id and evaluator_data.user_id != evaluator.user_id:
@@ -244,7 +266,7 @@ async def update_evaluator(
             if not user:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="User not found"
+                    detail="Usuário não encontrado"
                 )
             
             existing_evaluator = db.query(Evaluator).filter(
@@ -254,7 +276,7 @@ async def update_evaluator(
             if existing_evaluator:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="User already has an evaluator profile"
+                    detail="Usuário já possui um perfil de avaliador"
                 )
         
         if evaluator_data.PIN and evaluator_data.PIN != evaluator.PIN:
@@ -265,15 +287,12 @@ async def update_evaluator(
             if existing_pin:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="PIN already exists"
+                    detail="PIN já existe"
                 )
         
         update_data = evaluator_data.dict(exclude_unset=True)
         for field, value in update_data.items():
             setattr(evaluator, field, value)
-        
-        if not hasattr(evaluator_data, 'year') or evaluator_data.year is None:
-            evaluator.year = datetime.now().year
         
         db.commit()
         db.refresh(evaluator)
@@ -282,6 +301,7 @@ async def update_evaluator(
             "id": evaluator.id,
             "user_id": evaluator.user_id,
             "PIN": evaluator.PIN,
+            "year": evaluator.year,
             "created_at": evaluator.created_at,
             "updated_at": evaluator.updated_at,
             "deleted_at": evaluator.deleted_at,
@@ -289,6 +309,29 @@ async def update_evaluator(
             "assessments": [],
             "categories": []
         }
+        
+        if evaluator.user:
+            evaluator_dict["user"] = {
+                "id": evaluator.user.id,
+                "name": evaluator.user.name,
+                "email": evaluator.user.email,
+                "active": evaluator.user.active
+            }
+        
+        evaluator_dict["assessments"] = [
+            {
+                "id": assessment.id,
+                "project_id": assessment.project_id,
+                "created_at": assessment.created_at
+            } for assessment in evaluator.assessments
+        ]
+        
+        evaluator_dict["categories"] = [
+            {
+                "id": category.id,
+                "name": category.name
+            } for category in evaluator.categories
+        ]
         
         return EvaluatorDetailResponse(
             status=True,

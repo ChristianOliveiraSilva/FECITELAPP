@@ -16,11 +16,3 @@ class Category(Base):
     projects = relationship("Project", back_populates="category")
     evaluators = relationship("Evaluator", secondary="evaluator_categories", back_populates="categories")
     main_category = relationship("Category", remote_side=[id], backref="sub_categories")
-    
-    @classmethod
-    def main_categories(cls, db):
-        return db.query(cls).filter(cls.main_category_id.is_(None)).all()
-    
-    @property
-    def is_main_category(self) -> bool:
-        return self.main_category_id is None 

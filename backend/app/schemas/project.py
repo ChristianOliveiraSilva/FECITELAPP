@@ -11,18 +11,6 @@ class ProjectBase(BaseModel):
     external_id: Optional[str] = None
     file: Optional[str] = None
 
-class ProjectCreate(ProjectBase):
-    pass
-
-class ProjectUpdate(BaseModel):
-    title: Optional[str] = None
-    description: Optional[str] = None
-    year: Optional[int] = None
-    category_id: Optional[int] = None
-    projectType: Optional[int] = None
-    external_id: Optional[str] = None
-    file: Optional[str] = None
-
 class ProjectResponse(ProjectBase):
     id: int
     created_at: datetime

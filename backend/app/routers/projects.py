@@ -4,7 +4,7 @@ from app.database import get_db
 from app.models.project import Project
 from app.models.category import Category
 from app.schemas.project import (
-    ProjectCreate, ProjectUpdate, ProjectListResponse, ProjectDetailResponse
+    ProjectListResponse, ProjectDetailResponse
 )
 from typing import Optional
 from datetime import datetime
@@ -23,30 +23,30 @@ async def save_upload_file(upload_file: UploadFile) -> str:
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(upload_file.file, buffer)
     
-    return file_name
+    return os.path.join(UPLOAD_DIR, file_name)
 
 @router.get("/", response_model=ProjectListResponse)
 async def get_projects(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
-    year: Optional[int] = Query(None, description="Filter by year (defaults to current year)"),
-    include_relations: bool = Query(False, description="Include related data"),
+    year: Optional[int] = Query(None, description="Filtrar por ano (padrão: ano atual)"),
     db: Session = Depends(get_db)
 ):
     try:
         filter_year = year if year is not None else datetime.now().year
         
-        query = db.query(Project).filter(
-            Project.deleted_at == None,
-            Project.year == filter_year
-        )
-        
-        if include_relations:
-            query = query.options(
+        query = (
+            db.query(Project)
+            .filter(
+                Project.deleted_at == None,
+                Project.year == filter_year
+            )
+            .options(
                 joinedload(Project.category),
                 joinedload(Project.students),
                 joinedload(Project.assessments)
             )
+        )
         
         projects = query.offset(skip).limit(limit).all()
         
@@ -69,86 +69,6 @@ async def get_projects(
                 "assessments": []
             }
             
-            if include_relations:
-                if project.category:
-                    project_dict["category"] = {
-                        "id": project.category.id,
-                        "name": project.category.name
-                    }
-                
-                project_dict["students"] = [
-                    {
-                        "id": student.id,
-                        "name": student.name,
-                        "school_grade": student.school_grade,
-                        "year": student.year,
-                        "school_id": student.school_id
-                    } for student in project.students
-                ]
-                
-                project_dict["assessments"] = [
-                    {
-                        "id": assessment.id,
-                        "evaluator_id": assessment.evaluator_id,
-                        "created_at": assessment.created_at
-                    } for assessment in project.assessments
-                ]
-            
-            project_data.append(project_dict)
-        
-        return ProjectListResponse(
-            status=True,
-            message=f"Projects retrieved successfully for year {filter_year}",
-            data=project_data
-        )
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error retrieving projects: {str(e)}"
-        )
-
-@router.get("/{project_id}", response_model=ProjectDetailResponse)
-async def get_project(
-    project_id: int,
-    include_relations: bool = Query(False, description="Include related data"),
-    db: Session = Depends(get_db)
-):
-    try:
-        query = db.query(Project).filter(Project.deleted_at == None)
-        
-        if include_relations:
-            query = query.options(
-                joinedload(Project.category),
-                joinedload(Project.students),
-                joinedload(Project.assessments)
-            )
-        
-        project = query.filter(Project.id == project_id).first()
-        
-        if not project:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Project not found"
-            )
-        
-        project_dict = {
-            "id": project.id,
-            "title": project.title,
-            "description": project.description,
-            "year": project.year,
-            "category_id": project.category_id,
-            "projectType": project.projectType,
-            "external_id": project.external_id,
-            "file": project.file,
-            "created_at": project.created_at,
-            "updated_at": project.updated_at,
-            "deleted_at": project.deleted_at,
-            "category": None,
-            "students": [],
-            "assessments": []
-        }
-        
-        if include_relations:
             if project.category:
                 project_dict["category"] = {
                     "id": project.category.id,
@@ -172,10 +92,84 @@ async def get_project(
                     "created_at": assessment.created_at
                 } for assessment in project.assessments
             ]
+            
+            project_data.append(project_dict)
+        
+        return ProjectListResponse(
+            status=True,
+            message=f"Projetos recuperados com sucesso para o ano {filter_year}",
+            data=project_data
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao recuperar projetos: {str(e)}"
+        )
+
+@router.get("/{project_id}", response_model=ProjectDetailResponse)
+async def get_project(
+    project_id: int,
+    db: Session = Depends(get_db)
+):
+    try:
+        query = db.query(Project).filter(Project.deleted_at == None).options(
+            joinedload(Project.category),
+            joinedload(Project.students),
+            joinedload(Project.assessments)
+        )
+        
+        project = query.filter(Project.id == project_id).first()
+        
+        if not project:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Projeto não encontrado"
+            )
+        
+        project_dict = {
+            "id": project.id,
+            "title": project.title,
+            "description": project.description,
+            "year": project.year,
+            "category_id": project.category_id,
+            "projectType": project.projectType,
+            "external_id": project.external_id,
+            "file": project.file,
+            "created_at": project.created_at,
+            "updated_at": project.updated_at,
+            "deleted_at": project.deleted_at,
+            "category": None,
+            "students": [],
+            "assessments": []
+        }
+        
+        if project.category:
+            project_dict["category"] = {
+                "id": project.category.id,
+                "name": project.category.name
+            }
+        
+        project_dict["students"] = [
+            {
+                "id": student.id,
+                "name": student.name,
+                "school_grade": student.school_grade,
+                "year": student.year,
+                "school_id": student.school_id
+            } for student in project.students
+        ]
+        
+        project_dict["assessments"] = [
+            {
+                "id": assessment.id,
+                "evaluator_id": assessment.evaluator_id,
+                "created_at": assessment.created_at
+            } for assessment in project.assessments
+        ]
         
         return ProjectDetailResponse(
             status=True,
-            message="Project retrieved successfully",
+            message="Projeto recuperado com sucesso",
             data=project_dict
         )
     except HTTPException:
@@ -183,7 +177,7 @@ async def get_project(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error retrieving project: {str(e)}"
+            detail=f"Erro ao recuperar projeto: {str(e)}"
         )
 
 @router.post("/", response_model=ProjectDetailResponse)
@@ -194,7 +188,7 @@ async def create_project(
     category_id: int = Form(...),
     projectType: int = Form(...),
     external_id: Optional[str] = Form(None),
-    file: Optional[UploadFile] = File(None),
+    file: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):
     try:
@@ -202,7 +196,7 @@ async def create_project(
         if not category:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Category not found"
+                detail="Categoria não encontrada"
             )
         
         file_name = None
@@ -242,7 +236,7 @@ async def create_project(
         
         return ProjectDetailResponse(
             status=True,
-            message="Project created successfully",
+            message="Projeto criado com sucesso",
             data=project_dict
         )
     except HTTPException:
@@ -251,7 +245,7 @@ async def create_project(
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error creating project: {str(e)}"
+            detail=f"Erro ao criar projeto: {str(e)}"
         )
 
 @router.put("/{project_id}", response_model=ProjectDetailResponse)
@@ -272,7 +266,7 @@ async def update_project(
         if not project:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Project not found"
+                detail="Projeto não encontrado"
             )
         
         if category_id and category_id != project.category_id:
@@ -280,7 +274,7 @@ async def update_project(
             if not category:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Category not found"
+                    detail="Categoria não encontrada"
                 )
         
         if file:
@@ -322,7 +316,7 @@ async def update_project(
         
         return ProjectDetailResponse(
             status=True,
-            message="Project updated successfully",
+            message="Projeto atualizado com sucesso",
             data=project_dict
         )
     except HTTPException:
@@ -331,7 +325,7 @@ async def update_project(
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error updating project: {str(e)}"
+            detail=f"Erro ao atualizar projeto: {str(e)}"
         )
 
 @router.delete("/{project_id}")
@@ -342,7 +336,7 @@ async def delete_project(project_id: int, db: Session = Depends(get_db)):
         if not project:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Project not found"
+                detail="Projeto não encontrado"
             )
         
         project.deleted_at = datetime.utcnow()
@@ -350,7 +344,7 @@ async def delete_project(project_id: int, db: Session = Depends(get_db)):
         
         return {
             "status": True,
-            "message": "Project deleted successfully"
+            "message": "Projeto excluído com sucesso"
         }
     except HTTPException:
         raise
@@ -358,5 +352,5 @@ async def delete_project(project_id: int, db: Session = Depends(get_db)):
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error deleting project: {str(e)}"
+            detail=f"Erro ao excluir projeto: {str(e)}"
         ) 

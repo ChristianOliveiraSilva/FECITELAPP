@@ -15,17 +15,13 @@ router = APIRouter()
 async def get_responses(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
-    include_relations: bool = Query(False, description="Include related data"),
     db: Session = Depends(get_db)
 ):
     try:
-        query = db.query(Response).filter(Response.deleted_at == None)
-        
-        if include_relations:
-            query = query.options(
-                joinedload(Response.question),
-                joinedload(Response.assessment)
-            )
+        query = db.query(Response).filter(Response.deleted_at == None).options(
+            joinedload(Response.question),
+            joinedload(Response.assessment)
+        )
         
         responses = query.offset(skip).limit(limit).all()
         
@@ -44,73 +40,6 @@ async def get_responses(
                 "assessment": None
             }
             
-            if include_relations:
-                if response.question:
-                    response_dict["question"] = {
-                        "id": response.question.id,
-                        "scientific_text": response.question.scientific_text,
-                        "technological_text": response.question.technological_text,
-                        "type": response.question.type,
-                        "number_alternatives": response.question.number_alternatives
-                    }
-                
-                if response.assessment:
-                    response_dict["assessment"] = {
-                        "id": response.assessment.id,
-                        "evaluator_id": response.assessment.evaluator_id,
-                        "project_id": response.assessment.project_id
-                    }
-            
-            response_data.append(response_dict)
-        
-        return ResponseListResponse(
-            status=True,
-            message="Responses retrieved successfully",
-            data=response_data
-        )
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error retrieving responses: {str(e)}"
-        )
-
-@router.get("/{response_id}", response_model=ResponseDetailResponse)
-async def get_response(
-    response_id: int,
-    include_relations: bool = Query(False, description="Include related data"),
-    db: Session = Depends(get_db)
-):
-    try:
-        query = db.query(Response).filter(Response.deleted_at == None)
-        
-        if include_relations:
-            query = query.options(
-                joinedload(Response.question),
-                joinedload(Response.assessment)
-            )
-        
-        response = query.filter(Response.id == response_id).first()
-        
-        if not response:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Response not found"
-            )
-        
-        response_dict = {
-            "id": response.id,
-            "question_id": response.question_id,
-            "assessment_id": response.assessment_id,
-            "response": response.response,
-            "score": response.score,
-            "created_at": response.created_at,
-            "updated_at": response.updated_at,
-            "deleted_at": response.deleted_at,
-            "question": None,
-            "assessment": None
-        }
-        
-        if include_relations:
             if response.question:
                 response_dict["question"] = {
                     "id": response.question.id,
@@ -126,10 +55,71 @@ async def get_response(
                     "evaluator_id": response.assessment.evaluator_id,
                     "project_id": response.assessment.project_id
                 }
+            
+            response_data.append(response_dict)
+        
+        return ResponseListResponse(
+            status=True,
+            message="Responses retrieved successfully",
+            data=response_data
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao recuperar respostas: {str(e)}"
+        )
+
+@router.get("/{response_id}", response_model=ResponseDetailResponse)
+async def get_response(
+    response_id: int,
+    db: Session = Depends(get_db)
+):
+    try:
+        query = db.query(Response).filter(Response.deleted_at == None).options(
+            joinedload(Response.question),
+            joinedload(Response.assessment)
+        )
+        
+        response = query.filter(Response.id == response_id).first()
+        
+        if not response:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Resposta não encontrada"
+            )
+        
+        response_dict = {
+            "id": response.id,
+            "question_id": response.question_id,
+            "assessment_id": response.assessment_id,
+            "response": response.response,
+            "score": response.score,
+            "created_at": response.created_at,
+            "updated_at": response.updated_at,
+            "deleted_at": response.deleted_at,
+            "question": None,
+            "assessment": None
+        }
+        
+        if response.question:
+            response_dict["question"] = {
+                "id": response.question.id,
+                "scientific_text": response.question.scientific_text,
+                "technological_text": response.question.technological_text,
+                "type": response.question.type,
+                "number_alternatives": response.question.number_alternatives
+            }
+        
+        if response.assessment:
+            response_dict["assessment"] = {
+                "id": response.assessment.id,
+                "evaluator_id": response.assessment.evaluator_id,
+                "project_id": response.assessment.project_id
+            }
         
         return ResponseDetailResponse(
             status=True,
-            message="Response retrieved successfully",
+            message="Resposta recuperada com sucesso",
             data=response_dict
         )
     except HTTPException:
@@ -137,7 +127,7 @@ async def get_response(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error retrieving response: {str(e)}"
+            detail=f"Erro ao recuperar resposta: {str(e)}"
         )
 
 @router.post("/", response_model=ResponseDetailResponse)
@@ -147,14 +137,14 @@ async def create_response(response_data: ResponseCreate, db: Session = Depends(g
         if not question:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Question not found"
+                detail="Pergunta não encontrada"
             )
         
         assessment = db.query(Assessment).filter(Assessment.id == response_data.assessment_id).first()
         if not assessment:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Assessment not found"
+                detail="Avaliação não encontrada"
             )
         
         existing_response = db.query(Response).filter(
@@ -165,7 +155,7 @@ async def create_response(response_data: ResponseCreate, db: Session = Depends(g
         if existing_response:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Response already exists for this question and assessment"
+                detail="Já existe uma resposta para esta pergunta e avaliação"
             )
         
         response = Response(
@@ -192,9 +182,25 @@ async def create_response(response_data: ResponseCreate, db: Session = Depends(g
             "assessment": None
         }
         
+        if response.question:
+            response_dict["question"] = {
+                "id": response.question.id,
+                "scientific_text": response.question.scientific_text,
+                "technological_text": response.question.technological_text,
+                "type": response.question.type,
+                "number_alternatives": response.question.number_alternatives
+            }
+        
+        if response.assessment:
+            response_dict["assessment"] = {
+                "id": response.assessment.id,
+                "evaluator_id": response.assessment.evaluator_id,
+                "project_id": response.assessment.project_id
+            }
+        
         return ResponseDetailResponse(
             status=True,
-            message="Response created successfully",
+            message="Resposta criada com sucesso",
             data=response_dict
         )
     except HTTPException:
@@ -203,7 +209,7 @@ async def create_response(response_data: ResponseCreate, db: Session = Depends(g
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error creating response: {str(e)}"
+            detail=f"Erro ao criar resposta: {str(e)}"
         )
 
 @router.put("/{response_id}", response_model=ResponseDetailResponse)
@@ -218,7 +224,7 @@ async def update_response(
         if not response:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Response not found"
+                detail="Resposta não encontrada"
             )
         
         if response_data.question_id and response_data.question_id != response.question_id:
@@ -226,7 +232,7 @@ async def update_response(
             if not question:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Question not found"
+                    detail="Pergunta não encontrada"
                 )
         
         if response_data.assessment_id and response_data.assessment_id != response.assessment_id:
@@ -234,7 +240,7 @@ async def update_response(
             if not assessment:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Assessment not found"
+                    detail="Avaliação não encontrada"
                 )
         
         if response_data.question_id and response_data.assessment_id:
@@ -247,7 +253,7 @@ async def update_response(
             if existing_response:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Response already exists for this question and assessment"
+                    detail="Já existe uma resposta para esta pergunta e avaliação"
                 )
         
         update_data = response_data.dict(exclude_unset=True)
@@ -270,9 +276,25 @@ async def update_response(
             "assessment": None
         }
         
+        if response.question:
+            response_dict["question"] = {
+                "id": response.question.id,
+                "scientific_text": response.question.scientific_text,
+                "technological_text": response.question.technological_text,
+                "type": response.question.type,
+                "number_alternatives": response.question.number_alternatives
+            }
+        
+        if response.assessment:
+            response_dict["assessment"] = {
+                "id": response.assessment.id,
+                "evaluator_id": response.assessment.evaluator_id,
+                "project_id": response.assessment.project_id
+            }
+        
         return ResponseDetailResponse(
             status=True,
-            message="Response updated successfully",
+            message="Resposta atualizada com sucesso",
             data=response_dict
         )
     except HTTPException:
@@ -281,7 +303,7 @@ async def update_response(
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error updating response: {str(e)}"
+            detail=f"Erro ao atualizar resposta: {str(e)}"
         )
 
 @router.delete("/{response_id}")
@@ -292,7 +314,7 @@ async def delete_response(response_id: int, db: Session = Depends(get_db)):
         if not response:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Response not found"
+                detail="Resposta não encontrada"
             )
         
         from datetime import datetime
@@ -302,7 +324,7 @@ async def delete_response(response_id: int, db: Session = Depends(get_db)):
         
         return {
             "status": True,
-            "message": "Response deleted successfully"
+            "message": "Resposta excluída com sucesso"
         }
     except HTTPException:
         raise
@@ -310,5 +332,5 @@ async def delete_response(response_id: int, db: Session = Depends(get_db)):
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error deleting response: {str(e)}"
+            detail=f"Erro ao excluir resposta: {str(e)}"
         ) 

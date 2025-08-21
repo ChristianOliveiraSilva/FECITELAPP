@@ -13,14 +13,10 @@ router = APIRouter()
 async def get_schools(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
-    include_relations: bool = Query(False, description="Include related data"),
     db: Session = Depends(get_db)
 ):
     try:
-        query = db.query(School).filter(School.deleted_at == None)
-        
-        if include_relations:
-            query = query.options(joinedload(School.students))
+        query = db.query(School).filter(School.deleted_at == None).options(joinedload(School.students))
         
         schools = query.offset(skip).limit(limit).all()
         
@@ -29,21 +25,22 @@ async def get_schools(
             school_dict = {
                 "id": school.id,
                 "name": school.name,
+                "city": school.city,
+                "state": school.state,
                 "created_at": school.created_at,
                 "updated_at": school.updated_at,
                 "deleted_at": school.deleted_at,
                 "students": []
             }
             
-            if include_relations:
-                school_dict["students"] = [
-                    {
-                        "id": student.id,
-                        "name": student.name,
-                        "school_grade": student.school_grade,
-                        "created_at": student.created_at
-                    } for student in school.students
-                ]
+            school_dict["students"] = [
+                {
+                    "id": student.id,
+                    "name": student.name,
+                    "school_grade": student.school_grade,
+                    "created_at": student.created_at
+                } for student in school.students
+            ]
             
             school_data.append(school_dict)
         
@@ -61,17 +58,13 @@ async def get_schools(
 @router.get("/{school_id}", response_model=SchoolDetailResponse)
 async def get_school(
     school_id: int,
-    include_relations: bool = Query(False, description="Include related data"),
     db: Session = Depends(get_db)
 ):
     try:
-        query = db.query(School).filter(School.deleted_at == None)
-        
-        if include_relations:
-            query = query.options(joinedload(School.students))
-        
+        query = db.query(School).filter(School.deleted_at == None).options(joinedload(School.students))
+
         school = query.filter(School.id == school_id).first()
-        
+
         if not school:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -81,22 +74,23 @@ async def get_school(
         school_dict = {
             "id": school.id,
             "name": school.name,
+            "city": school.city,
+            "state": school.state,
             "created_at": school.created_at,
             "updated_at": school.updated_at,
             "deleted_at": school.deleted_at,
             "students": []
         }
         
-        if include_relations:
-            school_dict["students"] = [
-                {
-                    "id": student.id,
-                    "name": student.name,
-                    "school_grade": student.school_grade,
-                    "created_at": student.created_at
-                } for student in school.students
-            ]
-        
+        school_dict["students"] = [
+            {
+                "id": student.id,
+                "name": student.name,
+                "school_grade": student.school_grade,
+                "created_at": student.created_at
+            } for student in school.students
+        ]
+    
         return SchoolDetailResponse(
             status=True,
             message="School retrieved successfully",
@@ -113,7 +107,7 @@ async def get_school(
 @router.post("/", response_model=SchoolDetailResponse)
 async def create_school(school_data: SchoolCreate, db: Session = Depends(get_db)):
     try:
-        school = School(name=school_data.name)
+        school = School(name=school_data.name, city=school_data.city, state=school_data.state)
         
         db.add(school)
         db.commit()
@@ -122,12 +116,23 @@ async def create_school(school_data: SchoolCreate, db: Session = Depends(get_db)
         school_dict = {
             "id": school.id,
             "name": school.name,
+            "city": school.city,
+            "state": school.state,
             "created_at": school.created_at,
             "updated_at": school.updated_at,
             "deleted_at": school.deleted_at,
             "students": []
         }
         
+        school_dict["students"] = [
+            {
+                "id": student.id,
+                "name": student.name,
+                "school_grade": student.school_grade,
+                "created_at": student.created_at
+            } for student in school.students
+        ]
+
         return SchoolDetailResponse(
             status=True,
             message="School created successfully",
@@ -165,11 +170,22 @@ async def update_school(
         school_dict = {
             "id": school.id,
             "name": school.name,
+            "city": school.city,
+            "state": school.state,
             "created_at": school.created_at,
             "updated_at": school.updated_at,
             "deleted_at": school.deleted_at,
             "students": []
         }
+        
+        school_dict["students"] = [
+            {
+                "id": student.id,
+                "name": student.name,
+                "school_grade": student.school_grade,
+                "created_at": student.created_at
+            } for student in school.students
+        ]
         
         return SchoolDetailResponse(
             status=True,

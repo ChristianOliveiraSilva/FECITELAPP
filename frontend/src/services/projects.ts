@@ -40,7 +40,6 @@ class ProjectsService {
       // Em uma implementação real, seria melhor ter endpoints específicos no backend
       const response = await apiService.get<Projeto[]>('/projects', {
         limit: 1000,
-        include_relations: true
       });
 
       if (response.status) {
@@ -60,7 +59,6 @@ class ProjectsService {
     try {
       const response = await apiService.get<Projeto[]>('/projects', {
         limit: 1000,
-        include_relations: true
       });
 
       if (response.status) {

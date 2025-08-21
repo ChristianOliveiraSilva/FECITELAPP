@@ -9,7 +9,6 @@ export interface ApiResponse<T> {
 export interface PaginationParams {
   skip?: number;
   limit?: number;
-  include_relations?: boolean;
 }
 
 class ApiService {
@@ -65,7 +64,6 @@ class ApiService {
     
     if (params.skip !== undefined) searchParams.append('skip', params.skip.toString());
     if (params.limit !== undefined) searchParams.append('limit', params.limit.toString());
-    if (params.include_relations !== undefined) searchParams.append('include_relations', params.include_relations.toString());
 
     const year = this.getYear();
     if (year) {

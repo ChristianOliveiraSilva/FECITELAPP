@@ -30,7 +30,6 @@ export const useApiCrud = <T extends Record<string, unknown>>({
     try {
       const response = await apiService.get<T>(endpoint, {
         limit: 1000,
-        include_relations: true
       });
       
       if (response.status) {

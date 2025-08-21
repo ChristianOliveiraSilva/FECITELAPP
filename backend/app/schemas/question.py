@@ -7,6 +7,7 @@ class QuestionBase(BaseModel):
     technological_text: Optional[str] = None
     type: int
     number_alternatives: Optional[int] = None
+    year: int
 
 class QuestionCreate(QuestionBase):
     pass
@@ -16,9 +17,11 @@ class QuestionUpdate(BaseModel):
     technological_text: Optional[str] = None
     type: Optional[int] = None
     number_alternatives: Optional[int] = None
+    year: Optional[int] = None
 
 class QuestionResponse(QuestionBase):
     id: int
+    year: int
     created_at: datetime
     updated_at: Optional[datetime]
     deleted_at: Optional[datetime]

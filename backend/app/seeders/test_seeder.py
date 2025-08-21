@@ -58,16 +58,38 @@ class TestSeeder:
         
         schools = self.db.query(School).all()
         students = []
-        
+
+        nomes_brasileiros = [
+            "Ana Clara Souza",
+            "Lucas Gabriel Silva",
+            "Maria Eduarda Oliveira",
+            "Pedro Henrique Santos",
+            "Beatriz Rodrigues",
+            "João Pedro Almeida",
+            "Larissa Fernandes",
+            "Matheus Costa",
+            "Gabriela Lima",
+            "Rafael Martins",
+            "Camila Araújo",
+            "Gustavo Pereira",
+            "Isabela Rocha",
+            "Felipe Gonçalves",
+            "Mariana Ribeiro"
+        ]
+        nome_index = 0
+
         for school in schools:
             for i in range(3):
+                if nome_index >= len(nomes_brasileiros):
+                    nome_index = 0
                 student = Student(
-                    name=fake.name(),
+                    name=nomes_brasileiros[nome_index],
                     email=fake.unique.email(),
                     school_id=school.id,
                     school_grade=random.choice([SchoolGrade.FUNDAMENTAL, SchoolGrade.MEDIO]).value,
                     year=current_year
                 )
+                nome_index += 1
                 self.db.add(student)
                 students.append(student)
         
@@ -76,13 +98,21 @@ class TestSeeder:
         
         categories = self.db.query(Category).all()
         projects = []
+        possible_titles = [
+            "Robô Seguidor de Linha",
+            "Aplicativo de Reciclagem",
+            "Horta Sustentável Escolar",
+            "Sistema de Monitoramento de Água",
+            "Jogo Educativo de Matemática"
+        ]
         
         for category in categories:
             for i in range(2):
                 project_type = random.choice(list(ProjectType))
+                title = random.choice(possible_titles)
                 
                 project = Project(
-                    title=fake.sentence(nb_words=3),
+                    title=title,
                     description=fake.paragraph(),
                     year=current_year,
                     projectType=project_type.value,

@@ -2,7 +2,6 @@ from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.database import Base
-import random
 
 class Evaluator(Base):
     __tablename__ = "evaluators"
@@ -18,15 +17,7 @@ class Evaluator(Base):
     user = relationship("User", back_populates="evaluator")
     assessments = relationship("Assessment", back_populates="evaluator")
     categories = relationship("Category", secondary="evaluator_categories", back_populates="evaluators")
-    
-    @staticmethod
-    def generate_random_pin(db) -> str:
-        while True:
-            pin = str(random.randint(1111, 9999))
-            existing_pin = db.query(Evaluator).filter(Evaluator.PIN == pin).first()
-            if not existing_pin:
-                return pin
-    
+        
     @property
     def total_projects(self) -> int:
         return len(self.assessments) 

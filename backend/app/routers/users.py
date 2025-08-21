@@ -13,17 +13,12 @@ router = APIRouter()
 async def get_users(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
-    include_relations: bool = Query(False, description="Include related data"),
     db: Session = Depends(get_db)
 ):
     try:
-        query = db.query(User).filter(User.deleted_at == None)
-        
-        if include_relations:
-            query = query.options(joinedload(User.evaluator))
-        
+        query = db.query(User).filter(User.deleted_at == None).options(joinedload(User.evaluator))
         users = query.offset(skip).limit(limit).all()
-        
+
         user_data = []
         for user in users:
             user_dict = {
@@ -39,7 +34,7 @@ async def get_users(
                 "evaluator": None
             }
             
-            if include_relations and user.evaluator:
+            if user.evaluator:
                 user_dict["evaluator"] = {
                     "id": user.evaluator.id,
                     "PIN": user.evaluator.PIN,
@@ -62,14 +57,10 @@ async def get_users(
 @router.get("/{user_id}", response_model=UserDetailResponse)
 async def get_user(
     user_id: int,
-    include_relations: bool = Query(False, description="Include related data"),
     db: Session = Depends(get_db)
 ):
     try:
-        query = db.query(User).filter(User.deleted_at == None)
-        
-        if include_relations:
-            query = query.options(joinedload(User.evaluator))
+        query = db.query(User).filter(User.deleted_at == None).options(joinedload(User.evaluator))
         
         user = query.filter(User.id == user_id).first()
         
@@ -92,7 +83,7 @@ async def get_user(
             "evaluator": None
         }
         
-        if include_relations and user.evaluator:
+        if user.evaluator:
             user_dict["evaluator"] = {
                 "id": user.evaluator.id,
                 "PIN": user.evaluator.PIN,
@@ -170,11 +161,11 @@ async def update_user(
 ):
     try:
         user = db.query(User).filter(User.id == user_id).first()
-        
+
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found"
+                detail="Usuário não encontrado"
             )
         
         if user_data.email and user_data.email != user.email:
@@ -182,7 +173,7 @@ async def update_user(
             if existing_user:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Email already registered"
+                    detail="E-mail já cadastrado"
                 )
         
         update_data = user_data.dict(exclude_unset=True)
