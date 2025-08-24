@@ -5,6 +5,10 @@ from datetime import datetime
 class AwardBase(BaseModel):
     name: str
     description: Optional[str] = None
+    school_grade: Optional[int] = None
+    total_positions: Optional[int] = None
+    use_school_grades: Optional[int] = None
+    use_categories: Optional[int] = None
 
 class AwardCreate(AwardBase):
     pass
@@ -12,6 +16,10 @@ class AwardCreate(AwardBase):
 class AwardUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
+    school_grade: Optional[int] = None
+    total_positions: Optional[int] = None
+    use_school_grades: Optional[int] = None
+    use_categories: Optional[int] = None
 
 class AwardResponse(AwardBase):
     id: int

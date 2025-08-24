@@ -1,1 +1,1 @@
-from . import users, evaluators, students, schools, categories, projects, awards, assessments, questions, responses, documents, web_auth, cards 
+from . import users, evaluators, students, schools, categories, projects, awards, assessments, questions, responses, documents, web_auth, cards, events, password_reset_configs 

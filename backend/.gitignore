@@ -143,4 +143,7 @@ dmypy.json
 .DS_Store
 Thumbs.db 
 
-uploads/
+uploads/*
+!uploads/projects/
+uploads/projects/*
+!uploads/projects/teste.docx

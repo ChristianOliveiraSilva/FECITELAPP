@@ -5,6 +5,7 @@ from app.seeders.category_seeder import CategorySeeder
 from app.seeders.question_seeder import QuestionSeeder
 from app.seeders.test_seeder import TestSeeder
 from app.seeders.event_seeder import EventSeeder
+from app.seeders.password_reset_config_seeder import PasswordResetConfigSeeder
 import os
 
 class DatabaseSeeder:
@@ -12,30 +13,19 @@ class DatabaseSeeder:
         self.db = db
     
     def run(self):
-        """Executa todos os seeders na ordem correta"""
         print("🌱 Iniciando seeders...")
         
-        # Executar seeders na ordem
         SchoolSeeder(self.db).run()
         CategorySeeder(self.db).run()
         QuestionSeeder(self.db).run()
         TestSeeder(self.db).run()
         EventSeeder(self.db).run()
+        PasswordResetConfigSeeder(self.db).run()
         
-        # Criar usuários padrão
         self._create_default_users()
-        
         print("✅ Seeders concluídos com sucesso!")
     
     def _create_default_users(self):
-        """Cria usuários padrão do sistema"""
-        # Verificar se já existem usuários
-        existing_users = self.db.query(User).count()
-        if existing_users > 0:
-            print("ℹ️  Usuários já existem, pulando criação de usuários padrão")
-            return
-        
-        # Criar usuários padrão
         default_users = [
             {
                 'name': 'Rogério Alves dos Santos Antoniassi',
@@ -51,7 +41,6 @@ class DatabaseSeeder:
             }
         ]
         
-        # Criar usuário de teste apenas em ambiente de desenvolvimento
         if os.getenv('APP_ENV') != 'production':
             default_users.append({
                 'name': 'Test User',
@@ -61,7 +50,6 @@ class DatabaseSeeder:
             })
         
         for user_data in default_users:
-            # Verificar se o usuário já existe
             existing_user = self.db.query(User).filter(User.email == user_data['email']).first()
             if not existing_user:
                 hashed_password = User.get_password_hash(user_data['password'])

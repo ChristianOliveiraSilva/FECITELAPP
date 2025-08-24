@@ -12,11 +12,11 @@ class Question(Base):
     technological_text = Column(Text, nullable=True)
     type = Column(Integer, nullable=False)
     number_alternatives = Column(Integer, nullable=True)
+    year = Column(Integer, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     deleted_at = Column(DateTime(timezone=True), nullable=True)
     
-    # Relationships
     responses = relationship("Response", back_populates="question")
     awards = relationship("Award", secondary="award_question", back_populates="questions")
     

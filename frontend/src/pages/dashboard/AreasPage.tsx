@@ -5,6 +5,7 @@ import { useApiCrud } from "@/hooks/use-api-crud";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
+import { ReactNode } from "react";
 
 interface Categoria extends Record<string, unknown> {
   id?: number;
@@ -23,10 +24,34 @@ interface Categoria extends Record<string, unknown> {
 }
 
 const columns = [
-  { key: "name", label: "Nome da Categoria", sortable: true },
-  { key: "projects_count", label: "Projetos", sortable: false },
-  { key: "evaluators_count", label: "Avaliadores", sortable: false },
-  { key: "created_at", label: "Criado em", sortable: true }
+  { 
+    key: "name", 
+    label: "Nome da Categoria", 
+    sortable: true, 
+    filterable: true, 
+    filterType: 'text' as const 
+  },
+  { 
+    key: "projects_count", 
+    label: "Projetos", 
+    sortable: false, 
+    filterable: true, 
+    filterType: 'number' as const 
+  },
+  { 
+    key: "evaluators_count", 
+    label: "Avaliadores", 
+    sortable: false, 
+    filterable: true, 
+    filterType: 'number' as const 
+  },
+  { 
+    key: "created_at", 
+    label: "Criado em", 
+    sortable: true, 
+    filterable: true, 
+    filterType: 'date' as const 
+  }
 ];
 
 const formFields = [
@@ -55,8 +80,12 @@ export const AreasPage = () => {
 
   const [itemToDelete, setItemToDelete] = useState<Categoria | null>(null);
 
-  const handleDelete = (item: Categoria) => {
-    setItemToDelete(item);
+  const handleEdit = (item: Record<string, ReactNode>) => {
+    openEditForm(item as Categoria);
+  };
+
+  const handleDelete = (item: Record<string, ReactNode>) => {
+    setItemToDelete(item as Categoria);
   };
 
   const confirmDelete = async () => {
@@ -66,12 +95,13 @@ export const AreasPage = () => {
     }
   };
 
-  // Transform data for display
-  const transformedData = data.map(item => ({
-    ...item,
+  const transformedData: Record<string, ReactNode>[] = data.map(item => ({
+    id: item.id,
+    name: item.name,
     projects_count: item.projects?.length || 0,
     evaluators_count: item.evaluators?.length || 0,
-    created_at: item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : "-"
+    created_at: item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : "-",
+    updated_at: item.updated_at
   }));
 
   return (
@@ -103,9 +133,10 @@ export const AreasPage = () => {
           data={transformedData}
           searchPlaceholder="Buscar por nome da categoria..."
           onAdd={openAddForm}
-          onEdit={openEditForm}
+          onEdit={handleEdit}
           onDelete={handleDelete}
           loading={loading}
+          baseEndpoint="/categories"
         />
       ) : (
         <CrudForm

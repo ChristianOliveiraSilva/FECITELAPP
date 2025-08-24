@@ -4,12 +4,14 @@ from datetime import datetime
 
 class CategoryBase(BaseModel):
     name: str
+    main_category_id: Optional[int] = None
 
 class CategoryCreate(CategoryBase):
     pass
 
 class CategoryUpdate(BaseModel):
     name: Optional[str] = None
+    main_category_id: Optional[int] = None
 
 class CategoryResponse(CategoryBase):
     id: int
@@ -23,6 +25,8 @@ class CategoryResponse(CategoryBase):
 class CategoryWithRelations(CategoryResponse):
     projects: List[dict] = []
     evaluators: List[dict] = []
+    main_category: Optional['CategoryResponse'] = None
+    sub_categories: List['CategoryResponse'] = []
 
 class CategoryListResponse(BaseModel):
     status: bool
@@ -32,4 +36,4 @@ class CategoryListResponse(BaseModel):
 class CategoryDetailResponse(BaseModel):
     status: bool
     message: str
-    data: CategoryWithRelations 
+    data: CategoryWithRelations

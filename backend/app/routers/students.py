@@ -8,6 +8,7 @@ from app.schemas.student import (
 )
 from app.enums.school_grade import SchoolGrade
 from typing import Optional
+from datetime import datetime
 
 router = APIRouter()
 
@@ -15,24 +16,24 @@ router = APIRouter()
 async def get_students(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
-    include_relations: bool = Query(False, description="Include related data"),
+    year: Optional[int] = Query(None, description="Filter by year (defaults to current year)"),
     db: Session = Depends(get_db)
 ):
-    """Get all students with optional pagination and relations"""
     try:
-        query = db.query(Student).filter(Student.deleted_at == None)
+        filter_year = year if year is not None else datetime.now().year
         
-        if include_relations:
-            query = query.options(
-                joinedload(Student.school),
-                joinedload(Student.projects)
-            )
+        query = db.query(Student).filter(
+            Student.deleted_at == None,
+            Student.year == filter_year
+        ).options(
+            joinedload(Student.school),
+            joinedload(Student.projects)
+        )
         
         students = query.offset(skip).limit(limit).all()
         
         student_data = []
         for student in students:
-            # Convert school_grade from int to string using enum
             school_grade_enum = SchoolGrade(student.school_grade)
             school_grade_label = school_grade_enum.get_label()
             
@@ -41,6 +42,7 @@ async def get_students(
                 "name": student.name,
                 "email": student.email,
                 "school_grade": school_grade_label,
+                "year": student.year,
                 "school_id": student.school_id,
                 "created_at": student.created_at,
                 "updated_at": student.updated_at,
@@ -49,77 +51,6 @@ async def get_students(
                 "projects": []
             }
             
-            if include_relations:
-                if student.school:
-                    student_dict["school"] = {
-                        "id": student.school.id,
-                        "name": student.school.name
-                    }
-                
-                student_dict["projects"] = [
-                    {
-                        "id": project.id,
-                        "title": project.title,
-                        "year": project.year,
-                        "category_id": project.category_id
-                    } for project in student.projects
-                ]
-            
-            student_data.append(student_dict)
-        
-        return StudentListResponse(
-            status=True,
-            message="Students retrieved successfully",
-            data=student_data
-        )
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error retrieving students: {str(e)}"
-        )
-
-@router.get("/{student_id}", response_model=StudentDetailResponse)
-async def get_student(
-    student_id: int,
-    include_relations: bool = Query(False, description="Include related data"),
-    db: Session = Depends(get_db)
-):
-    """Get a specific student by ID"""
-    try:
-        query = db.query(Student).filter(Student.deleted_at == None)
-        
-        if include_relations:
-            query = query.options(
-                joinedload(Student.school),
-                joinedload(Student.projects)
-            )
-        
-        student = query.filter(Student.id == student_id).first()
-        
-        if not student:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Student not found"
-            )
-        
-        # Convert school_grade from int to string using enum
-        school_grade_enum = SchoolGrade(student.school_grade)
-        school_grade_label = school_grade_enum.get_label()
-        
-        student_dict = {
-            "id": student.id,
-            "name": student.name,
-            "email": student.email,
-            "school_grade": school_grade_label,
-            "school_id": student.school_id,
-            "created_at": student.created_at,
-            "updated_at": student.updated_at,
-            "deleted_at": student.deleted_at,
-            "school": None,
-            "projects": []
-        }
-        
-        if include_relations:
             if student.school:
                 student_dict["school"] = {
                     "id": student.school.id,
@@ -134,10 +65,74 @@ async def get_student(
                     "category_id": project.category_id
                 } for project in student.projects
             ]
+            
+            student_data.append(student_dict)
+        
+        return StudentListResponse(
+            status=True,
+            message=f"Students retrieved successfully for year {filter_year}",
+            data=student_data
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao recuperar estudantes: {str(e)}"
+        )
+
+@router.get("/{student_id}", response_model=StudentDetailResponse)
+async def get_student(
+    student_id: int,
+    db: Session = Depends(get_db)
+):
+    try:
+        query = db.query(Student).filter(Student.deleted_at == None).options(
+            joinedload(Student.school),
+            joinedload(Student.projects)
+        )
+        
+        student = query.filter(Student.id == student_id).first()
+        
+        if not student:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Estudante não encontrado"
+            )
+        
+        school_grade_enum = SchoolGrade(student.school_grade)
+        school_grade_label = school_grade_enum.get_label()
+        
+        student_dict = {
+            "id": student.id,
+            "name": student.name,
+            "email": student.email,
+            "school_grade": school_grade_label,
+            "year": student.year,
+            "school_id": student.school_id,
+            "created_at": student.created_at,
+            "updated_at": student.updated_at,
+            "deleted_at": student.deleted_at,
+            "school": None,
+            "projects": []
+        }
+        
+        if student.school:
+            student_dict["school"] = {
+                "id": student.school.id,
+                "name": student.school.name
+            }
+        
+        student_dict["projects"] = [
+            {
+                "id": project.id,
+                "title": project.title,
+                "year": project.year,
+                "category_id": project.category_id
+            } for project in student.projects
+        ]
         
         return StudentDetailResponse(
             status=True,
-            message="Student retrieved successfully",
+            message="Estudante recuperado com sucesso",
             data=student_dict
         )
     except HTTPException:
@@ -145,21 +140,19 @@ async def get_student(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error retrieving student: {str(e)}"
+            detail=f"Erro ao recuperar estudante: {str(e)}"
         )
 
 @router.post("/", response_model=StudentDetailResponse)
 async def create_student(student_data: StudentCreate, db: Session = Depends(get_db)):
     try:
-        # Check if school exists
         school = db.query(School).filter(School.id == student_data.school_id).first()
         if not school:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="School not found"
+                detail="Escola não encontrada"
             )
         
-        # Convert school_grade string to int using enum
         school_grade_value = None
         for grade_value, grade_label in SchoolGrade.get_values().items():
             if grade_label == student_data.school_grade:
@@ -169,13 +162,14 @@ async def create_student(student_data: StudentCreate, db: Session = Depends(get_
         if school_grade_value is None:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid school grade"
+                detail="Série escolar inválida"
             )
         
         student = Student(
             name=student_data.name,
             email=student_data.email,
             school_grade=school_grade_value,
+            year=getattr(student_data, 'year', datetime.now().year),
             school_id=student_data.school_id
         )
         
@@ -183,7 +177,6 @@ async def create_student(student_data: StudentCreate, db: Session = Depends(get_
         db.commit()
         db.refresh(student)
         
-        # Convert back to string for response
         school_grade_enum = SchoolGrade(student.school_grade)
         school_grade_label = school_grade_enum.get_label()
         
@@ -196,13 +189,30 @@ async def create_student(student_data: StudentCreate, db: Session = Depends(get_
             "created_at": student.created_at,
             "updated_at": student.updated_at,
             "deleted_at": student.deleted_at,
+            "year": student.year,
             "school": None,
             "projects": []
         }
         
+        if student.school:
+            student_dict["school"] = {
+                "id": student.school.id,
+                "name": student.school.name
+            }
+        
+        if student.projects:
+            student_dict["projects"] = [
+                {
+                    "id": project.id,
+                    "title": project.title,
+                    "year": project.year,
+                    "category_id": project.category_id
+                } for project in student.projects
+            ]
+        
         return StudentDetailResponse(
             status=True,
-            message="Student created successfully",
+            message="Estudante criado com sucesso",
             data=student_dict
         )
     except HTTPException:
@@ -211,7 +221,7 @@ async def create_student(student_data: StudentCreate, db: Session = Depends(get_
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error creating student: {str(e)}"
+            detail=f"Erro ao criar estudante: {str(e)}"
         )
 
 @router.put("/{student_id}", response_model=StudentDetailResponse)
@@ -220,17 +230,15 @@ async def update_student(
     student_data: StudentUpdate,
     db: Session = Depends(get_db)
 ):
-    """Update an existing student"""
     try:
         student = db.query(Student).filter(Student.id == student_id).first()
         
         if not student:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Student not found"
+                detail="Estudante não encontrado"
             )
         
-        # Update fields if provided
         if student_data.name is not None:
             student.name = student_data.name
         
@@ -238,7 +246,6 @@ async def update_student(
             student.email = student_data.email
         
         if student_data.school_grade is not None:
-            # Convert school_grade string to int using enum
             school_grade_value = None
             for grade_value, grade_label in SchoolGrade.get_values().items():
                 if grade_label == student_data.school_grade:
@@ -248,25 +255,26 @@ async def update_student(
             if school_grade_value is None:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Invalid school grade"
+                    detail="Série escolar inválida"
                 )
             
             student.school_grade = school_grade_value
         
+        if student_data.year is not None:
+            student.year = student_data.year
+        
         if student_data.school_id is not None:
-            # Check if school exists
             school = db.query(School).filter(School.id == student_data.school_id).first()
             if not school:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="School not found"
+                    detail="Escola não encontrada"
                 )
             student.school_id = student_data.school_id
         
         db.commit()
         db.refresh(student)
         
-        # Convert back to string for response
         school_grade_enum = SchoolGrade(student.school_grade)
         school_grade_label = school_grade_enum.get_label()
         
@@ -276,6 +284,7 @@ async def update_student(
             "email": student.email,
             "school_grade": school_grade_label,
             "school_id": student.school_id,
+            "year": student.year,
             "created_at": student.created_at,
             "updated_at": student.updated_at,
             "deleted_at": student.deleted_at,
@@ -283,9 +292,25 @@ async def update_student(
             "projects": []
         }
         
+        if student.school:
+            student_dict["school"] = {
+                "id": student.school.id,
+                "name": student.school.name
+            }
+        
+        if student.projects:
+            student_dict["projects"] = [
+                {
+                    "id": project.id,
+                    "title": project.title,
+                    "year": project.year,
+                    "category_id": project.category_id
+                } for project in student.projects
+            ]
+        
         return StudentDetailResponse(
             status=True,
-            message="Student updated successfully",
+            message="Estudante atualizado com sucesso",
             data=student_dict
         )
     except HTTPException:
@@ -294,29 +319,26 @@ async def update_student(
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error updating student: {str(e)}"
+            detail=f"Erro ao atualizar estudante: {str(e)}"
         )
 
 @router.delete("/{student_id}")
 async def delete_student(student_id: int, db: Session = Depends(get_db)):
-    """Delete a student (soft delete)"""
     try:
         student = db.query(Student).filter(Student.id == student_id).first()
         
         if not student:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Student not found"
+                detail="Estudante não encontrado"
             )
         
-        # Soft delete
-        from datetime import datetime
         student.deleted_at = datetime.utcnow()
         db.commit()
         
         return {
             "status": True,
-            "message": "Student deleted successfully"
+            "message": "Estudante excluído com sucesso"
         }
     except HTTPException:
         raise
@@ -324,5 +346,5 @@ async def delete_student(student_id: int, db: Session = Depends(get_db)):
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error deleting student: {str(e)}"
+            detail=f"Erro ao excluir estudante: {str(e)}"
         ) 

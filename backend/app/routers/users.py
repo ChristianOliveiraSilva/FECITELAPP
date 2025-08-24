@@ -13,18 +13,12 @@ router = APIRouter()
 async def get_users(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
-    include_relations: bool = Query(False, description="Include related data"),
     db: Session = Depends(get_db)
 ):
-    """Get all users with optional pagination and relations"""
     try:
-        query = db.query(User).filter(User.deleted_at == None)
-        
-        if include_relations:
-            query = query.options(joinedload(User.evaluator))
-        
+        query = db.query(User).filter(User.deleted_at == None).options(joinedload(User.evaluator))
         users = query.offset(skip).limit(limit).all()
-        
+
         user_data = []
         for user in users:
             user_dict = {
@@ -40,7 +34,7 @@ async def get_users(
                 "evaluator": None
             }
             
-            if include_relations and user.evaluator:
+            if user.evaluator:
                 user_dict["evaluator"] = {
                     "id": user.evaluator.id,
                     "PIN": user.evaluator.PIN,
@@ -63,15 +57,10 @@ async def get_users(
 @router.get("/{user_id}", response_model=UserDetailResponse)
 async def get_user(
     user_id: int,
-    include_relations: bool = Query(False, description="Include related data"),
     db: Session = Depends(get_db)
 ):
-    """Get a specific user by ID"""
     try:
-        query = db.query(User).filter(User.deleted_at == None)
-        
-        if include_relations:
-            query = query.options(joinedload(User.evaluator))
+        query = db.query(User).filter(User.deleted_at == None).options(joinedload(User.evaluator))
         
         user = query.filter(User.id == user_id).first()
         
@@ -94,7 +83,7 @@ async def get_user(
             "evaluator": None
         }
         
-        if include_relations and user.evaluator:
+        if user.evaluator:
             user_dict["evaluator"] = {
                 "id": user.evaluator.id,
                 "PIN": user.evaluator.PIN,
@@ -116,9 +105,7 @@ async def get_user(
 
 @router.post("/", response_model=UserDetailResponse)
 async def create_user(user_data: UserCreate, db: Session = Depends(get_db)):
-    """Create a new user"""
     try:
-        # Check if email already exists
         existing_user = db.query(User).filter(User.email == user_data.email).first()
         if existing_user:
             raise HTTPException(
@@ -126,7 +113,6 @@ async def create_user(user_data: UserCreate, db: Session = Depends(get_db)):
                 detail="Email already registered"
             )
         
-        # Hash the password
         hashed_password = User.get_password_hash(user_data.password)
         
         user = User(
@@ -173,29 +159,25 @@ async def update_user(
     user_data: UserUpdate,
     db: Session = Depends(get_db)
 ):
-    """Update an existing user"""
     try:
         user = db.query(User).filter(User.id == user_id).first()
-        
+
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found"
+                detail="Usuário não encontrado"
             )
         
-        # Check if email is being updated and if it already exists
         if user_data.email and user_data.email != user.email:
             existing_user = db.query(User).filter(User.email == user_data.email).first()
             if existing_user:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Email already registered"
+                    detail="E-mail já cadastrado"
                 )
         
-        # Update fields
         update_data = user_data.dict(exclude_unset=True)
         
-        # Hash password if provided
         if "password" in update_data:
             update_data["password"] = User.get_password_hash(update_data["password"])
         
@@ -234,7 +216,6 @@ async def update_user(
 
 @router.delete("/{user_id}")
 async def delete_user(user_id: int, db: Session = Depends(get_db)):
-    """Soft delete a user"""
     try:
         user = db.query(User).filter(User.id == user_id).first()
         
@@ -244,7 +225,6 @@ async def delete_user(user_id: int, db: Session = Depends(get_db)):
                 detail="User not found"
             )
         
-        # Soft delete
         from datetime import datetime
         user.deleted_at = datetime.utcnow()
         user.active = False

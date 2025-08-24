@@ -7,14 +7,14 @@ class QuestionSeeder:
         self.db = db
     
     def run(self):
-        """Executa o seeder de questões"""
         print("❓ Iniciando seeder de questões...")
         
-        # Verificar se já existem questões
         existing_questions = self.db.query(Question).count()
         if existing_questions > 0:
             print("ℹ️  Questões já existem, pulando criação")
             return
+        
+        current_year = datetime.now().year
         
         questions_data = [
             {
@@ -23,6 +23,7 @@ class QuestionSeeder:
                 'technological_text': 'Problema/hipótese: delimitação do tema, relação hipótese/problema/objetivo; clareza na formulação; originalidade; relevância social.',
                 'type': 1,
                 'number_alternatives': 10,
+                'year': current_year,
                 'created_at': datetime(2024, 10, 2, 13, 24, 44),
                 'updated_at': datetime(2024, 10, 2, 13, 24, 44),
                 'deleted_at': None,
@@ -33,6 +34,7 @@ class QuestionSeeder:
                 'technological_text': 'Problema: definição clara do problema; alternativas de solução relacionando com teorias e conceitos tecnológicos; originalidade; relevância social.',
                 'type': 1,
                 'number_alternatives': 10,
+                'year': current_year,
                 'created_at': datetime(2024, 10, 2, 13, 25, 22),
                 'updated_at': datetime(2024, 10, 2, 13, 25, 22),
                 'deleted_at': None,
@@ -43,6 +45,7 @@ class QuestionSeeder:
                 'technological_text': 'Coleta de dados/metodologia: metodologia utilizada; seleção/aplicação de instrumentos de coleta; seleção da amostra (amostragem); análise e interpretação dos dados.',
                 'type': 1,
                 'number_alternatives': 10,
+                'year': current_year,
                 'created_at': datetime(2024, 10, 2, 13, 25, 54),
                 'updated_at': datetime(2024, 10, 2, 13, 25, 54),
                 'deleted_at': None,
@@ -53,6 +56,7 @@ class QuestionSeeder:
                 'technological_text': 'Elaboração do projeto/Metodologia: conhecimento tecnológico; materiais e métodos; análises e interpretações de dados.',
                 'type': 1,
                 'number_alternatives': 10,
+                'year': current_year,
                 'created_at': datetime(2024, 10, 2, 13, 26, 11),
                 'updated_at': datetime(2024, 10, 2, 13, 26, 11),
                 'deleted_at': None,

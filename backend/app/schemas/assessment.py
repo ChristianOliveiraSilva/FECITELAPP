@@ -10,9 +10,8 @@ class AssessmentCreate(AssessmentBase):
     pass
 
 class AssessmentUpdate(BaseModel):
-    evaluator_id: Optional[int] = None
-    project_id: Optional[int] = None
-
+    evaluator_id: int
+    project_id: int
 class AssessmentResponse(AssessmentBase):
     id: int
     created_at: datetime

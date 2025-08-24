@@ -5,6 +5,7 @@ import { useApiCrud } from "@/hooks/use-api-crud";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
+import { ReactNode } from "react";
 
 interface Evento extends Record<string, unknown> {
   id?: number;
@@ -17,10 +18,34 @@ interface Evento extends Record<string, unknown> {
 }
 
 const columns = [
-  { key: "year", label: "Ano", sortable: true },
-  { key: "app_primary_color", label: "Cor Primária", sortable: false },
-  { key: "app_font_color", label: "Cor da Fonte", sortable: false },
-  { key: "created_at", label: "Criado em", sortable: true }
+  { 
+    key: "year", 
+    label: "Ano", 
+    sortable: true, 
+    filterable: true, 
+    filterType: 'number' as const 
+  },
+  { 
+    key: "app_primary_color", 
+    label: "Cor Primária", 
+    sortable: false, 
+    filterable: true, 
+    filterType: 'text' as const 
+  },
+  { 
+    key: "app_font_color", 
+    label: "Cor da Fonte", 
+    sortable: false, 
+    filterable: true, 
+    filterType: 'text' as const 
+  },
+  { 
+    key: "created_at", 
+    label: "Criado em", 
+    sortable: true, 
+    filterable: true, 
+    filterType: 'date' as const 
+  }
 ];
 
 const formFields = [
@@ -76,8 +101,12 @@ export const EventosPage = () => {
 
   const [itemToDelete, setItemToDelete] = useState<Evento | null>(null);
 
-  const handleDelete = (item: Evento) => {
-    setItemToDelete(item);
+  const handleEdit = (item: Record<string, ReactNode>) => {
+    openEditForm(item as Evento);
+  };
+
+  const handleDelete = (item: Record<string, ReactNode>) => {
+    setItemToDelete(item as Evento);
   };
 
   const confirmDelete = async () => {
@@ -118,7 +147,6 @@ export const EventosPage = () => {
     handleSubmit(cleanData as Evento);
   };
 
-  // Transform data for display
   const transformedData = data.map(item => ({
     ...item,
     app_primary_color: item.app_primary_color ? (
@@ -171,9 +199,10 @@ export const EventosPage = () => {
           data={transformedData}
           searchPlaceholder="Buscar por ano do evento..."
           onAdd={openAddForm}
-          onEdit={openEditForm}
+          onEdit={handleEdit}
           onDelete={handleDelete}
           loading={loading}
+          baseEndpoint="/events"
         />
       ) : (
         <CrudForm

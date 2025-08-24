@@ -8,15 +8,6 @@ class EventBase(BaseModel):
     app_font_color: Optional[str] = None
     app_logo_url: Optional[str] = None
 
-class EventCreate(EventBase):
-    pass
-
-class EventUpdate(BaseModel):
-    year: Optional[int] = None
-    app_primary_color: Optional[str] = None
-    app_font_color: Optional[str] = None
-    app_logo_url: Optional[str] = None
-
 class EventResponse(EventBase):
     id: int
     created_at: datetime

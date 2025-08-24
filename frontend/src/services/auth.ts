@@ -1,3 +1,6 @@
+import { apiService } from "@/lib/api";
+import { log } from "console";
+
 interface LoginRequest {
   email: string;
   password: string;
@@ -27,51 +30,32 @@ interface ResetPasswordResponse {
   message: string;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
-
 class AuthService {
   private token: string | null = localStorage.getItem('auth_token');
   private user: UserInfo | null = null;
 
   async login(email: string, password: string): Promise<LoginResponse> {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v3/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      const response = await apiService.create<LoginResponse>('/auth/login', { email, password });
 
-      const data: LoginResponse = await response.json();
-
-      if (data.success && data.token && data.user) {
-        this.token = data.token;
-        this.user = data.user;
-        localStorage.setItem('auth_token', data.token);
-        localStorage.setItem('user_info', JSON.stringify(data.user));
-        return data;
+      if (response.success && response.token && response.user) {
+        this.token = response.token;
+        this.user = response.user;
+        localStorage.setItem('auth_token', response.token);
+        localStorage.setItem('user_info', JSON.stringify(response.user));
+        return response;
       } else {
-        throw new Error(data.message || 'Falha no login');
+        throw new Error(response.message || 'Falha no login');
       }
     } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(error.message);
-      }
-      throw new Error('Erro de conexão');
+      throw new Error(error.body?.detail || 'Erro de conexão');
     }
   }
 
   async logout(): Promise<void> {
     try {
       if (this.token) {
-        await fetch(`${API_BASE_URL}/api/v3/auth/logout`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${this.token}`,
-            'Content-Type': 'application/json',
-          },
-        });
+        await apiService.create('/auth/logout', {});
       }
     } catch (error) {
       console.error('Erro no logout:', error);
@@ -89,16 +73,11 @@ class AuthService {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v3/auth/me`, {
-        headers: {
-          'Authorization': `Bearer ${this.token}`,
-        },
-      });
-
-      if (response.ok) {
-        const user = await response.json();
-        this.user = user;
-        return user;
+      const response = await apiService.get<UserInfo>('/auth/me', {});
+      
+      if (response) {
+        this.user = response;
+        return response;
       } else {
         this.logout();
         return null;
@@ -143,16 +122,8 @@ class AuthService {
 
   async forgotPassword(email: string): Promise<ForgotPasswordResponse> {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v3/auth/forgot-password`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
-      });
-
-      const data: ForgotPasswordResponse = await response.json();
-      return data;
+      const response = await apiService.create<ForgotPasswordResponse>('/auth/forgot-password', { email });
+      return response;
     } catch (error) {
       throw new Error('Erro ao solicitar recuperação de senha');
     }
@@ -160,16 +131,8 @@ class AuthService {
 
   async resetPassword(token: string, newPassword: string): Promise<ResetPasswordResponse> {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v3/auth/reset-password`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ token, new_password: newPassword }),
-      });
-
-      const data: ResetPasswordResponse = await response.json();
-      return data;
+      const response = await apiService.create<ResetPasswordResponse>('/auth/reset-password', { token, new_password: newPassword });
+      return response;
     } catch (error) {
       throw new Error('Erro ao redefinir senha');
     }

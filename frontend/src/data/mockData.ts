@@ -1,4 +1,3 @@
-// Mock data for all tables
 
 export const mockAvaliacoes = [
   {

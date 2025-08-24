@@ -1,3 +1,5 @@
+import { apiService } from "@/lib/api";
+
 interface StatusAvaliacoes {
   faltam_1_avaliacao: number;
   faltam_2_avaliacoes: number;
@@ -13,24 +15,16 @@ interface CardsData {
   status_avaliacoes: StatusAvaliacoes;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
-
 class CardsService {
   async getCardsData(): Promise<CardsData> {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v3/cards`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await apiService.get<CardsData>('/cards');
 
-      if (!response.ok) {
+      if (response) {
+        return response;
+      } else {
         throw new Error('Erro ao buscar dados dos cards');
       }
-
-      const data: CardsData = await response.json();
-      return data;
     } catch (error) {
       console.error('Erro ao buscar dados dos cards:', error);
       throw new Error('Erro ao buscar dados dos cards');

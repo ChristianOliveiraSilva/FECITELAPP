@@ -7,6 +7,7 @@ class StudentBase(BaseModel):
     email: Optional[str] = None
     school_grade: str
     school_id: int
+    year: int
 
 class StudentCreate(StudentBase):
     pass
@@ -16,9 +17,10 @@ class StudentUpdate(BaseModel):
     email: Optional[str] = None
     school_grade: Optional[str] = None
     school_id: Optional[int] = None
-
+    year: Optional[int] = None
 class StudentResponse(StudentBase):
     id: int
+    year: int
     created_at: datetime
     updated_at: Optional[datetime]
     deleted_at: Optional[datetime]

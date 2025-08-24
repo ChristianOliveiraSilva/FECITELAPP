@@ -20,7 +20,6 @@ class User(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     deleted_at = Column(DateTime(timezone=True), nullable=True)
     
-    # Relationships
     evaluator = relationship("Evaluator", back_populates="user", uselist=False)
     password_resets = relationship("PasswordReset", back_populates="user")
     

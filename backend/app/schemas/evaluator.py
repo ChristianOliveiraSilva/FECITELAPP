@@ -5,6 +5,7 @@ from datetime import datetime
 class EvaluatorBase(BaseModel):
     user_id: int
     PIN: str
+    year: int
 
 class EvaluatorCreate(EvaluatorBase):
     pass
@@ -12,9 +13,10 @@ class EvaluatorCreate(EvaluatorBase):
 class EvaluatorUpdate(BaseModel):
     user_id: Optional[int] = None
     PIN: Optional[str] = None
-
+    year: Optional[int] = None
 class EvaluatorResponse(EvaluatorBase):
     id: int
+    year: int
     created_at: datetime
     updated_at: Optional[datetime]
     deleted_at: Optional[datetime]

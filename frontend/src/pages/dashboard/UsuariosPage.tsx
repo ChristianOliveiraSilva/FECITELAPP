@@ -5,6 +5,7 @@ import { useApiCrud } from "@/hooks/use-api-crud";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
+import { ReactNode } from "react";
 
 interface Usuario extends Record<string, unknown> {
   id?: number;
@@ -16,42 +17,70 @@ interface Usuario extends Record<string, unknown> {
 }
 
 const columns = [
-  { key: "name", label: "Nome", sortable: true },
-  { key: "email", label: "E-mail", sortable: true },
-  { key: "active", label: "Ativo", sortable: true },
-  { key: "created_at", label: "Criado em", sortable: true }
+  { 
+    key: "name", 
+    label: "Nome", 
+    sortable: true, 
+    filterable: true, 
+    filterType: 'text' as const 
+  },
+  { 
+    key: "email", 
+    label: "Email", 
+    sortable: true, 
+    filterable: true, 
+    filterType: 'text' as const 
+  },
+  { 
+    key: "active", 
+    label: "Ativo", 
+    sortable: true, 
+    filterable: true, 
+    filterType: 'select' as const,
+    filterOptions: [
+      { value: "true", label: "Ativo" },
+      { value: "false", label: "Inativo" }
+    ]
+  },
+  { 
+    key: "created_at", 
+    label: "Criado em", 
+    sortable: true, 
+    filterable: true, 
+    filterType: 'date' as const 
+  }
 ];
 
 const formFields = [
   {
     name: "name",
-    label: "Nome do Usuário",
+    label: "Nome",
     type: "text" as const,
     required: true,
-    placeholder: "Digite o nome completo do usuário"
+    placeholder: "Digite o nome completo"
   },
   {
     name: "email",
-    label: "E-mail",
+    label: "Email",
     type: "email" as const,
     required: true,
-    placeholder: "Digite o e-mail do usuário"
+    placeholder: "Digite o email"
   },
   {
     name: "password",
     label: "Senha",
-    type: "password" as const,
-    required: false,
-    placeholder: "Digite a senha (deixe em branco para manter a atual)"
+    type: "text" as const,
+    required: true,
+    placeholder: "Digite a senha"
   },
   {
     name: "active",
-    label: "Status",
+    label: "Ativo",
     type: "select" as const,
     required: true,
     options: [
-      { value: true, label: "Ativo" },
-      { value: false, label: "Inativo" }
+      { value: "true", label: "Sim" },
+      { value: "false", label: "Não" }
     ]
   }
 ];
@@ -72,8 +101,12 @@ export const UsuariosPage = () => {
 
   const [itemToDelete, setItemToDelete] = useState<Usuario | null>(null);
 
-  const handleDelete = (item: Usuario) => {
-    setItemToDelete(item);
+  const handleEdit = (item: Record<string, ReactNode>) => {
+    openEditForm(item as Usuario);
+  };
+
+  const handleDelete = (item: Record<string, ReactNode>) => {
+    setItemToDelete(item as Usuario);
   };
 
   const confirmDelete = async () => {
@@ -83,7 +116,6 @@ export const UsuariosPage = () => {
     }
   };
 
-  // Transform data for display
   const transformedData = data.map(item => ({
     ...item,
     active: item.active ? "Sim" : "Não",
@@ -119,9 +151,10 @@ export const UsuariosPage = () => {
           data={transformedData}
           searchPlaceholder="Buscar por nome, email..."
           onAdd={openAddForm}
-          onEdit={openEditForm}
+          onEdit={handleEdit}
           onDelete={handleDelete}
           loading={loading}
+          baseEndpoint="/users"
         />
       ) : (
         <CrudForm

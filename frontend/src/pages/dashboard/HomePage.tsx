@@ -8,7 +8,11 @@ import {
   Users
 } from "lucide-react";
 import { cardsService, CardsData } from "@/services/cards";
+import { projectsService, Projeto } from "@/services/projects";
 import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DataTable } from "@/components/ui/data-table";
+import { Loader2 } from "lucide-react";
 
 const HomePage = () => {
   const [dashboardData, setDashboardData] = useState<CardsData>({
@@ -25,6 +29,11 @@ const HomePage = () => {
   });
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalTitle, setModalTitle] = useState("");
+  const [modalProjects, setModalProjects] = useState<Projeto[]>([]);
+  const [modalLoading, setModalLoading] = useState(false);
 
   useEffect(() => {
     const fetchCardsData = async () => {
@@ -46,6 +55,124 @@ const HomePage = () => {
     fetchCardsData();
   }, [toast]);
 
+  const handleCardClick = async (status: 'pending' | 'evaluated' | 'missing_1' | 'missing_2' | 'missing_3') => {
+    try {
+      setModalLoading(true);
+      setIsModalOpen(true);
+      
+      let title = "";
+      switch (status) {
+        case 'pending':
+          title = "Trabalhos para Avaliar";
+          break;
+        case 'evaluated':
+          title = "Trabalhos Avaliados";
+          break;
+        case 'missing_1':
+          title = "Faltam 1 Avaliação";
+          break;
+        case 'missing_2':
+          title = "Faltam 2 Avaliações";
+          break;
+        case 'missing_3':
+          title = "Faltam 3 Avaliações";
+          break;
+      }
+      
+      setModalTitle(title);
+      
+      const projects = await projectsService.getProjectsByStatus(status);
+      setModalProjects(projects);
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao carregar projetos",
+        variant: "destructive",
+      });
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  const columns = [
+    { 
+      key: "title", 
+      label: "Título", 
+      sortable: true, 
+      filterable: true, 
+      filterType: 'text' as const 
+    },
+    { 
+      key: "year", 
+      label: "Ano", 
+      sortable: true, 
+      filterable: true, 
+      filterType: 'number' as const 
+    },
+    { 
+      key: "category_name", 
+      label: "Categoria", 
+      sortable: true, 
+      filterable: true, 
+      filterType: 'text' as const 
+    },
+    { 
+      key: "projectType", 
+      label: "Tipo", 
+      sortable: true, 
+      filterable: true, 
+      filterType: 'select' as const,
+      filterOptions: [
+        { value: "Científico", label: "Científico" },
+        { value: "Tecnológico", label: "Tecnológico" }
+      ]
+    },
+    { 
+      key: "file", 
+      label: "Arquivo", 
+      sortable: false, 
+      filterable: false 
+    },
+    { 
+      key: "students_count", 
+      label: "Estudantes", 
+      sortable: false, 
+      filterable: true, 
+      filterType: 'number' as const 
+    },
+    { 
+      key: "created_at", 
+      label: "Criado em", 
+      sortable: true, 
+      filterable: true, 
+      filterType: 'date' as const 
+    }
+  ];
+
+  const transformedModalData = modalProjects.map(item => ({
+    id: item.id,
+    title: item.title,
+    description: item.description,
+    year: item.year,
+    category_id: item.category_id,
+    projectType: item.projectType === 1 ? "Científico" : "Tecnológico",
+    external_id: item.external_id,
+    file: item.file ? (
+      <a 
+        href={`/uploads/projects/${item.file}`} 
+        target="_blank" 
+        rel="noopener noreferrer"
+        className="text-blue-600 hover:text-blue-800 underline"
+      >
+        {item.file}
+      </a>
+    ) : "-",
+    created_at: item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : "-",
+    updated_at: item.updated_at,
+    category_name: item.category?.name || "-",
+    students_count: item.students?.length || 0
+  }));
+
   const cards = [
     {
       title: "Total de Projetos",
@@ -53,7 +180,8 @@ const HomePage = () => {
       icon: FileText,
       color: "text-blue-600",
       bgColor: "bg-blue-50",
-      description: "Projetos inscritos na FECITEL"
+      description: "Projetos inscritos na FECITEL",
+      clickable: false
     },
     {
       title: "Trabalhos para Avaliar",
@@ -61,7 +189,9 @@ const HomePage = () => {
       icon: Clock,
       color: "text-orange-600",
       bgColor: "bg-orange-50",
-      description: "Aguardando avaliação"
+      description: "Aguardando avaliação",
+      clickable: true,
+      status: 'pending' as const
     },
     {
       title: "Trabalhos Avaliados",
@@ -69,7 +199,9 @@ const HomePage = () => {
       icon: CheckCircle,
       color: "text-green-600",
       bgColor: "bg-green-50",
-      description: "Avaliação concluída"
+      description: "Avaliação concluída",
+      clickable: true,
+      status: 'evaluated' as const
     },
     {
       title: "Avaliadores Ativos",
@@ -77,7 +209,8 @@ const HomePage = () => {
       icon: Users,
       color: "text-indigo-600",
       bgColor: "bg-indigo-50",
-      description: "Participando da avaliação"
+      description: "Participando da avaliação",
+      clickable: false
     }
   ];
 
@@ -121,7 +254,11 @@ const HomePage = () => {
           {cards.map((card, index) => {
             const Icon = card.icon;
             return (
-              <Card key={index} className="hover:shadow-lg transition-shadow">
+              <Card 
+                key={index} 
+                className={`hover:shadow-lg transition-shadow ${card.clickable ? 'cursor-pointer hover:scale-105' : ''}`}
+                onClick={card.clickable ? () => handleCardClick(card.status!) : undefined}
+              >
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground">
                     {card.title}
@@ -188,15 +325,24 @@ const HomePage = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              <div className="flex justify-between items-center">
+              <div 
+                className="flex justify-between items-center cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors"
+                onClick={() => handleCardClick('missing_1')}
+              >
                 <span className="text-sm">Faltam 1 avaliação</span>
                 <span className="text-sm font-medium text-yellow-600">{dashboardData.status_avaliacoes.faltam_1_avaliacao}</span>
               </div>
-              <div className="flex justify-between items-center">
+              <div 
+                className="flex justify-between items-center cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors"
+                onClick={() => handleCardClick('missing_2')}
+              >
                 <span className="text-sm">Faltam 2 avaliações</span>
                 <span className="text-sm font-medium text-purple-600">{dashboardData.status_avaliacoes.faltam_2_avaliacoes}</span>
               </div>
-              <div className="flex justify-between items-center">
+              <div 
+                className="flex justify-between items-center cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors"
+                onClick={() => handleCardClick('missing_3')}
+              >
                 <span className="text-sm">Faltam 3 avaliações</span>
                 <span className="text-sm font-medium text-red-600">{dashboardData.status_avaliacoes.faltam_3_avaliacoes}</span>
               </div>
@@ -212,6 +358,37 @@ const HomePage = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Modal para exibir projetos */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="max-w-6xl max-h-[80vh] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold text-ifms-green-dark">
+              {modalTitle}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {modalLoading ? (
+            <div className="flex items-center justify-center p-8">
+              <Loader2 className="h-8 w-8 animate-spin" />
+              <span className="ml-2">Carregando projetos...</span>
+            </div>
+          ) : (
+            <div className="overflow-auto">
+              <DataTable
+                title=""
+                columns={columns}
+                data={transformedModalData}
+                searchPlaceholder="Buscar por título, categoria..."
+                loading={false}
+                pageSize={10}
+                pageSizeOptions={[10, 25, 50]}
+                baseEndpoint="/projects"
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

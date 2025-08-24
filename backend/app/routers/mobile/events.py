@@ -10,7 +10,6 @@ router = APIRouter()
 
 @router.get("/current-year")
 async def get_current_year_event(db: Session = Depends(get_db)):
-    """Get event for the current year"""
     try:
         current_year = datetime.now().year
         

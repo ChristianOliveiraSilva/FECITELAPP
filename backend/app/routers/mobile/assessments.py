@@ -26,10 +26,8 @@ async def get_assessments(
                 data=[]
             )
         
-        # Get current year
         current_year = datetime.now().year
         
-        # Get assessments for current evaluator with projects from current year
         assessments = db.query(Assessment).join(Project).options(
             joinedload(Assessment.project).joinedload(Project.students),
             joinedload(Assessment.project).joinedload(Project.category)
@@ -38,7 +36,6 @@ async def get_assessments(
             Project.year == current_year
         ).limit(20).all()
 
-        # Prepare response data
         assessment_data = []
         for assessment in assessments:
             project = assessment.project

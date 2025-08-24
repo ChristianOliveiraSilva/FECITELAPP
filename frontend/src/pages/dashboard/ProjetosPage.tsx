@@ -6,6 +6,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Loader2, FileText } from "lucide-react";
+import { ReactNode } from "react";
 
 interface Projeto extends Record<string, unknown> {
   id?: number;
@@ -15,6 +16,7 @@ interface Projeto extends Record<string, unknown> {
   category_id: number;
   projectType: number;
   external_id?: string;
+  file?: string;
   created_at?: string;
   updated_at?: string;
   category?: {
@@ -29,12 +31,58 @@ interface Projeto extends Record<string, unknown> {
 }
 
 const columns = [
-  { key: "title", label: "Título", sortable: true },
-  { key: "year", label: "Ano", sortable: true },
-  { key: "category_name", label: "Categoria", sortable: true },
-  { key: "projectType", label: "Tipo", sortable: true },
-  { key: "students_count", label: "Estudantes", sortable: false },
-  { key: "created_at", label: "Criado em", sortable: true }
+  { 
+    key: "title", 
+    label: "Título", 
+    sortable: true, 
+    filterable: true, 
+    filterType: 'text' as const 
+  },
+  { 
+    key: "year", 
+    label: "Ano", 
+    sortable: true, 
+    filterable: true, 
+    filterType: 'number' as const 
+  },
+  { 
+    key: "category_name", 
+    label: "Categoria", 
+    sortable: true, 
+    filterable: true, 
+    filterType: 'text' as const 
+  },
+  { 
+    key: "projectType", 
+    label: "Tipo", 
+    sortable: true, 
+    filterable: true, 
+    filterType: 'select' as const,
+    filterOptions: [
+      { value: "Científico", label: "Científico" },
+      { value: "Tecnológico", label: "Tecnológico" }
+    ]
+  },
+  { 
+    key: "file", 
+    label: "Arquivo", 
+    sortable: false, 
+    filterable: false 
+  },
+  { 
+    key: "students_count", 
+    label: "Estudantes", 
+    sortable: false, 
+    filterable: true, 
+    filterType: 'number' as const 
+  },
+  { 
+    key: "created_at", 
+    label: "Criado em", 
+    sortable: true, 
+    filterable: true, 
+    filterType: 'date' as const 
+  }
 ];
 
 const formFields = [
@@ -83,6 +131,13 @@ const formFields = [
     type: "text" as const,
     required: false,
     placeholder: "Digite o ID externo (opcional)"
+  },
+  {
+    name: "file",
+    label: "Arquivo do Projeto",
+    type: "file" as const,
+    required: false,
+    placeholder: "Selecione o arquivo do projeto"
   }
 ];
 
@@ -98,12 +153,21 @@ export const ProjetosPage = () => {
     closeForm,
     handleSubmit,
     deleteItem
-  } = useApiCrud<Projeto>({ endpoint: "/projects" });
+  } = useApiCrud<Projeto>({ 
+    endpoint: "/projects",
+    useFormData: true,
+    customCreateEndpoint: "/projects",
+    customUpdateEndpoint: "/projects"
+  });
 
   const [itemToDelete, setItemToDelete] = useState<Projeto | null>(null);
 
-  const handleDelete = (item: Projeto) => {
-    setItemToDelete(item);
+  const handleEdit = (item: Record<string, ReactNode>) => {
+    openEditForm(item as Projeto);
+  };
+
+  const handleDelete = (item: Record<string, ReactNode>) => {
+    setItemToDelete(item as Projeto);
   };
 
   const confirmDelete = async () => {
@@ -114,27 +178,41 @@ export const ProjetosPage = () => {
   };
 
   const handleGerarFichasBanner = () => {
-    // TODO: Implementar geração das fichas de identificação do banner
     console.log("Gerando fichas de identificação do banner...");
   };
 
   const [selectedProjetos, setSelectedProjetos] = useState<Projeto[]>([]);
 
-  const handleSelectionChange = (selectedItems: Projeto[]) => {
-    setSelectedProjetos(selectedItems);
+  const handleSelectionChange = (selectedItems: Record<string, ReactNode>[]) => {
+    setSelectedProjetos(selectedItems as Projeto[]);
   };
 
   const handleGerarFichasBannerSelecionados = () => {
     console.log("Gerando fichas de banner para:", selectedProjetos.length, "projetos selecionados");
   };
 
-  // Transform data for display
-  const transformedData = data.map(item => ({
-    ...item,
-    category_name: item.category?.name || "-",
-    students_count: item.students?.length || 0,
+  const transformedData: Record<string, ReactNode>[] = data.map(item => ({
+    id: item.id,
+    title: item.title,
+    description: item.description,
+    year: item.year,
+    category_id: item.category_id,
     projectType: item.projectType === 1 ? "Científico" : "Tecnológico",
-    created_at: item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : "-"
+    external_id: item.external_id,
+    file: item.file ? (
+      <a 
+        href={`/uploads/projects/${item.file}`} 
+        target="_blank" 
+        rel="noopener noreferrer"
+        className="text-blue-600 hover:text-blue-800 underline"
+      >
+        {item.file}
+      </a>
+    ) : "-",
+    created_at: item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : "-",
+    updated_at: item.updated_at,
+    category_name: item.category?.name || "-",
+    students_count: item.students?.length || 0
   }));
 
   return (
@@ -166,13 +244,14 @@ export const ProjetosPage = () => {
           data={transformedData}
           searchPlaceholder="Buscar por título, categoria..."
           onAdd={openAddForm}
-          onEdit={openEditForm}
+          onEdit={handleEdit}
           onDelete={handleDelete}
           loading={loading}
           selectable={true}
           onSelectionChange={handleSelectionChange}
           pageSize={15}
           pageSizeOptions={[10, 15, 25, 50, 100]}
+          baseEndpoint="/projects"
           actionButtons={
             <Button 
               onClick={handleGerarFichasBannerSelecionados}

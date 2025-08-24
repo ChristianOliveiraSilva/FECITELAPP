@@ -1,15 +1,12 @@
-from sqlalchemy import Column, Integer, String, DateTime, Text
+from sqlalchemy import Column, Integer, Text, DateTime
 from sqlalchemy.sql import func
 from app.database import Base
 
-class Event(Base):
-    __tablename__ = "events"
+class PasswordResetConfig(Base):
+    __tablename__ = "password_reset_configs"
     
     id = Column(Integer, primary_key=True, index=True)
-    year = Column(Integer, nullable=False, unique=True)
-    app_primary_color = Column(String(7), nullable=True)
-    app_font_color = Column(String(7), nullable=True)
-    app_logo_url = Column(String(500), nullable=True)
+    mail_template = Column(Text, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     deleted_at = Column(DateTime(timezone=True), nullable=True)

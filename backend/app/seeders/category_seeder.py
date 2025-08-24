@@ -6,16 +6,13 @@ class CategorySeeder:
         self.db = db
     
     def run(self):
-        """Executa o seeder de categorias"""
         print("📂 Iniciando seeder de categorias...")
         
-        # Verificar se já existem categorias
         existing_categories = self.db.query(Category).count()
         if existing_categories > 0:
             print("ℹ️  Categorias já existem, pulando criação")
             return
         
-        # Categorias principais
         main_categories = [
             {'name': 'CBS - Ciências Biológicas e da Saúde', 'main_category_id': None},
             {'name': 'CET - Ciências Exatas e da Terra', 'main_category_id': None},
@@ -24,7 +21,6 @@ class CategorySeeder:
             {'name': 'MDIS - Multidisciplinar', 'main_category_id': None},
         ]
         
-        # Subcategorias
         sub_categories = [
             # CBS Subcategorias
             {'name': 'Biologia Geral', 'main_category_id': 1},
@@ -111,7 +107,6 @@ class CategorySeeder:
             {'name': 'Engenharia Biomédica', 'main_category_id': 4},
         ]
         
-        # Inserir categorias principais
         for category_data in main_categories:
             category = Category(**category_data)
             self.db.add(category)
@@ -119,7 +114,6 @@ class CategorySeeder:
         
         self.db.commit()
         
-        # Inserir subcategorias
         for category_data in sub_categories:
             category = Category(**category_data)
             self.db.add(category)

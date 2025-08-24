@@ -4,15 +4,21 @@ from datetime import datetime
 
 class SchoolBase(BaseModel):
     name: str
+    city: str
+    state: str
 
 class SchoolCreate(SchoolBase):
     pass
 
 class SchoolUpdate(BaseModel):
     name: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
 
 class SchoolResponse(SchoolBase):
     id: int
+    city: str
+    state: str
     created_at: datetime
     updated_at: Optional[datetime]
     deleted_at: Optional[datetime]

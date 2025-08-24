@@ -1,7 +1,8 @@
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from app.database import settings
+from app.database import settings, SessionLocal
+from app.models.password_reset_config import PasswordResetConfig
 import os
 
 class EmailService:
@@ -12,38 +13,34 @@ class EmailService:
         self.smtp_password = os.getenv("SMTP_PASSWORD", "")
         self.from_email = os.getenv("FROM_EMAIL", "noreply@ifms.edu.br")
     
-    def send_password_reset_email(self, to_email: str, reset_token: str, user_name: str):
-        """Send password reset email"""
+    def get_mail_template(self) -> str:
+        db = SessionLocal()
         try:
-            # Criar mensagem
+            config = db.query(PasswordResetConfig).first()
+            if config:
+                return config.mail_template
+            else:
+                return """<html><body><h2>Recuperação de Senha</h2><p>Olá {user_name},</p><p>Clique aqui para redefinir sua senha: <a href="{reset_url}">Redefinir Senha</a></p></body></html>"""
+        except Exception as e:
+            print(f"Error fetching mail template: {e}")
+            return """<html><body><h2>Recuperação de Senha</h2><p>Olá {user_name},</p><p>Clique aqui para redefinir sua senha: <a href="{reset_url}">Redefinir Senha</a></p></body></html>"""
+        finally:
+            db.close()
+    
+    def send_password_reset_email(self, to_email: str, reset_token: str, user_name: str):
+        try:
             msg = MIMEMultipart()
             msg['From'] = self.from_email
             msg['To'] = to_email
             msg['Subject'] = "Recuperação de Senha - IFMS FECITEL"
             
-            # URL de reset (ajustar conforme necessário)
-            reset_url = f"http://localhost:8080/reset-password?token={reset_token}"
+            reset_url = f"{os.getenv('API_BASE_URL')}/reset-password?token={reset_token}"
             
-            # Corpo do email
-            body = f"""
-            <html>
-            <body>
-                <h2>Recuperação de Senha - IFMS FECITEL</h2>
-                <p>Olá {user_name},</p>
-                <p>Você solicitou a recuperação de senha para sua conta no sistema IFMS FECITEL.</p>
-                <p>Clique no link abaixo para redefinir sua senha:</p>
-                <p><a href="{reset_url}" style="background-color: #4CAF50; color: white; padding: 14px 20px; text-decoration: none; border-radius: 4px;">Redefinir Senha</a></p>
-                <p>Se você não solicitou esta recuperação, ignore este email.</p>
-                <p>Este link expira em 24 horas.</p>
-                <br>
-                <p>Atenciosamente,<br>Equipe IFMS FECITEL</p>
-            </body>
-            </html>
-            """
+            template = self.get_mail_template()
+            body = template.format(user_name=user_name, reset_url=reset_url)
             
             msg.attach(MIMEText(body, 'html'))
             
-            # Enviar email
             server = smtplib.SMTP(self.smtp_server, self.smtp_port)
             server.starttls()
             server.login(self.smtp_username, self.smtp_password)
@@ -52,10 +49,8 @@ class EmailService:
             server.quit()
             
             return True
-            
         except Exception as e:
             print(f"Erro ao enviar email: {e}")
             return False
 
-# Instância global do serviço de email
 email_service = EmailService() 

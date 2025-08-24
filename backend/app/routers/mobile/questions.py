@@ -20,7 +20,6 @@ async def get_questions_by_assessment(
     db: Session = Depends(get_db)
 ):
     try:
-        # Get evaluator for current user
         evaluator = db.query(Evaluator).filter(Evaluator.user_id == current_user.id).first()
         
         if not evaluator:
@@ -29,7 +28,6 @@ async def get_questions_by_assessment(
                 message="Usuário não é um avaliador"
             )
         
-        # Get assessment
         assessment = db.query(Assessment).filter(Assessment.id == assessment_id).first()
         
         if not assessment:
@@ -38,27 +36,21 @@ async def get_questions_by_assessment(
                 message="Avaliação não encontrada"
             )
         
-        # Check if evaluator has permission to access this assessment
         if assessment.evaluator_id != evaluator.id:
             return QuestionResponse(
                 status=False,
                 message="Você não tem permissão para acessar esta avaliação"
             )
         
-        # Get project type
         project = assessment.project
         project_type = ProjectType(project.projectType)
         
-        # Get all questions
         questions = db.query(Question).all()
         
-        # Get responses for this assessment
         responses = db.query(Response).filter(Response.assessment_id == assessment_id).all()
         
-        # Create a map of question_id to response for quick lookup
         responses_map = {response.question_id: response for response in responses}
         
-        # Prepare questions data with responses
         questions_data = []
         for question in questions:
             question_dict = {
@@ -70,7 +62,6 @@ async def get_questions_by_assessment(
                 "display_text": question.display_text
             }
             
-            # Add response if exists
             if question.id in responses_map:
                 response = responses_map[question.id]
                 question_dict["response"] = {

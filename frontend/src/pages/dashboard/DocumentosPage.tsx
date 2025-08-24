@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { apiService } from "@/lib/api";
 import { 
   FileText, 
   Download, 
@@ -38,26 +39,6 @@ const documentos: Documento[] = [
   },
   {
     id: "2",
-    nome: "Apresentação",
-    tipo: "pdf",
-    tamanho: "1.8 MB",
-    dataUpload: "10/03/2024",
-    categoria: "apresentacao",
-    descricao: "Apresentação geral da FECITEL",
-    endpoint: "/api/v3/docs/apresentacao"
-  },
-  {
-    id: "3",
-    nome: "Instruções para Avaliação",
-    tipo: "docx",
-    tamanho: "156 KB",
-    dataUpload: "05/03/2024",
-    categoria: "instrucoes",
-    descricao: "Instruções detalhadas para avaliação de trabalhos",
-    endpoint: "/api/v3/docs/instrucoes"
-  },
-  {
-    id: "4",
     nome: "Mensagem Avaliador",
     tipo: "docx",
     tamanho: "89 KB",
@@ -67,17 +48,7 @@ const documentos: Documento[] = [
     endpoint: "/api/v3/docs/mensagem-avaliador"
   },
   {
-    id: "5",
-    nome: "Premiação",
-    tipo: "pdf",
-    tamanho: "3.2 MB",
-    dataUpload: "12/03/2024",
-    categoria: "premiacao",
-    descricao: "Documento sobre premiação e critérios",
-    endpoint: "/api/v3/docs/premiacao"
-  },
-  {
-    id: "6",
+    id: "3",
     nome: "Relação de Trabalhos",
     tipo: "pptx",
     tamanho: "4.1 MB",
@@ -87,7 +58,7 @@ const documentos: Documento[] = [
     endpoint: "/api/v3/docs/relacao-trabalhos"
   },
   {
-    id: "7",
+    id: "4",
     nome: "Script Encerramento",
     tipo: "docx",
     tamanho: "234 KB",
@@ -97,7 +68,7 @@ const documentos: Documento[] = [
     endpoint: "/api/v3/docs/script-encerramento"
   },
   {
-    id: "8",
+    id: "5",
     nome: "Slide FECITEL",
     tipo: "odp",
     tamanho: "5.6 MB",
@@ -105,18 +76,7 @@ const documentos: Documento[] = [
     categoria: "slide",
     descricao: "Slides de apresentação da FECITEL",
     endpoint: "/api/v3/docs/slide-fecitel"
-  },
-  {
-    id: "9",
-    nome: "Certificado Feiras",
-    tipo: "docx",
-    tamanho: "1.2 MB",
-    dataUpload: "11/03/2024",
-    categoria: "certificado",
-    descricao: "Modelo de certificado para feiras",
-    endpoint: "/api/v3/docs/certificado"
-  },
-
+  }
 ];
 
 const getFileIcon = (tipo: Documento["tipo"]) => {
@@ -139,28 +99,18 @@ const getFileIcon = (tipo: Documento["tipo"]) => {
 const getCategoriaBadge = (categoria: Documento["categoria"]) => {
   const variants = {
     anais: "bg-purple-100 text-purple-800",
-    apresentacao: "bg-blue-100 text-blue-800",
-    instrucoes: "bg-green-100 text-green-800",
     mensagem: "bg-yellow-100 text-yellow-800",
-    premiacao: "bg-red-100 text-red-800",
     relacao: "bg-indigo-100 text-indigo-800",
     script: "bg-pink-100 text-pink-800",
-    slide: "bg-orange-100 text-orange-800",
-    certificado: "bg-teal-100 text-teal-800",
-    ficha: "bg-gray-100 text-gray-800"
+    slide: "bg-orange-100 text-orange-800"
   };
 
   const labels = {
     anais: "Anais",
-    apresentacao: "Apresentação",
-    instrucoes: "Instruções",
     mensagem: "Mensagem",
-    premiacao: "Premiação",
     relacao: "Relação",
     script: "Script",
-    slide: "Slide",
-    certificado: "Certificado",
-    ficha: "Ficha"
+    slide: "Slide"
   };
 
   return (
@@ -175,7 +125,7 @@ export const DocumentosPage = () => {
   const navigate = useNavigate();
   
   // Flag para controlar se os downloads estão habilitados
-  const downloadsEnabled = true;
+  const downloadsEnabled = false;
 
   const handleConfiguracoes = () => {
     navigate("/dashboard/documentos/configuracoes");
@@ -183,26 +133,15 @@ export const DocumentosPage = () => {
 
   const handleDownload = async (documento: Documento) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}${documento.endpoint}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Erro ${response.status}: ${response.statusText}`);
-      }
-
-      // Criar blob e fazer download
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
+      const blob = await apiService.downloadFile(documento.endpoint);
+      
+      const downloadUrl = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url;
+      a.href = downloadUrl;
       a.download = `${documento.nome}.${documento.tipo}`;
       document.body.appendChild(a);
       a.click();
-      window.URL.revokeObjectURL(url);
+      window.URL.revokeObjectURL(downloadUrl);
       document.body.removeChild(a);
 
       toast({
@@ -227,6 +166,9 @@ export const DocumentosPage = () => {
           <p className="text-muted-foreground">
             Gerencie e acesse todos os documentos da FECITEL
           </p>
+          {!downloadsEnabled && <p className="text-muted-foreground">
+            Alguns documentos só serão gerados após a finalização da feira.
+          </p>}
         </div>
         <Button
           onClick={handleConfiguracoes}

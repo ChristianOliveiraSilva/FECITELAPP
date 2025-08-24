@@ -10,6 +10,8 @@ from .response import Response
 from .award import Award
 from .event import Event
 from .password_reset import PasswordReset
+from .password_reset_config import PasswordResetConfig
+from .document import Document
 from .relationships import evaluator_categories, student_projects, award_question
 from app.database import Base
 
@@ -26,6 +28,8 @@ __all__ = [
     "Award",
     "Event",
     "PasswordReset",
+    "PasswordResetConfig",
+    "Document",
     "Base",
     "evaluator_categories",
     "student_projects", 

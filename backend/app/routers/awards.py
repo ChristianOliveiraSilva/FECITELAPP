@@ -13,15 +13,10 @@ router = APIRouter()
 async def get_awards(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
-    include_relations: bool = Query(False, description="Include related data"),
     db: Session = Depends(get_db)
 ):
-    """Get all awards with optional pagination and relations"""
     try:
-        query = db.query(Award).filter(Award.deleted_at == None)
-        
-        if include_relations:
-            query = query.options(joinedload(Award.questions))
+        query = db.query(Award).filter(Award.deleted_at == None).options(joinedload(Award.questions))
         
         awards = query.offset(skip).limit(limit).all()
         
@@ -31,22 +26,25 @@ async def get_awards(
                 "id": award.id,
                 "name": award.name,
                 "description": award.description,
+                "school_grade": award.school_grade,
+                "total_positions": award.total_positions,
+                "use_school_grades": award.use_school_grades,
+                "use_categories": award.use_categories,
                 "created_at": award.created_at,
                 "updated_at": award.updated_at,
                 "deleted_at": award.deleted_at,
                 "questions": []
             }
             
-            if include_relations:
-                award_dict["questions"] = [
-                    {
-                        "id": question.id,
-                        "scientific_text": question.scientific_text,
-                        "technological_text": question.technological_text,
-                        "type": question.type,
-                        "number_alternatives": question.number_alternatives
-                    } for question in award.questions
-                ]
+            award_dict["questions"] = [
+                {
+                    "id": question.id,
+                    "scientific_text": question.scientific_text,
+                    "technological_text": question.technological_text,
+                    "type": question.type,
+                    "number_alternatives": question.number_alternatives
+                } for question in award.questions
+            ]
             
             award_data.append(award_dict)
         
@@ -64,15 +62,10 @@ async def get_awards(
 @router.get("/{award_id}", response_model=AwardDetailResponse)
 async def get_award(
     award_id: int,
-    include_relations: bool = Query(False, description="Include related data"),
     db: Session = Depends(get_db)
 ):
-    """Get a specific award by ID"""
     try:
-        query = db.query(Award).filter(Award.deleted_at == None)
-        
-        if include_relations:
-            query = query.options(joinedload(Award.questions))
+        query = db.query(Award).filter(Award.deleted_at == None).options(joinedload(Award.questions))
         
         award = query.filter(Award.id == award_id).first()
         
@@ -86,22 +79,25 @@ async def get_award(
             "id": award.id,
             "name": award.name,
             "description": award.description,
+            "school_grade": award.school_grade,
+            "total_positions": award.total_positions,
+            "use_school_grades": award.use_school_grades,
+            "use_categories": award.use_categories,
             "created_at": award.created_at,
             "updated_at": award.updated_at,
             "deleted_at": award.deleted_at,
             "questions": []
         }
         
-        if include_relations:
-            award_dict["questions"] = [
-                {
-                    "id": question.id,
-                    "scientific_text": question.scientific_text,
-                    "technological_text": question.technological_text,
-                    "type": question.type,
-                    "number_alternatives": question.number_alternatives
-                } for question in award.questions
-            ]
+        award_dict["questions"] = [
+            {
+                "id": question.id,
+                "scientific_text": question.scientific_text,
+                "technological_text": question.technological_text,
+                "type": question.type,
+                "number_alternatives": question.number_alternatives
+            } for question in award.questions
+        ]
         
         return AwardDetailResponse(
             status=True,
@@ -118,11 +114,14 @@ async def get_award(
 
 @router.post("/", response_model=AwardDetailResponse)
 async def create_award(award_data: AwardCreate, db: Session = Depends(get_db)):
-    """Create a new award"""
     try:
         award = Award(
             name=award_data.name,
-            description=award_data.description
+            description=award_data.description,
+            school_grade=award_data.school_grade,
+            total_positions=award_data.total_positions,
+            use_school_grades=award_data.use_school_grades,
+            use_categories=award_data.use_categories
         )
         
         db.add(award)
@@ -133,11 +132,25 @@ async def create_award(award_data: AwardCreate, db: Session = Depends(get_db)):
             "id": award.id,
             "name": award.name,
             "description": award.description,
+            "school_grade": award.school_grade,
+            "total_positions": award.total_positions,
+            "use_school_grades": award.use_school_grades,
+            "use_categories": award.use_categories,
             "created_at": award.created_at,
             "updated_at": award.updated_at,
             "deleted_at": award.deleted_at,
             "questions": []
         }
+            
+        award_dict["questions"] = [
+            {
+                "id": question.id,
+                "scientific_text": question.scientific_text,
+                "technological_text": question.technological_text,
+                "type": question.type,
+                "number_alternatives": question.number_alternatives
+            } for question in award.questions
+        ]
         
         return AwardDetailResponse(
             status=True,
@@ -157,7 +170,6 @@ async def update_award(
     award_data: AwardUpdate,
     db: Session = Depends(get_db)
 ):
-    """Update an existing award"""
     try:
         award = db.query(Award).filter(Award.id == award_id).first()
         
@@ -167,7 +179,6 @@ async def update_award(
                 detail="Award not found"
             )
         
-        # Update fields
         update_data = award_data.dict(exclude_unset=True)
         for field, value in update_data.items():
             setattr(award, field, value)
@@ -179,11 +190,25 @@ async def update_award(
             "id": award.id,
             "name": award.name,
             "description": award.description,
+            "school_grade": award.school_grade,
+            "total_positions": award.total_positions,
+            "use_school_grades": award.use_school_grades,
+            "use_categories": award.use_categories,
             "created_at": award.created_at,
             "updated_at": award.updated_at,
             "deleted_at": award.deleted_at,
             "questions": []
         }
+            
+        award_dict["questions"] = [
+            {
+                "id": question.id,
+                "scientific_text": question.scientific_text,
+                "technological_text": question.technological_text,
+                "type": question.type,
+                "number_alternatives": question.number_alternatives
+            } for question in award.questions
+        ]
         
         return AwardDetailResponse(
             status=True,
@@ -201,7 +226,6 @@ async def update_award(
 
 @router.delete("/{award_id}")
 async def delete_award(award_id: int, db: Session = Depends(get_db)):
-    """Soft delete an award"""
     try:
         award = db.query(Award).filter(Award.id == award_id).first()
         
@@ -211,7 +235,6 @@ async def delete_award(award_id: int, db: Session = Depends(get_db)):
                 detail="Award not found"
             )
         
-        # Soft delete
         from datetime import datetime
         award.deleted_at = datetime.utcnow()
         

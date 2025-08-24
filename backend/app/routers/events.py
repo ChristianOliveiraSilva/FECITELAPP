@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.event import Event
 from app.schemas.event import (
-    EventCreate, EventUpdate, EventListResponse, EventDetailResponse
+    EventListResponse, EventDetailResponse
 )
 from typing import Optional
 import uuid
@@ -16,7 +16,6 @@ UPLOAD_DIR = Path("uploads/events")
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 def save_uploaded_file(file: UploadFile) -> str:
-    """Save uploaded file and return the accessible URL"""
     file_extension = file.filename.split('.')[-1] if '.' in file.filename else 'jpg'
     unique_filename = f"{uuid.uuid4()}.{file_extension}"
     file_path = UPLOAD_DIR / unique_filename
@@ -32,7 +31,6 @@ async def get_events(
     limit: int = Query(100, ge=1, le=1000),
     db: Session = Depends(get_db)
 ):
-    """Get all events with optional pagination"""
     try:
         events = db.query(Event).filter(Event.deleted_at == None).offset(skip).limit(limit).all()
         
@@ -52,13 +50,13 @@ async def get_events(
         
         return EventListResponse(
             status=True,
-            message="Events retrieved successfully",
+            message="Eventos recuperados com sucesso",
             data=event_data
         )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error retrieving events: {str(e)}"
+            detail=f"Erro ao recuperar eventos: {str(e)}"
         )
 
 @router.get("/{event_id}", response_model=EventDetailResponse)
@@ -66,14 +64,13 @@ async def get_event(
     event_id: int,
     db: Session = Depends(get_db)
 ):
-    """Get a specific event by ID"""
     try:
         event = db.query(Event).filter(Event.id == event_id, Event.deleted_at == None).first()
         
         if not event:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Event not found"
+                detail="Evento não encontrado"
             )
         
         event_dict = {
@@ -89,7 +86,7 @@ async def get_event(
         
         return EventDetailResponse(
             status=True,
-            message="Event retrieved successfully",
+            message="Evento recuperado com sucesso",
             data=event_dict
         )
     except HTTPException:
@@ -97,7 +94,7 @@ async def get_event(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error retrieving event: {str(e)}"
+            detail=f"Erro ao recuperar evento: {str(e)}"
         )
 
 @router.post("/", response_model=EventDetailResponse)
@@ -113,18 +110,16 @@ async def create_event(
         if existing_event:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Event for year {year} already exists"
+                detail=f"Evento para o ano {year} já existe"
             )
         
-        # Validate and save logo
         allowed_types = ["image/jpeg", "image/png", "image/jpg", "image/gif", "image/webp"]
         if logo.content_type not in allowed_types:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid file type. Only JPEG, PNG, GIF, and WebP images are allowed."
+                detail="Tipo de arquivo inválido. Apenas imagens JPEG, PNG, GIF e WebP são permitidas."
             )
         
-        # Validate file size (max 5MB)
         logo.file.seek(0, 2)
         file_size = logo.file.tell()
         logo.file.seek(0)
@@ -132,13 +127,11 @@ async def create_event(
         if file_size > 5 * 1024 * 1024:  # 5MB
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="File too large. Maximum size is 5MB."
+                detail="Arquivo muito grande. O tamanho máximo é 5MB."
             )
         
-        # Save logo
         logo_url = save_uploaded_file(logo)
         
-        # Create event
         event = Event(
             year=year,
             app_primary_color=app_primary_color,
@@ -162,7 +155,7 @@ async def create_event(
         
         return EventDetailResponse(
             status=True,
-            message="Event created successfully with logo",
+            message="Evento criado com sucesso com logo",
             data=event_dict
         )
     except HTTPException:
@@ -171,7 +164,7 @@ async def create_event(
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error creating event: {str(e)}"
+            detail=f"Erro ao criar evento: {str(e)}"
         )
 
 @router.put("/{event_id}", response_model=EventDetailResponse)
@@ -183,17 +176,15 @@ async def update_event(
     logo: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db)
 ):
-    """Update an existing event"""
     try:
         event = db.query(Event).filter(Event.id == event_id, Event.deleted_at == None).first()
         
         if not event:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Event not found"
+                detail="Evento não encontrado"
             )
         
-        # Check if year is being updated and if it conflicts with existing event
         if year is not None and year != event.year:
             existing_event = db.query(Event).filter(
                 Event.year == year,
@@ -203,10 +194,9 @@ async def update_event(
             if existing_event:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Event for year {year} already exists"
+                    detail=f"Evento para o ano {year} já existe"
                 )
         
-        # Update basic fields
         if year is not None:
             event.year = year
         if app_primary_color is not None:
@@ -214,17 +204,14 @@ async def update_event(
         if app_font_color is not None:
             event.app_font_color = app_font_color
         
-        # Handle logo upload if provided
         if logo is not None:
-            # Validate logo file type
             allowed_types = ["image/jpeg", "image/png", "image/jpg", "image/gif", "image/webp"]
             if logo.content_type not in allowed_types:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Invalid file type. Only JPEG, PNG, GIF, and WebP images are allowed."
+                    detail="Tipo de arquivo inválido. Apenas imagens JPEG, PNG, GIF e WebP são permitidas."
                 )
             
-            # Validate file size (max 5MB)
             logo.file.seek(0, 2)
             file_size = logo.file.tell()
             logo.file.seek(0)
@@ -232,10 +219,9 @@ async def update_event(
             if file_size > 5 * 1024 * 1024:  # 5MB
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="File too large. Maximum size is 5MB."
+                    detail="Arquivo muito grande. O tamanho máximo é 5MB."
                 )
             
-            # Save new logo
             logo_url = save_uploaded_file(logo)
             event.app_logo_url = logo_url
         
@@ -255,7 +241,7 @@ async def update_event(
         
         return EventDetailResponse(
             status=True,
-            message="Event updated successfully",
+            message="Evento atualizado com sucesso",
             data=event_dict
         )
     except HTTPException:
@@ -264,22 +250,20 @@ async def update_event(
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error updating event: {str(e)}"
+            detail=f"Erro ao atualizar evento: {str(e)}"
         )
 
 @router.delete("/{event_id}")
 async def delete_event(event_id: int, db: Session = Depends(get_db)):
-    """Soft delete an event"""
     try:
         event = db.query(Event).filter(Event.id == event_id).first()
         
         if not event:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Event not found"
+                detail="Evento não encontrado"
             )
         
-        # Soft delete
         from datetime import datetime
         event.deleted_at = datetime.utcnow()
         
@@ -287,7 +271,7 @@ async def delete_event(event_id: int, db: Session = Depends(get_db)):
         
         return {
             "status": True,
-            "message": "Event deleted successfully"
+            "message": "Evento excluído com sucesso"
         }
     except HTTPException:
         raise
@@ -295,5 +279,5 @@ async def delete_event(event_id: int, db: Session = Depends(get_db)):
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error deleting event: {str(e)}"
+            detail=f"Erro ao excluir evento: {str(e)}"
         ) 
