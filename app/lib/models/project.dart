@@ -25,6 +25,7 @@ class Project {
   final String description;
   final Category category;
   final List<Student> students;
+  final String? file;
   final String? createdAt;
   final String? updatedAt;
   final String? deletedAt;
@@ -38,12 +39,15 @@ class Project {
     required this.description,
     required this.category,
     required this.students,
+    this.file,
     this.createdAt,
     this.updatedAt,
     this.deletedAt,
   });
 
   factory Project.fromJson(Map<String, dynamic> json) {
+    print('json');
+    print(json);
     return Project(
       id: json['id'] ?? 0,
       title: json['title'] ?? '',
@@ -56,6 +60,7 @@ class Project {
               ?.map((student) => Student.fromJson(student))
               .toList() ??
           [],
+      file: json['file']?.toString(),
       createdAt: json['created_at']?.toString(),
       updatedAt: json['updated_at']?.toString(),
       deletedAt: json['deleted_at']?.toString(),
@@ -72,9 +77,15 @@ class Project {
       'description': description,
       'category': category.toJson(),
       'students': students.map((student) => student.toJson()).toList(),
+      'file': file,
       'created_at': createdAt,
       'updated_at': updatedAt,
       'deleted_at': deletedAt,
     };
+  }
+
+  String? get fullFileUrl {
+    if (file == null || file!.isEmpty) return null;
+    return 'http://10.0.2.2:8000$file';
   }
 } 

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../models/assessment.dart';
 import '../../models/project.dart';
+import '../../providers/projects_provider.dart';
+import 'package:provider/provider.dart';
 
 class AssessmentDetailsCard extends StatelessWidget {
   final Assessment assessment;
@@ -68,6 +70,87 @@ class AssessmentDetailsCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildDownloadButton(BuildContext context) {
+    print('assessment.project.file');
+    print(assessment.project.file);
+    if (assessment.project.file == null || assessment.project.file!.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(top: 20),
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFF2196F3).withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: const Color(0xFF2196F3).withOpacity(0.3),
+            width: 1,
+          ),
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () {
+              final projectsProvider = Provider.of<ProjectsProvider>(context, listen: false);
+              projectsProvider.downloadProjectFile(assessment.project.fullFileUrl);
+            },
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF2196F3),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.download,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Download do Projeto',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF2196F3),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Clique para baixar o arquivo do projeto',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[700],
+                            height: 1.4,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(
+                    Icons.arrow_forward_ios,
+                    color: Color(0xFF2196F3),
+                    size: 16,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -169,6 +252,7 @@ class AssessmentDetailsCard extends StatelessWidget {
                                 ],
                               ),
                             ),
+                            _buildDownloadButton(context),
                           ],
                         ),
                       ),

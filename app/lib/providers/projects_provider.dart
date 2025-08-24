@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/assessment.dart';
 import '../services/api_service.dart';
 
@@ -46,6 +47,22 @@ class ProjectsProvider extends ChangeNotifier {
       _error = 'Erro de conexão';
     } finally {
       _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> downloadProjectFile(String? fileUrl) async {
+    if (fileUrl == null || fileUrl.isEmpty) {
+      _error = 'Arquivo não disponível para download';
+      notifyListeners();
+      return;
+    }
+
+    try {
+      final Uri url = Uri.parse(fileUrl);
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      _error = 'Erro ao baixar arquivo: $e';
       notifyListeners();
     }
   }
