@@ -60,21 +60,11 @@ class TestSeeder:
         students = []
 
         nomes_brasileiros = [
-            "Ana Clara Souza",
-            "Lucas Gabriel Silva",
-            "Maria Eduarda Oliveira",
-            "Pedro Henrique Santos",
-            "Beatriz Rodrigues",
-            "João Pedro Almeida",
-            "Larissa Fernandes",
-            "Matheus Costa",
-            "Gabriela Lima",
-            "Rafael Martins",
-            "Camila Araújo",
-            "Gustavo Pereira",
-            "Isabela Rocha",
-            "Felipe Gonçalves",
-            "Mariana Ribeiro"
+            "Aluno 1",
+            "Aluno 2",
+            "Aluno 3",
+            "Aluno 4",
+            "Aluno 5"
         ]
         nome_index = 0
 
@@ -99,11 +89,11 @@ class TestSeeder:
         categories = self.db.query(Category).all()
         projects = []
         possible_titles = [
-            "Robô Seguidor de Linha",
-            "Aplicativo de Reciclagem",
-            "Horta Sustentável Escolar",
-            "Sistema de Monitoramento de Água",
-            "Jogo Educativo de Matemática"
+            "Teste 1",
+            "Teste 2",
+            "Teste 3",
+            "Teste 4",
+            "Teste 5"
         ]
         
         for category in categories:
@@ -118,7 +108,7 @@ class TestSeeder:
                     projectType=project_type.value,
                     category_id=category.id,
                     external_id=random.randint(1000, 9999),
-                    file="teste.docx"
+                    file="/uploads/projects/teste.docx"
                 )
                 self.db.add(project)
                 projects.append(project)

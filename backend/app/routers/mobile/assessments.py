@@ -40,6 +40,8 @@ async def get_assessments(
         for assessment in assessments:
             project = assessment.project
             students = project.students
+
+            print(project.file)
             
             assessment_dict = {
                 "id": assessment.id,
@@ -52,6 +54,7 @@ async def get_assessments(
                     "title": project.title,
                     "description": project.description,
                     "year": project.year,
+                    "file": project.file,
                     "category_id": project.category_id,
                     "projectType": project.projectType,
                     "external_id": project.external_id,
