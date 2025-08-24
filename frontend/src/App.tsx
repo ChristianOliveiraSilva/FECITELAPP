@@ -8,6 +8,8 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
+import PoliticaPrivacidade from "./pages/PoliticaPrivacidade";
+import ExclusaoConta from "./pages/ExclusaoConta";
 import { DashboardWrapper } from "@/components/layout/DashboardWrapper";
 import HomePage from "@/pages/dashboard/HomePage";
 import { AvaliacoesPage } from "@/pages/dashboard/AvaliacoesPage";
@@ -36,6 +38,8 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/politica-privacidade" element={<PoliticaPrivacidade />} />
+            <Route path="/exclusao-conta" element={<ExclusaoConta />} />
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <DashboardWrapper />
