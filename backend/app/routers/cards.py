@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import func, and_
+from sqlalchemy import or_, not_, exists, and_, func, distinct
 from app.database import get_db
 from app.models.project import Project
 from app.models.assessment import Assessment
@@ -17,55 +17,57 @@ async def get_cards_data(db: Session = Depends(get_db)):
         
         projetos_sem_avaliacao = db.query(Project).filter(
             Project.deleted_at == None,
-            ~Project.id.in_(
-                db.query(Assessment.project_id).filter(Assessment.deleted_at == None).join(
-                    Response, Assessment.id == Response.assessment_id
-                ).filter(Response.deleted_at == None).distinct()
+            ~exists().where(
+                and_(
+                    Assessment.project_id == Project.id,
+                    Assessment.deleted_at == None,
+                    exists().where(
+                        and_(
+                            Response.assessment_id == Assessment.id,
+                            Response.deleted_at == None
+                        )
+                    )
+                )
             )
         ).count()
         
-        projetos_avaliados = db.query(Project).filter(
-            Project.deleted_at == None,
-            Project.id.in_(
-                db.query(Assessment.project_id).filter(Assessment.deleted_at == None).join(
-                    Response, Assessment.id == Response.assessment_id
-                ).filter(Response.deleted_at == None).distinct()
-            )
-        ).count()
+        projetos_avaliados = total_projetos - projetos_sem_avaliacao
         
         avaliadores_ativos = db.query(Evaluator).filter(Evaluator.deleted_at == None).count()
         
-        projetos_nao_avaliados = db.query(Project).filter(
-            Project.deleted_at == None,
-            ~Project.id.in_(
-                db.query(Assessment.project_id).filter(Assessment.deleted_at == None).join(
-                    Response, Assessment.id == Response.assessment_id
-                ).filter(Response.deleted_at == None).distinct()
-            )
-        ).count()
-        
-        projetos_com_assessments_sem_respostas = db.query(Project).join(
-            Assessment, Project.id == Assessment.project_id
-        ).filter(
-            Project.deleted_at == None,
-            Assessment.deleted_at == None,
-            ~Assessment.id.in_(
-                db.query(Response.assessment_id).filter(Response.deleted_at == None).distinct()
-            )
-        ).distinct().count()
-        
-        faltam_2_avaliacoes = projetos_com_assessments_sem_respostas // 2
-        
-        faltam_1_avaliacao = projetos_com_assessments_sem_respostas - faltam_2_avaliacoes
-        
-        projetos_sem_assessments = db.query(Project).filter(
-            Project.deleted_at == None,
-            ~Project.id.in_(
-                db.query(Assessment.project_id).filter(Assessment.deleted_at == None).distinct()
-            )
-        ).count()
-        
-        faltam_3_avaliacoes = projetos_sem_assessments
+        faltam_1_avaliacao = (
+            db.query(Project)
+            .join(Assessment, and_(
+                Assessment.project_id == Project.id,
+                Assessment.deleted_at == None
+            ))
+            .join(Response, and_(
+                Response.assessment_id == Assessment.id,
+                Response.deleted_at == None
+            ))
+            .filter(Project.deleted_at == None)
+            .group_by(Project.id)
+            .having(func.count(distinct(Assessment.id)) == 2)
+            .count()
+        )
+
+        faltam_2_avaliacoes = (
+            db.query(Project)
+            .join(Assessment, and_(
+                Assessment.project_id == Project.id,
+                Assessment.deleted_at == None
+            ))
+            .join(Response, and_(
+                Response.assessment_id == Assessment.id,
+                Response.deleted_at == None
+            ))
+            .filter(Project.deleted_at == None)
+            .group_by(Project.id)
+            .having(func.count(distinct(Assessment.id)) == 1)
+            .count()
+        )
+
+        faltam_3_avaliacoes = projetos_sem_avaliacao
         
         progresso_geral = 0
         if total_projetos > 0:

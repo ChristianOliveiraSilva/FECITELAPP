@@ -6,6 +6,7 @@ from app.models.student import Student
 from app.models.category import Category
 from app.models.project import Project
 from app.models.assessment import Assessment
+from app.models.question import Question
 from app.enums.project_type import ProjectType
 from app.enums.school_grade import SchoolGrade
 import random
@@ -66,27 +67,24 @@ class TestSeeder:
             "Aluno 4",
             "Aluno 5"
         ]
-        nome_index = 0
 
-        for school in schools:
-            for i in range(3):
-                if nome_index >= len(nomes_brasileiros):
-                    nome_index = 0
-                student = Student(
-                    name=nomes_brasileiros[nome_index],
-                    email=fake.unique.email(),
-                    school_id=school.id,
-                    school_grade=random.choice([SchoolGrade.FUNDAMENTAL, SchoolGrade.MEDIO]).value,
-                    year=current_year
-                )
-                nome_index += 1
-                self.db.add(student)
-                students.append(student)
-        
+        for i in range(5):
+            school = schools[i % len(schools)] if schools else None
+            student = Student(
+                name=nomes_brasileiros[i],
+                email=fake.unique.email(),
+                school_id=school.id if school else None,
+                school_grade=random.choice([SchoolGrade.FUNDAMENTAL, SchoolGrade.MEDIO]).value,
+                year=current_year
+            )
+            self.db.add(student)
+            students.append(student)
+
         self.db.commit()
         print(f"👨‍🎓 Criados {len(students)} estudantes")
         
-        categories = self.db.query(Category).all()
+        # Pega só as 5 categorias principais (usando == None)
+        categories = self.db.query(Category).filter(Category.main_category_id == None).limit(5).all()
         projects = []
         possible_titles = [
             "Teste 1",
@@ -160,5 +158,63 @@ class TestSeeder:
         
         self.db.commit()
         print("✅ Categorias associadas aos avaliadores")
+        
+        # Criar perguntas fake
+        existing_questions = self.db.query(Question).count()
+        if existing_questions == 0:
+            questions_data = [
+                {
+                    'id': 6,
+                    'scientific_text': 'Teste?',
+                    'technological_text': 'Teste?',
+                    'type': 1,
+                    'number_alternatives': 10,
+                    'year': current_year,
+                    'created_at': datetime(2024, 10, 2, 13, 24, 44),
+                    'updated_at': datetime(2024, 10, 2, 13, 24, 44),
+                    'deleted_at': None,
+                },
+                {
+                    'id': 7,
+                    'scientific_text': 'Os objetivos do projeto estão claros?',
+                    'technological_text': 'Os objetivos do projeto estão claros?',
+                    'type': 1,
+                    'number_alternatives': 10,
+                    'year': current_year,
+                    'created_at': datetime(2024, 10, 2, 13, 25, 22),
+                    'updated_at': datetime(2024, 10, 2, 13, 25, 22),
+                    'deleted_at': None,
+                },
+                {
+                    'id': 8,
+                    'scientific_text': 'A metodologia está adequada?',
+                    'technological_text': 'A metodologia está adequada?',
+                    'type': 1,
+                    'number_alternatives': 10,
+                    'year': current_year,
+                    'created_at': datetime(2024, 10, 2, 13, 25, 54),
+                    'updated_at': datetime(2024, 10, 2, 13, 25, 54),
+                    'deleted_at': None,
+                },
+                {
+                    'id': 9,
+                    'scientific_text': 'O projeto apresenta relevância?',
+                    'technological_text': 'O projeto apresenta relevância?',
+                    'type': 1,
+                    'number_alternatives': 10,
+                    'year': current_year,
+                    'created_at': datetime(2024, 10, 2, 13, 26, 11),
+                    'updated_at': datetime(2024, 10, 2, 13, 26, 11),
+                    'deleted_at': None,
+                },
+            ]
+            
+            for question_data in questions_data:
+                question = Question(**question_data)
+                self.db.add(question)
+                print(f"❓ Criada questão ID {question_data['id']}")
+            
+            self.db.commit()
+            print("✅ Questões fake criadas")
         
         print("✅ Seeder de testes concluído!")

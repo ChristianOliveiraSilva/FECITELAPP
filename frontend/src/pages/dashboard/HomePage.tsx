@@ -189,7 +189,7 @@ const HomePage = () => {
       icon: Clock,
       color: "text-orange-600",
       bgColor: "bg-orange-50",
-      description: "Aguardando avaliação",
+      description: "Projetos sem nenhuma avaliação",
       clickable: true,
       status: 'pending' as const
     },
@@ -199,7 +199,7 @@ const HomePage = () => {
       icon: CheckCircle,
       color: "text-green-600",
       bgColor: "bg-green-50",
-      description: "Avaliação concluída",
+      description: "Projetos com ao menos 1 avaliação concluída",
       clickable: true,
       status: 'evaluated' as const
     },
@@ -286,7 +286,7 @@ const HomePage = () => {
         <Card>
           <CardHeader>
             <CardTitle className="text-lg font-semibold text-ifms-green-dark">
-              Resumo de Avaliações
+              Resumo do Progresso das Avaliações dos Projetos
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -313,6 +313,9 @@ const HomePage = () => {
                   <span className="ml-2 font-medium text-orange-600">{dashboardData.trabalhos_para_avaliar}</span>
                 </div>
               </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground"><small>Este progresso não considera a finalização das 3 avaliações do projeto, mas sim se ele foi avaliado pelo menos uma vez</small></span>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -320,7 +323,7 @@ const HomePage = () => {
         <Card>
           <CardHeader>
             <CardTitle className="text-lg font-semibold text-ifms-green-dark">
-              Status das Avaliações
+              Status dos Projetos avaliados
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -329,28 +332,28 @@ const HomePage = () => {
                 className="flex justify-between items-center cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors"
                 onClick={() => handleCardClick('missing_1')}
               >
-                <span className="text-sm">Faltam 1 avaliação</span>
+                <span className="text-sm">Projetos que faltam 1 avaliação para conclusão</span>
                 <span className="text-sm font-medium text-yellow-600">{dashboardData.status_avaliacoes.faltam_1_avaliacao}</span>
               </div>
               <div 
                 className="flex justify-between items-center cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors"
                 onClick={() => handleCardClick('missing_2')}
               >
-                <span className="text-sm">Faltam 2 avaliações</span>
+                <span className="text-sm">Projetos que faltam 2 avaliações para conclusão</span>
                 <span className="text-sm font-medium text-purple-600">{dashboardData.status_avaliacoes.faltam_2_avaliacoes}</span>
               </div>
               <div 
                 className="flex justify-between items-center cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors"
                 onClick={() => handleCardClick('missing_3')}
               >
-                <span className="text-sm">Faltam 3 avaliações</span>
+                <span className="text-sm">Projetos que faltam 3 avaliações para conclusão</span>
                 <span className="text-sm font-medium text-red-600">{dashboardData.status_avaliacoes.faltam_3_avaliacoes}</span>
               </div>
               <div className="pt-2 border-t">
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium">Total pendente</span>
                   <span className="text-sm font-bold text-ifms-green-dark">
-                    {dashboardData.status_avaliacoes.faltam_1_avaliacao + dashboardData.status_avaliacoes.faltam_2_avaliacoes + dashboardData.status_avaliacoes.faltam_3_avaliacoes}
+                    {dashboardData.status_avaliacoes.faltam_1_avaliacao + dashboardData.status_avaliacoes.faltam_2_avaliacoes + dashboardData.status_avaliacoes.faltam_3_avaliacoes} / {dashboardData.total_projetos}
                   </span>
                 </div>
               </div>

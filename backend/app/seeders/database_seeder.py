@@ -1,8 +1,7 @@
 from sqlalchemy.orm import Session
-from app.models import User, PasswordReset
+from app.models import User
 from app.seeders.school_seeder import SchoolSeeder
 from app.seeders.category_seeder import CategorySeeder
-from app.seeders.question_seeder import QuestionSeeder
 from app.seeders.test_seeder import TestSeeder
 from app.seeders.event_seeder import EventSeeder
 from app.seeders.password_reset_config_seeder import PasswordResetConfigSeeder
@@ -17,10 +16,10 @@ class DatabaseSeeder:
         
         SchoolSeeder(self.db).run()
         CategorySeeder(self.db).run()
-        QuestionSeeder(self.db).run()
-        TestSeeder(self.db).run()
         EventSeeder(self.db).run()
         PasswordResetConfigSeeder(self.db).run()
+        if os.getenv('APP_ENV') != 'production':
+            TestSeeder(self.db).run()
         
         self._create_default_users()
         print("✅ Seeders concluídos com sucesso!")
@@ -31,13 +30,11 @@ class DatabaseSeeder:
                 'name': 'Rogério Alves dos Santos Antoniassi',
                 'email': 'rogerio.antoniassi@ifms.edu.br',
                 'password': 'password' if os.getenv('APP_ENV') != 'production' else 'R8$hG7@fK4jLp9#Qw1ZuV2',
-                'active': True
             },
             {
                 'name': 'Alex Fernando de Araujo',
                 'email': 'alex.araujo@ifms.edu.br',
                 'password': 'password' if os.getenv('APP_ENV') != 'production' else 'm5^Tz8*QrW3&yJ0@bC6xL7',
-                'active': True
             }
         ]
         
@@ -46,7 +43,6 @@ class DatabaseSeeder:
                 'name': 'Test User',
                 'email': 'test@ifms.edu.br',
                 'password': 'password',
-                'active': True
             })
         
         for user_data in default_users:
@@ -57,7 +53,7 @@ class DatabaseSeeder:
                     name=user_data['name'],
                     email=user_data['email'],
                     password=hashed_password,
-                    active=user_data['active']
+                    active=True
                 )
                 self.db.add(user)
                 print(f"👤 Criado usuário: {user_data['name']}")
