@@ -1,11 +1,14 @@
-import { useState } from "react";
+import { useParams, useLocation } from "react-router-dom";
 import { DataTable } from "@/components/ui/data-table";
 import { CrudForm } from "@/components/ui/crud-form";
 import { useApiCrud } from "@/hooks/use-api-crud";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
-import { ReactNode } from "react";
+import { ReactNode, useState, useEffect } from "react";
+import { ItemDetail } from "@/components/ui/item-detail";
+import { CrudFormPage } from "@/components/ui/crud-form-page";
+import { CrudListPage } from "@/components/ui/crud-list-page";
 
 interface Avaliacao extends Record<string, unknown> {
   id?: number;
@@ -99,7 +102,7 @@ const formFields = [
     type: "select" as const,
     required: true,
     placeholder: "Selecione o avaliador",
-    options: []
+    options: [] // Será preenchido dinamicamente
   },
   {
     name: "project_id",
@@ -107,11 +110,30 @@ const formFields = [
     type: "select" as const,
     required: true,
     placeholder: "Selecione o projeto",
-    options: []
+    options: [] // Será preenchido dinamicamente
   }
 ];
 
+const detailFields = [
+  { key: "id", label: "ID", type: "number" as const },
+  { key: "evaluator_name", label: "Avaliador", type: "text" as const },
+  { key: "project_title", label: "Projeto", type: "text" as const },
+  { key: "project_year", label: "Ano", type: "number" as const },
+  { key: "project_category", label: "Categoria", type: "text" as const },
+  { key: "has_response", label: "Respondido", type: "boolean" as const },
+  { key: "note", label: "Nota Média", type: "number" as const },
+  { key: "responses_count", label: "Respostas", type: "array" as const },
+  { key: "created_at", label: "Criado em", type: "date" as const },
+  { key: "updated_at", label: "Atualizado em", type: "date" as const }
+];
+
 export const AvaliacoesPage = () => {
+  const params = useParams();
+  const location = useLocation();
+  const [currentItem, setCurrentItem] = useState<Avaliacao | null>(null);
+  const [loadingItem, setLoadingItem] = useState(false);
+  const [itemError, setItemError] = useState<string | null>(null);
+
   const {
     data,
     loading,
@@ -126,6 +148,36 @@ export const AvaliacoesPage = () => {
   } = useApiCrud<Avaliacao>({ endpoint: "/assessments" });
 
   const [itemToDelete, setItemToDelete] = useState<Avaliacao | null>(null);
+
+  // Determine current view based on URL
+  const isListView = !params.id || params.id === 'create';
+  const isDetailView = params.id && params.id !== 'create' && params.id !== 'edit';
+  const isCreateView = params.id === 'create';
+  const isEditView = params.id && params.id !== 'create' && location.pathname.includes('/edit');
+
+  // Fetch single item when viewing details
+  useEffect(() => {
+    if (isDetailView && params.id) {
+      fetchItem(parseInt(params.id));
+    }
+  }, [params.id, isDetailView]);
+
+  const fetchItem = async (id: number) => {
+    setLoadingItem(true);
+    setItemError(null);
+    try {
+      const response = await fetch(`/assessments/${id}`);
+      if (!response.ok) {
+        throw new Error('Avaliação não encontrada');
+      }
+      const result = await response.json();
+      setCurrentItem(result.data);
+    } catch (err) {
+      setItemError(err instanceof Error ? err.message : 'Erro ao carregar avaliação');
+    } finally {
+      setLoadingItem(false);
+    }
+  };
 
   const handleEdit = (item: Record<string, ReactNode>) => {
     openEditForm(item as Avaliacao);
@@ -157,51 +209,65 @@ export const AvaliacoesPage = () => {
     updated_at: item.updated_at
   }));
 
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-ifms-green-dark">Avaliações</h1>
-        <p className="text-muted-foreground">
-          Gerencie as avaliações dos projetos da FECITEL
-        </p>
-      </div>
+  // Transform current item for detail view
+  const transformedCurrentItem = currentItem ? {
+    id: currentItem.id,
+    evaluator_name: currentItem.evaluator?.PIN || `Avaliador ${currentItem.evaluator_id}`,
+    project_title: currentItem.project?.title || `Projeto ${currentItem.project_id}`,
+    project_year: currentItem.project?.year || "-",
+    project_category: currentItem.project?.category?.name || "-",
+    has_response: currentItem.responses && currentItem.responses.length > 0 ? "Sim" : "Não",
+    note: currentItem.responses && currentItem.responses.length > 0 ? 
+      (currentItem.responses.reduce((sum, r) => sum + (r.score || 0), 0) / currentItem.responses.length).toFixed(2) : "0.00",
+    responses_count: currentItem.responses?.length || 0,
+    created_at: currentItem.created_at,
+    updated_at: currentItem.updated_at
+  } : null;
 
-      {error && (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-      
-      {loading && (
-        <div className="flex items-center justify-center p-4">
-          <Loader2 className="h-6 w-6 animate-spin" />
-          <span className="ml-2">Carregando...</span>
-        </div>
-      )}
-      
-      {!isFormOpen ? (
-        <DataTable
-          title="Lista de Avaliações"
-          columns={columns}
-          data={transformedData}
-          searchPlaceholder="Buscar por projeto, avaliador..."
-          onAdd={openAddForm}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          loading={loading}
-          baseEndpoint="/assessments"
-        />
-      ) : (
-        <CrudForm
-          title="Avaliação"
-          fields={formFields}
-          initialData={editingItem || {}}
-          onSubmit={handleSubmit}
-          onCancel={closeForm}
-          isEditing={!!editingItem}
-          loading={loading}
-        />
-      )}
+  // Render based on current view
+  if (isDetailView) {
+    return (
+      <ItemDetail
+        title="Avaliação"
+        description="Detalhes da avaliação do projeto"
+        data={transformedCurrentItem || {}}
+        fields={detailFields}
+        loading={loadingItem}
+        error={itemError}
+      />
+    );
+  }
+
+  if (isCreateView || isEditView) {
+    return (
+      <CrudFormPage
+        title="Avaliação"
+        description="Gerencie as avaliações dos projetos da FECITEL"
+        fields={formFields}
+        initialData={editingItem || {}}
+        onSubmit={handleSubmit}
+        isEditing={!!editingItem}
+        loading={loading}
+      />
+    );
+  }
+
+  // Default: List view
+  return (
+    <>
+      <CrudListPage
+        title="Avaliações"
+        description="Gerencie as avaliações dos projetos da FECITEL"
+        columns={columns}
+        data={transformedData}
+        searchPlaceholder="Buscar por projeto, avaliador..."
+        onAdd={openAddForm}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        loading={loading}
+        error={error}
+        baseEndpoint="/assessments"
+      />
 
       <AlertDialog open={!!itemToDelete} onOpenChange={() => setItemToDelete(null)}>
         <AlertDialogContent>
@@ -219,6 +285,6 @@ export const AvaliacoesPage = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </>
   );
 };

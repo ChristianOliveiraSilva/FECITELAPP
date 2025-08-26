@@ -47,16 +47,59 @@ const App = () => (
             }>
               <Route index element={<Navigate to="home" replace />} />
               <Route path="home" element={<HomePage />} />
+            
+              {/* Resources */}
               <Route path="avaliacoes" element={<AvaliacoesPage />} />
+              <Route path="avaliacoes/create" element={<AvaliacoesPage />} />
+              <Route path="avaliacoes/:id" element={<AvaliacoesPage />} />
+              <Route path="avaliacoes/:id/edit" element={<AvaliacoesPage />} />
+              
               <Route path="areas" element={<AreasPage />} />
+              <Route path="areas/create" element={<AreasPage />} />
+              <Route path="areas/:id" element={<AreasPage />} />
+              <Route path="areas/:id/edit" element={<AreasPage />} />
+              
               <Route path="projetos" element={<ProjetosPage />} />
+              <Route path="projetos/create" element={<ProjetosPage />} />
+              <Route path="projetos/:id" element={<ProjetosPage />} />
+              <Route path="projetos/:id/edit" element={<ProjetosPage />} />
+              
               <Route path="avaliadores" element={<AvaliadoresPage />} />
+              <Route path="avaliadores/create" element={<AvaliadoresPage />} />
+              <Route path="avaliadores/:id" element={<AvaliadoresPage />} />
+              <Route path="avaliadores/:id/edit" element={<AvaliadoresPage />} />
+              
               <Route path="estudantes" element={<EstudantesPage />} />
+              <Route path="estudantes/create" element={<EstudantesPage />} />
+              <Route path="estudantes/:id" element={<EstudantesPage />} />
+              <Route path="estudantes/:id/edit" element={<EstudantesPage />} />
+              
               <Route path="escolas" element={<EscolasPage />} />
+              <Route path="escolas/create" element={<EscolasPage />} />
+              <Route path="escolas/:id" element={<EscolasPage />} />
+              <Route path="escolas/:id/edit" element={<EscolasPage />} />
+              
               <Route path="eventos" element={<EventosPage />} />
+              <Route path="eventos/create" element={<EventosPage />} />
+              <Route path="eventos/:id" element={<EventosPage />} />
+              <Route path="eventos/:id/edit" element={<EventosPage />} />
+              
               <Route path="usuarios" element={<UsuariosPage />} />
+              <Route path="usuarios/create" element={<UsuariosPage />} />
+              <Route path="usuarios/:id" element={<UsuariosPage />} />
+              <Route path="usuarios/:id/edit" element={<UsuariosPage />} />
+              
               <Route path="premiacoes" element={<PremiacoesPage />} />
+              <Route path="premiacoes/create" element={<PremiacoesPage />} />
+              <Route path="premiacoes/:id" element={<PremiacoesPage />} />
+              <Route path="premiacoes/:id/edit" element={<PremiacoesPage />} />
+              
               <Route path="perguntas" element={<PerguntasPage />} />
+              <Route path="perguntas/create" element={<PerguntasPage />} />
+              <Route path="perguntas/:id" element={<PerguntasPage />} />
+              <Route path="perguntas/:id/edit" element={<PerguntasPage />} />
+
+              {/* Settings */}
               <Route path="documentos" element={<DocumentosPage />} />
               <Route path="documentos/configuracoes" element={<DocumentosConfiguracoesPage />} />
               <Route path="password-reset-config" element={<PasswordResetConfigPage />} />

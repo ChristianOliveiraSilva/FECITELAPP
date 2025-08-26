@@ -1,11 +1,14 @@
-import { useState } from "react";
+import { useParams, useLocation } from "react-router-dom";
 import { DataTable } from "@/components/ui/data-table";
 import { CrudForm } from "@/components/ui/crud-form";
 import { useApiCrud } from "@/hooks/use-api-crud";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
-import { ReactNode } from "react";
+import { ReactNode, useState, useEffect } from "react";
+import { ItemDetail } from "@/components/ui/item-detail";
+import { CrudFormPage } from "@/components/ui/crud-form-page";
+import { CrudListPage } from "@/components/ui/crud-list-page";
 
 interface Pergunta extends Record<string, unknown> {
   id?: number;
@@ -13,6 +16,7 @@ interface Pergunta extends Record<string, unknown> {
   technological_text: string;
   type: number;
   number_alternatives: number;
+  year: number;
   created_at?: string;
   updated_at?: string;
   responses?: Array<{
@@ -32,14 +36,14 @@ const columns = [
   { 
     key: "scientific_text", 
     label: "Texto Científico", 
-    sortable: false, 
+    sortable: true, 
     filterable: true, 
     filterType: 'text' as const 
   },
   { 
     key: "technological_text", 
     label: "Texto Tecnológico", 
-    sortable: false, 
+    sortable: true, 
     filterable: true, 
     filterType: 'text' as const 
   },
@@ -57,6 +61,13 @@ const columns = [
   { 
     key: "number_alternatives", 
     label: "Alternativas", 
+    sortable: true, 
+    filterable: true, 
+    filterType: 'number' as const 
+  },
+  { 
+    key: "year", 
+    label: "Ano", 
     sortable: true, 
     filterable: true, 
     filterType: 'number' as const 
@@ -90,23 +101,24 @@ const formFields = [
     label: "Texto Científico",
     type: "textarea" as const,
     required: true,
-    placeholder: "Digite o texto da pergunta para projetos científicos"
+    placeholder: "Digite o texto da pergunta científica"
   },
   {
     name: "technological_text",
     label: "Texto Tecnológico",
     type: "textarea" as const,
     required: true,
-    placeholder: "Digite o texto da pergunta para projetos tecnológicos"
+    placeholder: "Digite o texto da pergunta tecnológica"
   },
   {
     name: "type",
-    label: "Tipo de Pergunta",
+    label: "Tipo",
     type: "select" as const,
     required: true,
+    placeholder: "Selecione o tipo",
     options: [
-      { value: "1", label: "Múltipla Escolha" },
-      { value: "2", label: "Texto" },
+      { value: "1", label: "Científico" },
+      { value: "2", label: "Tecnológico" }
     ]
   },
   {
@@ -115,10 +127,36 @@ const formFields = [
     type: "number" as const,
     required: true,
     placeholder: "Digite o número de alternativas"
+  },
+  {
+    name: "year",
+    label: "Ano",
+    type: "number" as const,
+    required: true,
+    placeholder: "Digite o ano"
   }
 ];
 
+const detailFields = [
+  { key: "id", label: "ID", type: "number" as const },
+  { key: "scientific_text", label: "Texto Científico", type: "text" as const },
+  { key: "technological_text", label: "Texto Tecnológico", type: "text" as const },
+  { key: "type", label: "Tipo", type: "text" as const },
+  { key: "number_alternatives", label: "Número de Alternativas", type: "number" as const },
+  { key: "year", label: "Ano", type: "number" as const },
+  { key: "responses_count", label: "Respostas", type: "array" as const },
+  { key: "awards_count", label: "Premiações", type: "array" as const },
+  { key: "created_at", label: "Criado em", type: "date" as const },
+  { key: "updated_at", label: "Atualizado em", type: "date" as const }
+];
+
 export const PerguntasPage = () => {
+  const params = useParams();
+  const location = useLocation();
+  const [currentItem, setCurrentItem] = useState<Pergunta | null>(null);
+  const [loadingItem, setLoadingItem] = useState(false);
+  const [itemError, setItemError] = useState<string | null>(null);
+
   const {
     data,
     loading,
@@ -133,6 +171,36 @@ export const PerguntasPage = () => {
   } = useApiCrud<Pergunta>({ endpoint: "/questions" });
 
   const [itemToDelete, setItemToDelete] = useState<Pergunta | null>(null);
+
+  // Determine current view based on URL
+  const isListView = !params.id || params.id === 'create';
+  const isDetailView = params.id && params.id !== 'create' && params.id !== 'edit';
+  const isCreateView = params.id === 'create';
+  const isEditView = params.id && params.id !== 'create' && location.pathname.includes('/edit');
+
+  // Fetch single item when viewing details
+  useEffect(() => {
+    if (isDetailView && params.id) {
+      fetchItem(parseInt(params.id));
+    }
+  }, [params.id, isDetailView]);
+
+  const fetchItem = async (id: number) => {
+    setLoadingItem(true);
+    setItemError(null);
+    try {
+      const response = await fetch(`/questions/${id}`);
+      if (!response.ok) {
+        throw new Error('Pergunta não encontrada');
+      }
+      const result = await response.json();
+      setCurrentItem(result.data);
+    } catch (err) {
+      setItemError(err instanceof Error ? err.message : 'Erro ao carregar pergunta');
+    } finally {
+      setLoadingItem(false);
+    }
+  };
 
   const handleEdit = (item: Record<string, ReactNode>) => {
     openEditForm(item as Pergunta);
@@ -155,57 +223,71 @@ export const PerguntasPage = () => {
     technological_text: item.technological_text,
     type: item.type === 1 ? "Científico" : "Tecnológico",
     number_alternatives: item.number_alternatives,
+    year: item.year,
     responses_count: item.responses?.length || 0,
     awards_count: item.awards?.length || 0,
     created_at: item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : "-",
     updated_at: item.updated_at
   }));
 
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-ifms-green-dark">Perguntas</h1>
-        <p className="text-muted-foreground">
-          Gerencie as perguntas de avaliação da FECITEL
-        </p>
-      </div>
+  // Transform current item for detail view
+  const transformedCurrentItem = currentItem ? {
+    id: currentItem.id,
+    scientific_text: currentItem.scientific_text,
+    technological_text: currentItem.technological_text,
+    type: currentItem.type === 1 ? "Científico" : "Tecnológico",
+    number_alternatives: currentItem.number_alternatives,
+    year: currentItem.year,
+    responses_count: currentItem.responses?.length || 0,
+    awards_count: currentItem.awards?.length || 0,
+    created_at: currentItem.created_at,
+    updated_at: currentItem.updated_at
+  } : null;
 
-      {error && (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-      
-      {loading && (
-        <div className="flex items-center justify-center p-4">
-          <Loader2 className="h-6 w-6 animate-spin" />
-          <span className="ml-2">Carregando...</span>
-        </div>
-      )}
-      
-      {!isFormOpen ? (
-        <DataTable
-          title="Lista de Perguntas"
-          columns={columns}
-          data={transformedData}
-          searchPlaceholder="Buscar por texto da pergunta..."
-          onAdd={openAddForm}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          loading={loading}
-          baseEndpoint="/questions"
-        />
-      ) : (
-        <CrudForm
-          title="Pergunta"
-          fields={formFields}
-          initialData={editingItem || {}}
-          onSubmit={handleSubmit}
-          onCancel={closeForm}
-          isEditing={!!editingItem}
-          loading={loading}
-        />
-      )}
+  // Render based on current view
+  if (isDetailView) {
+    return (
+      <ItemDetail
+        title="Pergunta"
+        description="Detalhes da pergunta de avaliação da FECITEL"
+        data={transformedCurrentItem || {}}
+        fields={detailFields}
+        loading={loadingItem}
+        error={itemError}
+      />
+    );
+  }
+
+  if (isCreateView || isEditView) {
+    return (
+      <CrudFormPage
+        title="Pergunta"
+        description="Gerencie as perguntas de avaliação da FECITEL"
+        fields={formFields}
+        initialData={editingItem || {}}
+        onSubmit={handleSubmit}
+        isEditing={!!editingItem}
+        loading={loading}
+      />
+    );
+  }
+
+  // Default: List view
+  return (
+    <>
+      <CrudListPage
+        title="Perguntas"
+        description="Gerencie as perguntas de avaliação da FECITEL"
+        columns={columns}
+        data={transformedData}
+        searchPlaceholder="Buscar por texto da pergunta..."
+        onAdd={openAddForm}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        loading={loading}
+        error={error}
+        baseEndpoint="/questions"
+      />
 
       <AlertDialog open={!!itemToDelete} onOpenChange={() => setItemToDelete(null)}>
         <AlertDialogContent>
@@ -223,6 +305,6 @@ export const PerguntasPage = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </>
   );
 };
