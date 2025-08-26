@@ -26,7 +26,7 @@ interface Projeto extends Record<string, unknown> {
   students?: Array<{
     id: number;
     name: string;
-    school_grade: string;
+    school_grade: number;
   }>;
 }
 
@@ -64,17 +64,10 @@ const columns = [
     ]
   },
   { 
-    key: "file", 
-    label: "Arquivo", 
-    sortable: false, 
-    filterable: false 
-  },
-  { 
-    key: "students_count", 
+    key: "students", 
     label: "Estudantes", 
     sortable: false, 
-    filterable: true, 
-    filterType: 'number' as const 
+    filterable: false 
   },
   { 
     key: "created_at", 
@@ -199,20 +192,19 @@ export const ProjetosPage = () => {
     category_id: item.category_id,
     projectType: item.projectType === 1 ? "Científico" : "Tecnológico",
     external_id: item.external_id,
-    file: item.file ? (
-      <a 
-        href={`/uploads/projects/${item.file}`} 
-        target="_blank" 
-        rel="noopener noreferrer"
-        className="text-blue-600 hover:text-blue-800 underline"
-      >
-        {item.file}
-      </a>
+    students: item.students && item.students.length > 0 ? (
+      <div className="max-w-xs">
+        {item.students.map((student, index) => (
+          <div key={student.id} className="text-sm">
+            {student.name} ({student.school_grade === 1 ? '1º ano' : '2º ano'})
+            {index < item.students!.length - 1 && <br />}
+          </div>
+        ))}
+      </div>
     ) : "-",
     created_at: item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : "-",
     updated_at: item.updated_at,
-    category_name: item.category?.name || "-",
-    students_count: item.students?.length || 0
+    category_name: item.category?.name || "-"
   }));
 
   return (

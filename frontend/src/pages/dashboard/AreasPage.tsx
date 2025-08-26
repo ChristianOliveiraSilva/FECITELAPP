@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
 import { ReactNode } from "react";
 
-interface Categoria extends Record<string, unknown> {
+interface Area extends Record<string, unknown> {
   id?: number;
   name: string;
   created_at?: string;
@@ -26,7 +26,7 @@ interface Categoria extends Record<string, unknown> {
 const columns = [
   { 
     key: "name", 
-    label: "Nome da Categoria", 
+    label: "Nome da Área", 
     sortable: true, 
     filterable: true, 
     filterType: 'text' as const 
@@ -57,10 +57,10 @@ const columns = [
 const formFields = [
   {
     name: "name",
-    label: "Nome da Categoria",
+    label: "Nome da Área",
     type: "text" as const,
     required: true,
-    placeholder: "Digite o nome da categoria"
+    placeholder: "Digite o nome da área"
   }
 ];
 
@@ -76,16 +76,16 @@ export const AreasPage = () => {
     closeForm,
     handleSubmit,
     deleteItem
-  } = useApiCrud<Categoria>({ endpoint: "/categories" });
+  } = useApiCrud<Area>({ endpoint: "/categories" });
 
-  const [itemToDelete, setItemToDelete] = useState<Categoria | null>(null);
+  const [itemToDelete, setItemToDelete] = useState<Area | null>(null);
 
   const handleEdit = (item: Record<string, ReactNode>) => {
-    openEditForm(item as Categoria);
+    openEditForm(item as Area);
   };
 
   const handleDelete = (item: Record<string, ReactNode>) => {
-    setItemToDelete(item as Categoria);
+    setItemToDelete(item as Area);
   };
 
   const confirmDelete = async () => {
@@ -107,9 +107,9 @@ export const AreasPage = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-ifms-green-dark">Categorias</h1>
+        <h1 className="text-3xl font-bold text-ifms-green-dark">Áreas</h1>
         <p className="text-muted-foreground">
-          Gerencie as categorias de projetos da FECITEL
+          Gerencie as áreas de projetos da FECITEL
         </p>
       </div>
 
@@ -128,10 +128,10 @@ export const AreasPage = () => {
       
       {!isFormOpen ? (
         <DataTable
-          title="Lista de Categorias"
+          title="Lista de Áreas"
           columns={columns}
           data={transformedData}
-          searchPlaceholder="Buscar por nome da categoria..."
+          searchPlaceholder="Buscar por nome da área..."
           onAdd={openAddForm}
           onEdit={handleEdit}
           onDelete={handleDelete}
@@ -140,7 +140,7 @@ export const AreasPage = () => {
         />
       ) : (
         <CrudForm
-          title="Categoria"
+          title="Área"
           fields={formFields}
           initialData={editingItem || {}}
           onSubmit={handleSubmit}
@@ -155,7 +155,7 @@ export const AreasPage = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir a categoria "{itemToDelete?.name}"? Esta ação não pode ser desfeita.
+              Tem certeza que deseja excluir a área "{itemToDelete?.name}"? Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
