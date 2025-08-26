@@ -5,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Save, Mail } from 'lucide-react';
+import { apiService } from '@/lib/api';
 
 interface PasswordResetConfig {
   id: number;
@@ -14,20 +15,12 @@ interface PasswordResetConfig {
   deleted_at: string | null;
 }
 
-interface ApiResponse {
-  status: boolean;
-  message: string;
-  data: PasswordResetConfig | PasswordResetConfig[];
-}
-
 const PasswordResetConfigPage: React.FC = () => {
   const [config, setConfig] = useState<PasswordResetConfig | null>(null);
   const [mailTemplate, setMailTemplate] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
-
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   useEffect(() => {
     fetchConfig();
@@ -36,21 +29,19 @@ const PasswordResetConfigPage: React.FC = () => {
   const fetchConfig = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v3/password-reset-configs/`);
-      if (response.ok) {
-        const result: ApiResponse = await response.json();
-        if (Array.isArray(result.data) && result.data.length > 0) {
-          const firstConfig = result.data[0];
-          setConfig(firstConfig);
-          setMailTemplate(firstConfig.mail_template);
-        } else if (!Array.isArray(result.data) && result.data) {
-          setConfig(result.data);
-          setMailTemplate(result.data.mail_template);
-        } else {
-          setMailTemplate(getDefaultTemplate());
-        }
+      const result = await apiService.get<PasswordResetConfig>('/password-reset-configs/');
+      if (Array.isArray(result.data) && result.data.length > 0) {
+        const firstConfig = result.data[0];
+        setConfig(firstConfig);
+        setMailTemplate(firstConfig.mail_template);
       } else {
-        throw new Error('Falha ao carregar configuração');
+        setConfig(null);
+        setMailTemplate('');
+        toast({
+          title: "Aviso",
+          description: "Registro não encontrado. Você pode criar uma nova configuração.",
+          variant: "default",
+        });
       }
     } catch (error) {
       console.error('Erro ao carregar configuração:', error);
@@ -59,65 +50,37 @@ const PasswordResetConfigPage: React.FC = () => {
         description: "Não foi possível carregar a configuração de reset de senha",
         variant: "destructive",
       });
-      setMailTemplate(getDefaultTemplate());
+      setConfig(null);
+      setMailTemplate('');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const getDefaultTemplate = () => {
-    return `Olá {nome},
-
-Você solicitou a redefinição de sua senha.
-
-Para continuar com o processo, clique no link abaixo:
-
-{link_reset}
-
-Este link é válido por 24 horas.
-
-Se você não solicitou esta redefinição, ignore este email.
-
-Atenciosamente,
-Equipe Fecitel`;
-  };
-
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      let response;
+      let result;
       
       if (config) {
-        response = await fetch(`${API_BASE_URL}/api/v3/password-reset-configs/${config.id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            mail_template: mailTemplate
-          }),
+        result = await apiService.update<PasswordResetConfig>('/password-reset-configs', config.id, {
+          mail_template: mailTemplate
         });
       } else {
-        response = await fetch(`${API_BASE_URL}/api/v3/password-reset-configs/`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            mail_template: mailTemplate
-          }),
+        result = await apiService.create<PasswordResetConfig>('/password-reset-configs', {
+          mail_template: mailTemplate
         });
       }
 
-      if (response.ok) {
-        const result: ApiResponse = await response.json();
+      if (result.status) {
         if (!Array.isArray(result.data)) {
           setConfig(result.data);
         }
         toast({
           title: "Sucesso",
-          description: "Configuração salva com sucesso!",
+          description: config ? "Configuração atualizada com sucesso!" : "Configuração criada com sucesso!",
         });
+        await fetchConfig();
       } else {
         throw new Error('Falha ao salvar configuração');
       }
@@ -131,14 +94,6 @@ Equipe Fecitel`;
     } finally {
       setIsSaving(false);
     }
-  };
-
-  const handleResetToDefault = () => {
-    setMailTemplate(getDefaultTemplate());
-    toast({
-      title: "Template restaurado",
-      description: "Template padrão foi restaurado",
-    });
   };
 
   if (isLoading) {
@@ -163,10 +118,13 @@ Equipe Fecitel`;
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Mail className="h-5 w-5" />
-            Template de Email
+            {config ? 'Editar Template de Email' : 'Criar Template de Email'}
           </CardTitle>
           <CardDescription>
-            Personalize o conteúdo do email de reset de senha. Use as variáveis entre chaves para inserir dados dinâmicos.
+            {config 
+              ? 'Edite o conteúdo do email de reset de senha existente.'
+              : 'Crie um novo template de email para reset de senha.'
+            } Use as variáveis entre chaves para inserir dados dinâmicos.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -180,7 +138,7 @@ Equipe Fecitel`;
               className="min-h-[300px] font-mono text-sm"
             />
             <p className="text-sm text-gray-500">
-              Variáveis disponíveis: {'{nome}'}, {'{link_reset}'}
+              Variáveis disponíveis: {'{user_name}'}, {'{reset_url}'}
             </p>
           </div>
 
@@ -197,21 +155,13 @@ Equipe Fecitel`;
               )}
               {isSaving ? 'Salvando...' : 'Salvar Configuração'}
             </Button>
-            
-            <Button 
-              variant="outline" 
-              onClick={handleResetToDefault}
-              disabled={isSaving}
-            >
-              Restaurar Padrão
-            </Button>
           </div>
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <h4 className="font-medium text-blue-900 mb-2">Dicas de Uso:</h4>
             <ul className="text-sm text-blue-800 space-y-1">
-              <li>• <strong>{'{nome}'}</strong> - Será substituído pelo nome do usuário</li>
-              <li>• <strong>{'{link_reset}'}</strong> - Será substituído pelo link de reset</li>
+              <li>• <strong>{'{user_name}'}</strong> - Será substituído pelo nome do usuário</li>
+              <li>• <strong>{'{reset_url}'}</strong> - Será substituído pelo link de reset</li>
               <li>• Mantenha o texto claro e profissional</li>
               <li>• Inclua informações sobre a validade do link</li>
               <li>• Adicione instruções de segurança quando apropriado</li>

@@ -41,6 +41,42 @@ async def get_password_reset_configs(
             detail=f"Erro ao recuperar configurações de redefinição de senha: {str(e)}"
         )
 
+@router.post("/", response_model=PasswordResetConfigDetailResponse)
+async def create_password_reset_config(
+    config_data: PasswordResetConfigCreate,
+    db: Session = Depends(get_db)
+):
+    try:
+        new_config = PasswordResetConfig(
+            mail_template=config_data.mail_template
+        )
+        
+        db.add(new_config)
+        db.commit()
+        db.refresh(new_config)
+        
+        config_dict = {
+            "id": new_config.id,
+            "mail_template": new_config.mail_template,
+            "created_at": new_config.created_at,
+            "updated_at": new_config.updated_at,
+            "deleted_at": new_config.deleted_at
+        }
+        
+        return PasswordResetConfigDetailResponse(
+            status=True,
+            message="Configuração de redefinição de senha criada com sucesso",
+            data=config_dict
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao criar configuração de redefinição de senha: {str(e)}"
+        )
+
 @router.get("/{config_id}", response_model=PasswordResetConfigDetailResponse)
 async def get_password_reset_config(
     config_id: int,
