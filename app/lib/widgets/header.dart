@@ -79,19 +79,19 @@ class Header extends StatelessWidget {
                           ],
                         ),
                       ),
-                      const PopupMenuItem(
-                        value: 'certificates',
-                        child: Row(
-                          children: [
-                            Icon(Icons.verified, color: Colors.black87),
-                            SizedBox(width: 10),
-                            Text(
-                              'Certificados',
-                              style: TextStyle(color: Colors.black87),
-                            ),
-                          ],
-                        ),
-                      ),
+                      // const PopupMenuItem(
+                      //   value: 'certificates',
+                      //   child: Row(
+                      //     children: [
+                      //       Icon(Icons.verified, color: Colors.black87),
+                      //       SizedBox(width: 10),
+                      //       Text(
+                      //         'Certificados',
+                      //         style: TextStyle(color: Colors.black87),
+                      //       ),
+                      //     ],
+                      //   ),
+                      // ),
                       const PopupMenuItem(
                         value: 'profile',
                         child: Row(
