@@ -1,7 +1,8 @@
-import { useParams, useLocation } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { DataTable } from "@/components/ui/data-table";
 import { CrudForm } from "@/components/ui/crud-form";
 import { useApiCrud } from "@/hooks/use-api-crud";
+import { apiService } from "@/lib/api";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
@@ -124,9 +125,13 @@ const detailFields = [
   { key: "updated_at", label: "Atualizado em", type: "date" as const }
 ];
 
-export const AvaliadoresPage = () => {
+interface AvaliadoresPageProps {
+  view: 'list' | 'detail' | 'create' | 'edit';
+}
+
+export const AvaliadoresPage = ({ view }: AvaliadoresPageProps) => {
   const params = useParams();
-  const location = useLocation();
+  const navigate = useNavigate();
   const [currentItem, setCurrentItem] = useState<Avaliador | null>(null);
   const [loadingItem, setLoadingItem] = useState(false);
   const [itemError, setItemError] = useState<string | null>(null);
@@ -135,40 +140,31 @@ export const AvaliadoresPage = () => {
     data,
     loading,
     error,
-    isFormOpen,
-    editingItem,
-    openAddForm,
-    openEditForm,
-    closeForm,
-    handleSubmit,
-    deleteItem
+    addItem,
+    updateItem,
+    deleteItem,
+    getOriginalItem
   } = useApiCrud<Avaliador>({ endpoint: "/evaluators" });
 
   const [itemToDelete, setItemToDelete] = useState<Avaliador | null>(null);
 
-  // Determine current view based on URL
-  const isListView = !params.id || params.id === 'create';
-  const isDetailView = params.id && params.id !== 'create' && params.id !== 'edit';
-  const isCreateView = params.id === 'create';
-  const isEditView = params.id && params.id !== 'create' && location.pathname.includes('/edit');
-
-  // Fetch single item when viewing details
+  // Fetch single item when viewing details or editing
   useEffect(() => {
-    if (isDetailView && params.id) {
+    if ((view === 'detail' || view === 'edit') && params.id) {
       fetchItem(parseInt(params.id));
     }
-  }, [params.id, isDetailView]);
+  }, [params.id, view]);
 
   const fetchItem = async (id: number) => {
     setLoadingItem(true);
     setItemError(null);
     try {
-      const response = await fetch(`/evaluators/${id}`);
-      if (!response.ok) {
-        throw new Error('Avaliador não encontrado');
+      const response = await apiService.getById<Avaliador>('/evaluators', id);
+      if (response.status) {
+        setCurrentItem(response.data);
+      } else {
+        throw new Error(response.message || 'Avaliador não encontrado');
       }
-      const result = await response.json();
-      setCurrentItem(result.data);
     } catch (err) {
       setItemError(err instanceof Error ? err.message : 'Erro ao carregar avaliador');
     } finally {
@@ -176,8 +172,12 @@ export const AvaliadoresPage = () => {
     }
   };
 
+  const handleAdd = () => {
+    navigate('/dashboard/avaliadores/create');
+  };
+
   const handleEdit = (item: Record<string, ReactNode>) => {
-    openEditForm(item as Avaliador);
+    navigate(`/dashboard/avaliadores/${item.id}/edit`);
   };
 
   const handleDelete = (item: Record<string, ReactNode>) => {
@@ -185,9 +185,19 @@ export const AvaliadoresPage = () => {
   };
 
   const confirmDelete = async () => {
-    if (itemToDelete) {
-      await deleteItem(itemToDelete);
+    if (itemToDelete?.id) {
+      await deleteItem(itemToDelete.id as string | number);
       setItemToDelete(null);
+    }
+  };
+
+  const handleSubmit = async (formData: Avaliador) => {
+    if (view === 'edit' && params.id) {
+      await updateItem(params.id, formData);
+      navigate('/dashboard/avaliadores');
+    } else if (view === 'create') {
+      await addItem(formData);
+      navigate('/dashboard/avaliadores');
     }
   };
 
@@ -218,7 +228,7 @@ export const AvaliadoresPage = () => {
   } : null;
 
   // Render based on current view
-  if (isDetailView) {
+  if (view === 'detail') {
     return (
       <ItemDetail
         title="Avaliador"
@@ -231,15 +241,15 @@ export const AvaliadoresPage = () => {
     );
   }
 
-  if (isCreateView || isEditView) {
+  if (view === 'create' || view === 'edit') {
     return (
       <CrudFormPage
         title="Avaliador"
         description="Gerencie os avaliadores da FECITEL"
         fields={formFields}
-        initialData={editingItem || {}}
+        initialData={view === 'edit' && params.id ? getOriginalItem(params.id) || {} : {}}
         onSubmit={handleSubmit}
-        isEditing={!!editingItem}
+        isEditing={view === 'edit'}
         loading={loading}
       />
     );
@@ -253,7 +263,7 @@ export const AvaliadoresPage = () => {
         description="Gerencie os avaliadores da FECITEL"
         columns={columns}
         data={transformedData}
-        onAdd={openAddForm}
+        onAdd={handleAdd}
         onEdit={handleEdit}
         onDelete={handleDelete}
         loading={loading}

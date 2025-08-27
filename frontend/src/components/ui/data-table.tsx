@@ -122,7 +122,7 @@ export const DataTable = ({
       ...prev,
       [columnKey]: value
     }));
-    setCurrentPage(1); // Reset para primeira página ao filtrar
+    setCurrentPage(1);
   };
 
   const clearColumnFilter = (columnKey: string) => {

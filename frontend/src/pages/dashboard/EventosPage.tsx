@@ -1,7 +1,8 @@
-import { useParams, useLocation } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { DataTable } from "@/components/ui/data-table";
 import { CrudForm } from "@/components/ui/crud-form";
 import { useApiCrud } from "@/hooks/use-api-crud";
+import { apiService } from "@/lib/api";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
@@ -89,16 +90,20 @@ const formFields = [
 const detailFields = [
   { key: "id", label: "ID", type: "number" as const },
   { key: "year", label: "Ano", type: "number" as const },
-  { key: "app_primary_color", label: "Cor Primária", type: "color" as const },
-  { key: "app_font_color", label: "Cor da Fonte", type: "color" as const },
+  { key: "app_primary_color", label: "Cor Primária", type: "text" as const },
+  { key: "app_font_color", label: "Cor da Fonte", type: "text" as const },
   { key: "app_logo_url", label: "Logo", type: "text" as const },
   { key: "created_at", label: "Criado em", type: "date" as const },
   { key: "updated_at", label: "Atualizado em", type: "date" as const }
 ];
 
-export const EventosPage = () => {
+interface EventosPageProps {
+  view: 'list' | 'detail' | 'create' | 'edit';
+}
+
+export const EventosPage = ({ view }: EventosPageProps) => {
   const params = useParams();
-  const location = useLocation();
+  const navigate = useNavigate();
   const [currentItem, setCurrentItem] = useState<Evento | null>(null);
   const [loadingItem, setLoadingItem] = useState(false);
   const [itemError, setItemError] = useState<string | null>(null);
@@ -107,40 +112,31 @@ export const EventosPage = () => {
     data,
     loading,
     error,
-    isFormOpen,
-    editingItem,
-    openAddForm,
-    openEditForm,
-    closeForm,
-    handleSubmit,
-    deleteItem
+    addItem,
+    updateItem,
+    deleteItem,
+    getOriginalItem
   } = useApiCrud<Evento>({ endpoint: "/events" });
 
   const [itemToDelete, setItemToDelete] = useState<Evento | null>(null);
 
-  // Determine current view based on URL
-  const isListView = !params.id || params.id === 'create';
-  const isDetailView = params.id && params.id !== 'create' && params.id !== 'edit';
-  const isCreateView = params.id === 'create';
-  const isEditView = params.id && params.id !== 'create' && location.pathname.includes('/edit');
-
-  // Fetch single item when viewing details
+  // Fetch single item when viewing details or editing
   useEffect(() => {
-    if (isDetailView && params.id) {
+    if ((view === 'detail' || view === 'edit') && params.id) {
       fetchItem(parseInt(params.id));
     }
-  }, [params.id, isDetailView]);
+  }, [params.id, view]);
 
   const fetchItem = async (id: number) => {
     setLoadingItem(true);
     setItemError(null);
     try {
-      const response = await fetch(`/events/${id}`);
-      if (!response.ok) {
-        throw new Error('Evento não encontrado');
+      const response = await apiService.getById<Evento>('/events', id);
+      if (response.status) {
+        setCurrentItem(response.data);
+      } else {
+        throw new Error(response.message || 'Evento não encontrado');
       }
-      const result = await response.json();
-      setCurrentItem(result.data);
     } catch (err) {
       setItemError(err instanceof Error ? err.message : 'Erro ao carregar evento');
     } finally {
@@ -148,8 +144,12 @@ export const EventosPage = () => {
     }
   };
 
+  const handleAdd = () => {
+    navigate('/dashboard/eventos/create');
+  };
+
   const handleEdit = (item: Record<string, ReactNode>) => {
-    openEditForm(item as Evento);
+    navigate(`/dashboard/eventos/${item.id}/edit`);
   };
 
   const handleDelete = (item: Record<string, ReactNode>) => {
@@ -157,23 +157,29 @@ export const EventosPage = () => {
   };
 
   const confirmDelete = async () => {
-    if (itemToDelete) {
-      await deleteItem(itemToDelete);
+    if (itemToDelete?.id) {
+      await deleteItem(itemToDelete.id as string | number);
       setItemToDelete(null);
     }
   };
 
-  const handleCustomSubmit = async (formData: any) => {
+  const handleSubmit = async (formData: Record<string, unknown>) => {
     // Implementar lógica personalizada para envio de formulário com FormData
     const formDataToSend = new FormData();
-    formDataToSend.append('year', formData.year);
-    formDataToSend.append('app_primary_color', formData.app_primary_color);
-    formDataToSend.append('app_font_color', formData.app_font_color);
-    if (formData.logo) {
+    formDataToSend.append('year', String(formData.year));
+    formDataToSend.append('app_primary_color', String(formData.app_primary_color));
+    formDataToSend.append('app_font_color', String(formData.app_font_color));
+    if (formData.logo && formData.logo instanceof File) {
       formDataToSend.append('logo', formData.logo);
     }
     
-    await handleSubmit(formDataToSend);
+    if (view === 'edit' && params.id) {
+      await updateItem(params.id, formDataToSend as unknown as Evento);
+      navigate('/dashboard/eventos');
+    } else if (view === 'create') {
+      await addItem(formDataToSend as unknown as Evento);
+      navigate('/dashboard/eventos');
+    }
   };
 
   const transformedData: Record<string, ReactNode>[] = data.map(item => ({
@@ -220,7 +226,7 @@ export const EventosPage = () => {
   } : null;
 
   // Render based on current view
-  if (isDetailView) {
+  if (view === 'detail') {
     return (
       <ItemDetail
         title="Evento"
@@ -233,15 +239,15 @@ export const EventosPage = () => {
     );
   }
 
-  if (isCreateView || isEditView) {
+  if (view === 'create' || view === 'edit') {
     return (
       <CrudFormPage
         title="Evento"
         description="Gerencie os eventos da FECITEL"
         fields={formFields}
-        initialData={editingItem || {}}
-        onSubmit={handleCustomSubmit}
-        isEditing={!!editingItem}
+        initialData={view === 'edit' && params.id ? getOriginalItem(params.id) || {} : {}}
+        onSubmit={handleSubmit}
+        isEditing={view === 'edit'}
         loading={loading}
       />
     );
@@ -255,7 +261,7 @@ export const EventosPage = () => {
         description="Gerencie os eventos da FECITEL"
         columns={columns}
         data={transformedData}
-        onAdd={openAddForm}
+        onAdd={handleAdd}
         onEdit={handleEdit}
         onDelete={handleDelete}
         loading={loading}
