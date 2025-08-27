@@ -196,6 +196,10 @@ export const EstudantesPage = ({ view }: EstudantesPageProps) => {
     navigate('/dashboard/estudantes/create');
   };
 
+  const handleView = (item: Record<string, ReactNode>) => {
+    navigate(`/dashboard/estudantes/${item.id}`);
+  };
+
   const handleEdit = (item: Record<string, ReactNode>) => {
     navigate(`/dashboard/estudantes/${item.id}/edit`);
   };
@@ -267,10 +271,10 @@ export const EstudantesPage = ({ view }: EstudantesPageProps) => {
         title="Estudante"
         description="Gerencie os estudantes participantes da FECITEL"
         fields={formFields}
-        initialData={view === 'edit' && params.id ? getOriginalItem(params.id) || {} : {}}
+        initialData={view === 'edit' ? currentItem || {} : {}}
         onSubmit={handleSubmit}
         isEditing={view === 'edit'}
-        loading={loading}
+        loading={loading || loadingItem}
       />
     );
   }
@@ -284,6 +288,7 @@ export const EstudantesPage = ({ view }: EstudantesPageProps) => {
         columns={columns}
         data={transformedData}
         onAdd={handleAdd}
+        onView={handleView}
         onEdit={handleEdit}
         onDelete={handleDelete}
         loading={loading}

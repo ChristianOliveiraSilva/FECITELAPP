@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,6 +40,12 @@ export const CrudForm = ({
   const form = useForm({
     defaultValues: initialData
   });
+
+  useEffect(() => {
+    if (initialData && Object.keys(initialData).length > 0) {
+      form.reset(initialData);
+    }
+  }, [initialData, form]);
 
   const handleSubmit = (data: Record<string, any>) => {
     onSubmit(data);

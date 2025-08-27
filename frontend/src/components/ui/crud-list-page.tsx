@@ -18,6 +18,7 @@ interface CrudListPageProps {
   data: Record<string, ReactNode>[];
 
   onAdd: () => void;
+  onView: (item: Record<string, ReactNode>) => void;
   onEdit: (item: Record<string, ReactNode>) => void;
   onDelete: (item: Record<string, ReactNode>) => void;
   loading?: boolean;
@@ -31,6 +32,7 @@ export const CrudListPage = ({
   columns,
   data,
   onAdd,
+  onView,
   onEdit,
   onDelete,
   loading = false,
@@ -70,6 +72,7 @@ export const CrudListPage = ({
         columns={columns}
         data={data}
         onAdd={onAdd}
+        onView={onView}
         onEdit={onEdit}
         onDelete={onDelete}
         loading={loading}

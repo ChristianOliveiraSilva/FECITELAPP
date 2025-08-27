@@ -148,6 +148,10 @@ export const EventosPage = ({ view }: EventosPageProps) => {
     navigate('/dashboard/eventos/create');
   };
 
+  const handleView = (item: Record<string, ReactNode>) => {
+    navigate(`/dashboard/eventos/${item.id}`);
+  };
+
   const handleEdit = (item: Record<string, ReactNode>) => {
     navigate(`/dashboard/eventos/${item.id}/edit`);
   };
@@ -245,10 +249,10 @@ export const EventosPage = ({ view }: EventosPageProps) => {
         title="Evento"
         description="Gerencie os eventos da FECITEL"
         fields={formFields}
-        initialData={view === 'edit' && params.id ? getOriginalItem(params.id) || {} : {}}
+        initialData={view === 'edit' ? currentItem || {} : {}}
         onSubmit={handleSubmit}
         isEditing={view === 'edit'}
-        loading={loading}
+        loading={loading || loadingItem}
       />
     );
   }
@@ -262,6 +266,7 @@ export const EventosPage = ({ view }: EventosPageProps) => {
         columns={columns}
         data={transformedData}
         onAdd={handleAdd}
+        onView={handleView}
         onEdit={handleEdit}
         onDelete={handleDelete}
         loading={loading}

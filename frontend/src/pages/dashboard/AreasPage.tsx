@@ -164,6 +164,10 @@ export const AreasPage = ({ view }: AreasPageProps) => {
     navigate('/dashboard/areas/create');
   };
 
+  const handleView = (item: Record<string, ReactNode>) => {
+    navigate(`/dashboard/areas/${item.id}`);
+  };
+
   const handleEdit = (item: Record<string, ReactNode>) => {
     navigate(`/dashboard/areas/${item.id}/edit`);
   };
@@ -232,10 +236,10 @@ export const AreasPage = ({ view }: AreasPageProps) => {
         title="Área"
         description="Gerencie as áreas de projetos da FECITEL"
         fields={formFields}
-        initialData={view === 'edit' && params.id ? getOriginalItem(params.id) || {} : {}}
+        initialData={view === 'edit' ? currentItem || {} : {}}
         onSubmit={handleSubmit}
         isEditing={view === 'edit'}
-        loading={loading}
+        loading={loading || loadingItem}
       />
     );
   }
@@ -249,6 +253,7 @@ export const AreasPage = ({ view }: AreasPageProps) => {
         columns={columns}
         data={transformedData}
         onAdd={handleAdd}
+        onView={handleView}
         onEdit={handleEdit}
         onDelete={handleDelete}
         loading={loading}

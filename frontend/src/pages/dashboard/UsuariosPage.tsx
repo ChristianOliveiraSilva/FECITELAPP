@@ -170,6 +170,10 @@ export const UsuariosPage = ({ view }: UsuariosPageProps) => {
     navigate('/dashboard/usuarios/create');
   };
 
+  const handleView = (item: Record<string, ReactNode>) => {
+    navigate(`/dashboard/usuarios/${item.id}`);
+  };
+
   const handleEdit = (item: Record<string, ReactNode>) => {
     navigate(`/dashboard/usuarios/${item.id}/edit`);
   };
@@ -240,10 +244,10 @@ export const UsuariosPage = ({ view }: UsuariosPageProps) => {
         title="Usuário"
         description="Gerencie os usuários do sistema FECITEL"
         fields={formFields}
-        initialData={view === 'edit' && params.id ? getOriginalItem(params.id) || {} : {}}
+        initialData={view === 'edit' ? currentItem || {} : {}}
         onSubmit={handleSubmit}
         isEditing={view === 'edit'}
-        loading={loading}
+        loading={loading || loadingItem}
       />
     );
   }
@@ -257,6 +261,7 @@ export const UsuariosPage = ({ view }: UsuariosPageProps) => {
         columns={columns}
         data={transformedData}
         onAdd={handleAdd}
+        onView={handleView}
         onEdit={handleEdit}
         onDelete={handleDelete}
         loading={loading}

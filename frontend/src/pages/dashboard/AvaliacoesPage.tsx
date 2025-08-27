@@ -179,6 +179,10 @@ export const AvaliacoesPage = ({ view }: AvaliacoesPageProps) => {
     navigate('/dashboard/avaliacoes/create');
   };
 
+  const handleView = (item: Record<string, ReactNode>) => {
+    navigate(`/dashboard/avaliacoes/${item.id}`);
+  };
+
   const handleEdit = (item: Record<string, ReactNode>) => {
     navigate(`/dashboard/avaliacoes/${item.id}/edit`);
   };
@@ -254,10 +258,10 @@ export const AvaliacoesPage = ({ view }: AvaliacoesPageProps) => {
         title="Avaliação"
         description="Gerencie as avaliações dos projetos da FECITEL"
         fields={formFields}
-        initialData={view === 'edit' && params.id ? getOriginalItem(params.id) || {} : {}}
+        initialData={view === 'edit' ? currentItem || {} : {}}
         onSubmit={handleSubmit}
         isEditing={view === 'edit'}
-        loading={loading}
+        loading={loading || loadingItem}
       />
     );
   }
@@ -271,6 +275,7 @@ export const AvaliacoesPage = ({ view }: AvaliacoesPageProps) => {
         columns={columns}
         data={transformedData}
         onAdd={handleAdd}
+        onView={handleView}
         onEdit={handleEdit}
         onDelete={handleDelete}
         loading={loading}

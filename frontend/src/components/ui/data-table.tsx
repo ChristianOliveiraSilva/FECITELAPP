@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Edit, Trash2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, MoreHorizontal, Download, Upload, FileDown, Filter, X } from "lucide-react";
+import { Plus, Edit, Trash2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, MoreHorizontal, Download, Upload, FileDown, Filter, X, Eye } from "lucide-react";
 import { useState, useRef } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { apiService } from "@/lib/api";
@@ -35,6 +35,7 @@ interface DataTableProps {
   columns: Column[];
   data: Record<string, React.ReactNode>[];
   onAdd?: () => void;
+  onView?: (item: Record<string, React.ReactNode>) => void;
   onEdit?: (item: Record<string, React.ReactNode>) => void;
   onDelete?: (item: Record<string, React.ReactNode>) => void;
 
@@ -56,6 +57,7 @@ export const DataTable = ({
   columns,
   data,
   onAdd,
+  onView,
   onEdit,
   onDelete,
   loading = false,
@@ -460,7 +462,7 @@ export const DataTable = ({
                     </div>
                   </TableHead>
                 ))}
-                {(onEdit || onDelete) && (
+                {(onView || onEdit || onDelete) && (
                   <TableHead className="text-right">Ações</TableHead>
                 )}
               </TableRow>
@@ -469,7 +471,7 @@ export const DataTable = ({
               {loading ? (
                 <TableRow>
                   <TableCell
-                    colSpan={columns.length + (onEdit || onDelete ? 1 : 0) + (selectable ? 1 : 0)}
+                    colSpan={columns.length + (onView || onEdit || onDelete ? 1 : 0) + (selectable ? 1 : 0)}
                     className="text-center py-8 text-muted-foreground"
                   >
                     <div className="flex items-center justify-center">
@@ -497,14 +499,25 @@ export const DataTable = ({
                           : "-"}
                       </TableCell>
                     ))}
-                    {(onEdit || onDelete) && (
+                    {(onView || onEdit || onDelete) && (
                       <TableCell className="text-right">
                         <div className="flex justify-end space-x-2">
+                          {onView && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => onView(item)}
+                              title="Ver detalhes"
+                            >
+                              <Eye className="h-3 w-3" />
+                            </Button>
+                          )}
                           {onEdit && (
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => onEdit(item)}
+                              title="Editar"
                             >
                               <Edit className="h-3 w-3" />
                             </Button>
@@ -514,6 +527,7 @@ export const DataTable = ({
                               variant="outline"
                               size="sm"
                               onClick={() => onDelete(item)}
+                              title="Excluir"
                             >
                               <Trash2 className="h-3 w-3" />
                             </Button>
@@ -526,7 +540,7 @@ export const DataTable = ({
               ) : (
                 <TableRow>
                   <TableCell
-                    colSpan={columns.length + (onEdit || onDelete ? 1 : 0) + (selectable ? 1 : 0)}
+                    colSpan={columns.length + (onView || onEdit || onDelete ? 1 : 0) + (selectable ? 1 : 0)}
                     className="text-center py-8 text-muted-foreground"
                   >
                     Nenhum resultado encontrado
