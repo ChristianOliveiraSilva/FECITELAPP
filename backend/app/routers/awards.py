@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session, joinedload
 from app.database import get_db
 from app.models.award import Award
@@ -6,6 +7,11 @@ from app.schemas.award import (
     AwardCreate, AwardUpdate, AwardListResponse, AwardDetailResponse
 )
 from typing import Optional
+import csv
+import io
+import pandas as pd
+from datetime import datetime
+import os
 
 router = APIRouter()
 
@@ -251,4 +257,142 @@ async def delete_award(award_id: int, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error deleting award: {str(e)}"
+        )
+
+@router.get("/export/csv")
+async def export_awards_csv(
+    db: Session = Depends(get_db)
+):
+    """Exporta todos os prêmios para CSV"""
+    try:
+        awards = db.query(Award).filter(Award.deleted_at == None).all()
+        
+        # Criar buffer de memória para o CSV
+        output = io.StringIO()
+        writer = csv.writer(output)
+        
+        # Cabeçalhos
+        headers = ["id", "name", "description", "school_grade", "total_positions", "use_school_grades", "use_categories", "created_at", "updated_at", "deleted_at"]
+        writer.writerow(headers)
+        
+        # Dados
+        for award in awards:
+            writer.writerow([
+                award.id,
+                award.name,
+                award.description or "",
+                award.school_grade or "",
+                award.total_positions or "",
+                award.use_school_grades or "",
+                award.use_categories or "",
+                award.created_at.isoformat() if award.created_at else "",
+                award.updated_at.isoformat() if award.updated_at else "",
+                award.deleted_at.isoformat() if award.deleted_at else ""
+            ])
+        
+        output.seek(0)
+        csv_content = output.getvalue()
+        output.close()
+        
+        return {
+            "status": True,
+            "message": "Prêmios exportados com sucesso",
+            "data": csv_content
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao exportar prêmios: {str(e)}"
+        )
+
+@router.get("/import/molde")
+async def download_award_molde():
+    """Download do arquivo molde para prêmios"""
+    try:
+        # Caminho do arquivo molde
+        molde_path = "uploads/moldes/award.csv"
+        
+        # Verificar se o arquivo existe
+        if not os.path.exists(molde_path):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Arquivo molde não encontrado"
+            )
+        
+        return FileResponse(
+            path=molde_path,
+            filename="award_molde.csv",
+            media_type="text/csv"
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao baixar molde: {str(e)}"
+        )
+
+@router.post("/import")
+async def import_awards_csv(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    """Importa prêmios de um arquivo CSV"""
+    try:
+        if not file.filename.endswith('.csv'):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Arquivo deve ser um CSV"
+            )
+        
+        # Ler o arquivo CSV
+        content = await file.read()
+        csv_text = content.decode('utf-8')
+        
+        # Usar pandas para ler o CSV
+        df = pd.read_csv(io.StringIO(csv_text))
+        
+        imported_count = 0
+        errors = []
+        
+        for index, row in df.iterrows():
+            try:
+                # Verificar se o prêmio já existe
+                existing_award = db.query(Award).filter(Award.name == row['name']).first()
+                if existing_award:
+                    errors.append(f"Linha {index + 2}: Prêmio {row['name']} já existe")
+                    continue
+                
+                # Criar novo prêmio
+                award = Award(
+                    name=row['name'],
+                    description=row.get('description'),
+                    school_grade=row.get('school_grade'),
+                    total_positions=row.get('total_positions'),
+                    use_school_grades=row.get('use_school_grades'),
+                    use_categories=row.get('use_categories')
+                )
+                
+                db.add(award)
+                imported_count += 1
+                
+            except Exception as e:
+                errors.append(f"Linha {index + 2}: {str(e)}")
+        
+        db.commit()
+        
+        return {
+            "status": True,
+            "message": f"Importação concluída. {imported_count} prêmios importados.",
+            "data": {
+                "imported_count": imported_count,
+                "errors": errors
+            }
+        }
+        
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao importar prêmios: {str(e)}"
         ) 

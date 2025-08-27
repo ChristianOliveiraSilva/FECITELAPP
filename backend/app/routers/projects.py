@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File, Form
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session, joinedload
 from app.database import get_db
 from app.models.project import Project
@@ -10,6 +11,9 @@ from typing import Optional
 from datetime import datetime
 import os
 import shutil
+import csv
+import io
+import pandas as pd
 
 router = APIRouter()
 
@@ -353,4 +357,293 @@ async def delete_project(project_id: int, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Erro ao excluir projeto: {str(e)}"
+        )
+
+@router.get("/export/csv")
+async def export_projects_csv(
+    db: Session = Depends(get_db)
+):
+    """Exporta todos os projetos para CSV"""
+    try:
+        projects = db.query(Project).filter(Project.deleted_at == None).all()
+        
+        # Criar buffer de memória para o CSV
+        output = io.StringIO()
+        writer = csv.writer(output)
+        
+        # Cabeçalhos
+        headers = ["id", "title", "description", "year", "category_id", "projectType", "external_id", "file", "created_at", "updated_at", "deleted_at"]
+        writer.writerow(headers)
+        
+        # Dados
+        for project in projects:
+            writer.writerow([
+                project.id,
+                project.title,
+                project.description or "",
+                project.year,
+                project.category_id,
+                project.projectType,
+                project.external_id or "",
+                project.file or "",
+                project.created_at.isoformat() if project.created_at else "",
+                project.updated_at.isoformat() if project.updated_at else "",
+                project.deleted_at.isoformat() if project.deleted_at else ""
+            ])
+        
+        output.seek(0)
+        csv_content = output.getvalue()
+        output.close()
+        
+        return {
+            "status": True,
+            "message": "Projetos exportados com sucesso",
+            "data": csv_content
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao exportar projetos: {str(e)}"
+        )
+
+@router.get("/import/molde")
+async def download_project_molde():
+    """Download do arquivo molde para projetos"""
+    try:
+        # Caminho do arquivo molde
+        molde_path = "uploads/moldes/project.csv"
+        
+        # Verificar se o arquivo existe
+        if not os.path.exists(molde_path):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Arquivo molde não encontrado"
+            )
+        
+        return FileResponse(
+            path=molde_path,
+            filename="project_molde.csv",
+            media_type="text/csv"
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao baixar molde: {str(e)}"
+        )
+
+@router.post("/import")
+async def import_projects_csv(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    """Importa projetos de um arquivo CSV"""
+    try:
+        if not file.filename.endswith('.csv'):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Arquivo deve ser um CSV"
+            )
+        
+        # Ler o arquivo CSV
+        content = await file.read()
+        csv_text = content.decode('utf-8')
+        
+        # Usar pandas para ler o CSV
+        df = pd.read_csv(io.StringIO(csv_text))
+        
+        imported_count = 0
+        errors = []
+        
+        for index, row in df.iterrows():
+            try:
+                # Verificar se a categoria existe
+                category = db.query(Category).filter(Category.id == row['category_id']).first()
+                if not category:
+                    errors.append(f"Linha {index + 2}: Categoria com ID {row['category_id']} não encontrada")
+                    continue
+                
+                # Criar novo projeto
+                project = Project(
+                    title=row['title'],
+                    description=row.get('description'),
+                    year=row.get('year', datetime.now().year),
+                    category_id=row['category_id'],
+                    projectType=row.get('projectType', 1),
+                    external_id=row.get('external_id'),
+                    file=row.get('file')
+                )
+                
+                db.add(project)
+                imported_count += 1
+                
+            except Exception as e:
+                errors.append(f"Linha {index + 2}: {str(e)}")
+        
+        db.commit()
+        
+        return {
+            "status": True,
+            "message": f"Importação concluída. {imported_count} projetos importados.",
+            "data": {
+                "imported_count": imported_count,
+                "errors": errors
+            }
+        }
+        
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao importar projetos: {str(e)}"
+        )
+
+@router.get("/export/csv")
+async def export_projects_csv(
+    db: Session = Depends(get_db)
+):
+    """Exporta todos os projetos para CSV"""
+    try:
+        projects = db.query(Project).filter(Project.deleted_at == None).all()
+        
+        # Criar buffer de memória para o CSV
+        output = io.StringIO()
+        writer = csv.writer(output)
+        
+        # Cabeçalhos
+        headers = ["id", "title", "description", "year", "category_id", "projectType", "external_id", "file", "created_at", "updated_at", "deleted_at"]
+        writer.writerow(headers)
+        
+        # Dados
+        for project in projects:
+            writer.writerow([
+                project.id,
+                project.title,
+                project.description or "",
+                project.year,
+                project.category_id,
+                project.projectType,
+                project.external_id or "",
+                project.file or "",
+                project.created_at.isoformat() if project.created_at else "",
+                project.updated_at.isoformat() if project.updated_at else "",
+                project.deleted_at.isoformat() if project.deleted_at else ""
+            ])
+        
+        output.seek(0)
+        csv_content = output.getvalue()
+        output.close()
+        
+        return {
+            "status": True,
+            "message": "Projetos exportados com sucesso",
+            "data": csv_content
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao exportar projetos: {str(e)}"
+        )
+
+@router.get("/import/molde")
+async def download_project_molde():
+    """Download do arquivo molde para projetos"""
+    try:
+        # Caminho do arquivo molde
+        molde_path = "uploads/moldes/project.csv"
+        
+        # Verificar se o arquivo existe
+        if not os.path.exists(molde_path):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Arquivo molde não encontrado"
+            )
+        
+        return FileResponse(
+            path=molde_path,
+            filename="project_molde.csv",
+            media_type="text/csv"
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao baixar molde: {str(e)}"
+        )
+
+@router.post("/import")
+async def import_projects_csv(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    """Importa projetos de um arquivo CSV"""
+    try:
+        if not file.filename.endswith('.csv'):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Arquivo deve ser um CSV"
+            )
+        
+        # Ler o arquivo CSV
+        content = await file.read()
+        csv_text = content.decode('utf-8')
+        
+        # Usar pandas para ler o CSV
+        df = pd.read_csv(io.StringIO(csv_text))
+        
+        imported_count = 0
+        errors = []
+        
+        for index, row in df.iterrows():
+            try:
+                # Verificar se a categoria existe
+                category = db.query(Category).filter(Category.id == row['category_id']).first()
+                if not category:
+                    errors.append(f"Linha {index + 2}: Categoria com ID {row['category_id']} não encontrada")
+                    continue
+                
+                # Verificar se o projeto já existe
+                existing_project = db.query(Project).filter(
+                    Project.title == row['title'],
+                    Project.year == row['year']
+                ).first()
+                if existing_project:
+                    errors.append(f"Linha {index + 2}: Projeto {row['title']} para o ano {row['year']} já existe")
+                    continue
+                
+                # Criar novo projeto
+                project = Project(
+                    title=row['title'],
+                    description=row.get('description'),
+                    year=row['year'],
+                    category_id=row['category_id'],
+                    projectType=row['projectType'],
+                    external_id=row.get('external_id'),
+                    file=row.get('file')
+                )
+                
+                db.add(project)
+                imported_count += 1
+                
+            except Exception as e:
+                errors.append(f"Linha {index + 2}: {str(e)}")
+        
+        db.commit()
+        
+        return {
+            "status": True,
+            "message": f"Importação concluída. {imported_count} projetos importados.",
+            "data": {
+                "imported_count": imported_count,
+                "errors": errors
+            }
+        }
+        
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao importar projetos: {str(e)}"
         ) 

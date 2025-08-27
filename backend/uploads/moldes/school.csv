@@ -1,0 +1,6 @@
+id,name,city,state,created_at,updated_at,deleted_at
+1,Escola Estadual São Paulo,São Paulo,SP,2024-01-15 10:00:00,2024-01-15 10:00:00,
+2,Escola Municipal Rio de Janeiro,Rio de Janeiro,RJ,2024-01-15 10:00:00,2024-01-15 10:00:00,
+3,Colégio Particular Belo Horizonte,Belo Horizonte,MG,2024-01-15 10:00:00,2024-01-15 10:00:00,
+4,Escola Técnica Salvador,Salvador,BA,2024-01-15 10:00:00,2024-01-15 10:00:00,
+5,Instituto Federal Brasília,Brasília,DF,2024-01-15 10:00:00,2024-01-15 10:00:00,

@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session, joinedload
 from app.database import get_db
 from app.models.user import User
@@ -6,6 +7,11 @@ from app.schemas.user import (
     UserCreate, UserUpdate, UserListResponse, UserDetailResponse, UserWithRelations
 )
 from typing import Optional
+import csv
+import io
+from datetime import datetime
+import pandas as pd
+import os
 
 router = APIRouter()
 
@@ -242,4 +248,140 @@ async def delete_user(user_id: int, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error deleting user: {str(e)}"
+        ) 
+
+@router.get("/export/csv")
+async def export_users_csv(
+    db: Session = Depends(get_db)
+):
+    """Exporta todos os usuários para CSV"""
+    try:
+        users = db.query(User).filter(User.deleted_at == None).all()
+        
+        # Criar buffer de memória para o CSV
+        output = io.StringIO()
+        writer = csv.writer(output)
+        
+        # Cabeçalhos
+        headers = ["id", "name", "email", "password", "active", "email_verified_at", "remember_token", "created_at", "updated_at", "deleted_at"]
+        writer.writerow(headers)
+        
+        # Dados
+        for user in users:
+            writer.writerow([
+                user.id,
+                user.name,
+                user.email,
+                user.password,
+                1 if user.active else 0,
+                user.email_verified_at.isoformat() if user.email_verified_at else "",
+                user.remember_token or "",
+                user.created_at.isoformat() if user.created_at else "",
+                user.updated_at.isoformat() if user.updated_at else "",
+                user.deleted_at.isoformat() if user.deleted_at else ""
+            ])
+        
+        output.seek(0)
+        csv_content = output.getvalue()
+        output.close()
+        
+        return {
+            "status": True,
+            "message": "Usuários exportados com sucesso",
+            "data": csv_content
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao exportar usuários: {str(e)}"
+        )
+
+@router.get("/import/molde")
+async def download_user_molde():
+    """Download do arquivo molde para usuários"""
+    try:
+        # Caminho do arquivo molde
+        molde_path = "uploads/moldes/user.csv"
+        
+        # Verificar se o arquivo existe
+        if not os.path.exists(molde_path):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Arquivo molde não encontrado"
+            )
+        
+        return FileResponse(
+            path=molde_path,
+            filename="user_molde.csv",
+            media_type="text/csv"
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao baixar molde: {str(e)}"
+        )
+
+@router.post("/import")
+async def import_users_csv(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    """Importa usuários de um arquivo CSV"""
+    try:
+        if not file.filename.endswith('.csv'):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Arquivo deve ser um CSV"
+            )
+        
+        # Ler o arquivo CSV
+        content = await file.read()
+        csv_text = content.decode('utf-8')
+        
+        # Usar pandas para ler o CSV
+        df = pd.read_csv(io.StringIO(csv_text))
+        
+        imported_count = 0
+        errors = []
+        
+        for index, row in df.iterrows():
+            try:
+                # Verificar se o usuário já existe
+                existing_user = db.query(User).filter(User.email == row['email']).first()
+                if existing_user:
+                    errors.append(f"Linha {index + 2}: Email {row['email']} já existe")
+                    continue
+                
+                # Criar novo usuário
+                user = User(
+                    name=row['name'],
+                    email=row['email'],
+                    password=User.get_password_hash(row['password']),
+                    active=bool(row['active']) if 'active' in row else True
+                )
+                
+                db.add(user)
+                imported_count += 1
+                
+            except Exception as e:
+                errors.append(f"Linha {index + 2}: {str(e)}")
+        
+        db.commit()
+        
+        return {
+            "status": True,
+            "message": f"Importação concluída. {imported_count} usuários importados.",
+            "data": {
+                "imported_count": imported_count,
+                "errors": errors
+            }
+        }
+        
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao importar usuários: {str(e)}"
         ) 

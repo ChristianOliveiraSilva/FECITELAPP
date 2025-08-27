@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session, joinedload
 from app.database import get_db
 from app.models.evaluator import Evaluator
@@ -9,6 +10,10 @@ from app.schemas.evaluator import (
 from typing import Optional
 import random
 from datetime import datetime
+import csv
+import io
+import pandas as pd
+import os
 
 router = APIRouter()
 
@@ -373,4 +378,157 @@ async def delete_evaluator(evaluator_id: int, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error deleting evaluator: {str(e)}"
+        )
+
+@router.get("/export/csv")
+async def export_evaluators_csv(
+    db: Session = Depends(get_db)
+):
+    """Exporta todos os avaliadores para CSV"""
+    try:
+        evaluators = db.query(Evaluator).filter(Evaluator.deleted_at == None).all()
+        
+        # Criar buffer de memória para o CSV
+        output = io.StringIO()
+        writer = csv.writer(output)
+        
+        # Cabeçalhos
+        headers = ["id", "user_id", "PIN", "year", "created_at", "updated_at", "deleted_at"]
+        writer.writerow(headers)
+        
+        # Dados
+        for evaluator in evaluators:
+            writer.writerow([
+                evaluator.id,
+                evaluator.user_id,
+                evaluator.PIN,
+                evaluator.year,
+                evaluator.created_at.isoformat() if evaluator.created_at else "",
+                evaluator.updated_at.isoformat() if evaluator.updated_at else "",
+                evaluator.deleted_at.isoformat() if evaluator.deleted_at else ""
+            ])
+        
+        output.seek(0)
+        csv_content = output.getvalue()
+        output.close()
+        
+        return {
+            "status": True,
+            "message": "Avaliadores exportados com sucesso",
+            "data": csv_content
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao exportar avaliadores: {str(e)}"
+        )
+
+@router.get("/import/molde")
+async def download_evaluator_molde():
+    """Download do arquivo molde para avaliadores"""
+    try:
+        # Caminho do arquivo molde
+        molde_path = "uploads/moldes/evaluator.csv"
+        
+        # Verificar se o arquivo existe
+        if not os.path.exists(molde_path):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Arquivo molde não encontrado"
+            )
+        
+        return FileResponse(
+            path=molde_path,
+            filename="evaluator_molde.csv",
+            media_type="text/csv"
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao baixar molde: {str(e)}"
+        )
+
+@router.post("/import")
+async def import_evaluators_csv(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    """Importa avaliadores de um arquivo CSV"""
+    try:
+        if not file.filename.endswith('.csv'):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Arquivo deve ser um CSV"
+            )
+        
+        # Ler o arquivo CSV
+        content = await file.read()
+        csv_text = content.decode('utf-8')
+        
+        # Usar pandas para ler o CSV
+        df = pd.read_csv(io.StringIO(csv_text))
+        
+        imported_count = 0
+        errors = []
+        
+        for index, row in df.iterrows():
+            try:
+                # Verificar se o usuário existe
+                user = db.query(User).filter(User.id == row['user_id']).first()
+                if not user:
+                    errors.append(f"Linha {index + 2}: Usuário com ID {row['user_id']} não encontrado")
+                    continue
+                
+                # Verificar se já existe avaliador para este usuário
+                existing_evaluator = db.query(Evaluator).filter(Evaluator.user_id == row['user_id']).first()
+                if existing_evaluator:
+                    errors.append(f"Linha {index + 2}: Usuário {user.name} já possui um perfil de avaliador")
+                    continue
+                
+                # Verificar se o PIN já existe
+                if 'PIN' in row and pd.notna(row['PIN']):
+                    existing_pin = db.query(Evaluator).filter(Evaluator.PIN == row['PIN']).first()
+                    if existing_pin:
+                        errors.append(f"Linha {index + 2}: PIN {row['PIN']} já está em uso")
+                        continue
+                    pin = str(row['PIN'])
+                else:
+                    # Gerar PIN automático
+                    while True:
+                        pin = str(random.randint(1111, 9999))
+                        existing_pin = db.query(Evaluator).filter(Evaluator.PIN == pin).first()
+                        if not existing_pin:
+                            break
+                
+                # Criar novo avaliador
+                evaluator = Evaluator(
+                    user_id=row['user_id'],
+                    PIN=pin,
+                    year=row.get('year', datetime.now().year)
+                )
+                
+                db.add(evaluator)
+                imported_count += 1
+                
+            except Exception as e:
+                errors.append(f"Linha {index + 2}: {str(e)}")
+        
+        db.commit()
+        
+        return {
+            "status": True,
+            "message": f"Importação concluída. {imported_count} avaliadores importados.",
+            "data": {
+                "imported_count": imported_count,
+                "errors": errors
+            }
+        }
+        
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao importar avaliadores: {str(e)}"
         ) 

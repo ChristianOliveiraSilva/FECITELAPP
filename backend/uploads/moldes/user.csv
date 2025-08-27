@@ -1,0 +1,6 @@
+id,name,email,password,active,email_verified_at,remember_token,created_at,updated_at,deleted_at
+1,João Silva,joao.silva@email.com,password123,1,2024-01-15 10:00:00,,2024-01-15 10:00:00,2024-01-15 10:00:00,
+2,Maria Santos,maria.santos@email.com,password123,1,2024-01-15 10:00:00,,2024-01-15 10:00:00,2024-01-15 10:00:00,
+3,Pedro Oliveira,pedro.oliveira@email.com,password123,1,2024-01-15 10:00:00,,2024-01-15 10:00:00,2024-01-15 10:00:00,
+4,Ana Costa,ana.costa@email.com,password123,1,2024-01-15 10:00:00,,2024-01-15 10:00:00,2024-01-15 10:00:00,
+5,Carlos Ferreira,carlos.ferreira@email.com,password123,1,2024-01-15 10:00:00,,2024-01-15 10:00:00,2024-01-15 10:00:00,

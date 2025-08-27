@@ -1,0 +1,6 @@
+id,year,app_primary_color,app_font_color,app_logo_url,created_at,updated_at,deleted_at
+1,2024,#1E40AF,#FFFFFF,https://example.com/logo2024.png,2024-01-15 10:00:00,2024-01-15 10:00:00,
+2,2023,#DC2626,#FFFFFF,https://example.com/logo2023.png,2024-01-15 10:00:00,2024-01-15 10:00:00,
+3,2022,#059669,#FFFFFF,https://example.com/logo2022.png,2024-01-15 10:00:00,2024-01-15 10:00:00,
+4,2021,#7C3AED,#FFFFFF,https://example.com/logo2021.png,2024-01-15 10:00:00,2024-01-15 10:00:00,
+5,2020,#EA580C,#FFFFFF,https://example.com/logo2020.png,2024-01-15 10:00:00,2024-01-15 10:00:00,
