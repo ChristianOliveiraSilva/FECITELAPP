@@ -76,6 +76,10 @@ class ApiService {
     return this.request<T[]>(url);
   }
 
+  async getById<T>(endpoint: string, id: string | number): Promise<ApiResponse<T>> {
+    return this.request<T>(`${endpoint}/${id}`);
+  }
+
   async create<T>(endpoint: string, data: Record<string, unknown>): Promise<ApiResponse<T>> {
     const year = this.getYear();
     if (year) {

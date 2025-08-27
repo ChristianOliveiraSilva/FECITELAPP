@@ -1,12 +1,16 @@
-import { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { DataTable } from "@/components/ui/data-table";
 import { CrudForm } from "@/components/ui/crud-form";
 import { useApiCrud } from "@/hooks/use-api-crud";
+import { apiService } from "@/lib/api";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Loader2, FileText } from "lucide-react";
-import { ReactNode } from "react";
+import { ReactNode, useState, useEffect } from "react";
+import { ItemDetail } from "@/components/ui/item-detail";
+import { CrudFormPage } from "@/components/ui/crud-form-page";
+import { CrudListPage } from "@/components/ui/crud-list-page";
 
 interface Projeto extends Record<string, unknown> {
   id?: number;
@@ -27,6 +31,17 @@ interface Projeto extends Record<string, unknown> {
     id: number;
     name: string;
     school_grade: number;
+    year: number;
+    school_id: number;
+    school?: {
+      id: number;
+      name: string;
+    };
+  }>;
+  assessments?: Array<{
+    id: number;
+    evaluator_id: number;
+    created_at: string;
   }>;
 }
 
@@ -34,47 +49,62 @@ const columns = [
   { 
     key: "title", 
     label: "Título", 
-    sortable: true, 
-    filterable: true, 
-    filterType: 'text' as const 
+    sortable: true,
+    filterable: true,
+    filterType: 'text' as const
   },
   { 
-    key: "year", 
-    label: "Ano", 
-    sortable: true, 
-    filterable: true, 
-    filterType: 'number' as const 
+    key: "external_id", 
+    label: "ID Externo", 
+    sortable: true,
+    filterable: true,
+    filterType: 'text' as const
   },
   { 
     key: "category_name", 
     label: "Categoria", 
-    sortable: true, 
-    filterable: true, 
-    filterType: 'text' as const 
+    sortable: true,
+    filterable: true,
+    filterType: 'text' as const
   },
   { 
-    key: "projectType", 
+    key: "project_type", 
     label: "Tipo", 
-    sortable: true, 
-    filterable: true, 
+    sortable: true,
+    filterable: true,
     filterType: 'select' as const,
     filterOptions: [
-      { value: "Científico", label: "Científico" },
-      { value: "Tecnológico", label: "Tecnológico" }
+      { value: "1", label: "Científico" },
+      { value: "2", label: "Tecnológico" }
     ]
   },
   { 
-    key: "students", 
+    key: "year", 
+    label: "Ano", 
+    sortable: true,
+    filterable: true,
+    filterType: 'number' as const
+  },
+  { 
+    key: "students_count", 
     label: "Estudantes", 
-    sortable: false, 
-    filterable: false 
+    sortable: false,
+    filterable: true,
+    filterType: 'number' as const
+  },
+  { 
+    key: "assessments_count", 
+    label: "Avaliações", 
+    sortable: false,
+    filterable: true,
+    filterType: 'number' as const
   },
   { 
     key: "created_at", 
     label: "Criado em", 
-    sortable: true, 
-    filterable: true, 
-    filterType: 'date' as const 
+    sortable: true,
+    filterable: true,
+    filterType: 'date' as const
   }
 ];
 
@@ -98,7 +128,7 @@ const formFields = [
     label: "Ano",
     type: "number" as const,
     required: true,
-    placeholder: "Digite o ano (ex: 2024)"
+    placeholder: "Digite o ano do projeto"
   },
   {
     name: "category_id",
@@ -106,13 +136,14 @@ const formFields = [
     type: "select" as const,
     required: true,
     placeholder: "Selecione a categoria",
-    options: []
+    options: [] // Será preenchido dinamicamente
   },
   {
     name: "projectType",
     label: "Tipo de Projeto",
     type: "select" as const,
     required: true,
+    placeholder: "Selecione o tipo",
     options: [
       { value: "1", label: "Científico" },
       { value: "2", label: "Tecnológico" }
@@ -123,40 +154,90 @@ const formFields = [
     label: "ID Externo",
     type: "text" as const,
     required: false,
-    placeholder: "Digite o ID externo (opcional)"
+    placeholder: "Digite o ID externo"
   },
   {
     name: "file",
-    label: "Arquivo do Projeto",
+    label: "Arquivo",
     type: "file" as const,
-    required: false,
-    placeholder: "Selecione o arquivo do projeto"
+    required: true,
+    accept: ".pdf,.doc,.docx"
   }
 ];
 
-export const ProjetosPage = () => {
+const detailFields = [
+  { key: "id", label: "ID", type: "number" as const },
+  { key: "title", label: "Título", type: "text" as const },
+  { key: "description", label: "Descrição", type: "text" as const },
+  { key: "external_id", label: "ID Externo", type: "text" as const },
+  { key: "category_name", label: "Categoria", type: "text" as const },
+  { key: "project_type", label: "Tipo", type: "text" as const },
+  { key: "year", label: "Ano", type: "number" as const },
+  { key: "students_count", label: "Estudantes", type: "array" as const },
+  { key: "assessments_count", label: "Avaliações", type: "array" as const },
+  { key: "file", label: "Arquivo", type: "text" as const },
+  { key: "created_at", label: "Criado em", type: "date" as const },
+  { key: "updated_at", label: "Atualizado em", type: "date" as const }
+];
+
+interface ProjetosPageProps {
+  view: 'list' | 'detail' | 'create' | 'edit';
+}
+
+export const ProjetosPage = ({ view }: ProjetosPageProps) => {
+  const params = useParams();
+  const navigate = useNavigate();
+  const [currentItem, setCurrentItem] = useState<Projeto | null>(null);
+  const [loadingItem, setLoadingItem] = useState(false);
+  const [itemError, setItemError] = useState<string | null>(null);
+  const [selectedItems, setSelectedItems] = useState<Projeto[]>([]);
+
   const {
     data,
     loading,
     error,
-    isFormOpen,
-    editingItem,
-    openAddForm,
-    openEditForm,
-    closeForm,
-    handleSubmit,
-    deleteItem
-  } = useApiCrud<Projeto>({ 
-    endpoint: "/projects",
-    useFormData: true,
-    customCreateEndpoint: "/projects",
-    customUpdateEndpoint: "/projects"
-  });
+    addItem,
+    updateItem,
+    deleteItem,
+    getOriginalItem
+  } = useApiCrud<Projeto>({ endpoint: "/projects" });
 
   const [itemToDelete, setItemToDelete] = useState<Projeto | null>(null);
 
+  // Fetch single item when viewing details or editing
+  useEffect(() => {
+    if ((view === 'detail' || view === 'edit') && params.id) {
+      fetchItem(parseInt(params.id));
+    }
+  }, [params.id, view]);
+
+  const fetchItem = async (id: number) => {
+    setLoadingItem(true);
+    setItemError(null);
+    try {
+      const response = await apiService.getById<Projeto>('/projects', id);
+      if (response.status) {
+        setCurrentItem(response.data);
+      } else {
+        throw new Error(response.message || 'Projeto não encontrado');
+      }
+    } catch (err) {
+      setItemError(err instanceof Error ? err.message : 'Erro ao carregar projeto');
+    } finally {
+      setLoadingItem(false);
+    }
+  };
+
+  const handleAdd = () => {
+    navigate('/dashboard/projetos/create');
+  };
+
+  const handleView = (item: Record<string, ReactNode>) => {
+    navigate(`/dashboard/projetos/${item.id}`);
+  };
+
   const handleEdit = (item: Record<string, ReactNode>) => {
-    openEditForm(item as Projeto);
+    navigate(`/dashboard/projetos/${item.id}/edit`);
   };
 
   const handleDelete = (item: Record<string, ReactNode>) => {
@@ -164,24 +245,29 @@ export const ProjetosPage = () => {
   };
 
   const confirmDelete = async () => {
-    if (itemToDelete) {
-      await deleteItem(itemToDelete);
+    if (itemToDelete?.id) {
+      await deleteItem(itemToDelete.id as string | number);
       setItemToDelete(null);
     }
   };
 
-  const handleGerarFichasBanner = () => {
-    console.log("Gerando fichas de identificação do banner...");
+  const handleSubmit = async (formData: Projeto) => {
+    if (view === 'edit' && params.id) {
+      await updateItem(params.id, formData);
+      navigate('/dashboard/projetos');
+    } else if (view === 'create') {
+      await addItem(formData);
+      navigate('/dashboard/projetos');
+    }
   };
 
-  const [selectedProjetos, setSelectedProjetos] = useState<Projeto[]>([]);
-
-  const handleSelectionChange = (selectedItems: Record<string, ReactNode>[]) => {
-    setSelectedProjetos(selectedItems as Projeto[]);
+  const handleSelectionChange = (selected: Record<string, ReactNode>[]) => {
+    setSelectedItems(selected as Projeto[]);
   };
 
   const handleGerarFichasBannerSelecionados = () => {
-    console.log("Gerando fichas de banner para:", selectedProjetos.length, "projetos selecionados");
+    // Implementar geração de fichas de banner
+    console.log('Gerar fichas para:', selectedItems);
   };
 
   const transformedData: Record<string, ReactNode>[] = data.map(item => ({
@@ -190,82 +276,77 @@ export const ProjetosPage = () => {
     description: item.description,
     year: item.year,
     category_id: item.category_id,
-    projectType: item.projectType === 1 ? "Científico" : "Tecnológico",
+    projectType: item.projectType,
     external_id: item.external_id,
-    students: item.students && item.students.length > 0 ? (
-      <div className="max-w-xs">
-        {item.students.map((student, index) => (
-          <div key={student.id} className="text-sm">
-            {student.name} ({student.school_grade === 1 ? '1º ano' : '2º ano'})
-            {index < item.students!.length - 1 && <br />}
-          </div>
-        ))}
-      </div>
-    ) : "-",
+    file: item.file,
+    category_name: item.category?.name || "-",
+    project_type: item.projectType === 1 ? "Científico" : "Tecnológico",
+    students_count: item.students?.length || 0,
+    assessments_count: item.assessments?.length || 0,
     created_at: item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : "-",
-    updated_at: item.updated_at,
-    category_name: item.category?.name || "-"
+    updated_at: item.updated_at
   }));
 
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-ifms-green-dark">Projetos</h1>
-        <p className="text-muted-foreground">
-          Gerencie os projetos inscritos na FECITEL
-        </p>
-      </div>
+  // Transform current item for detail view
+  const transformedCurrentItem = currentItem ? {
+    id: currentItem.id,
+    title: currentItem.title,
+    description: currentItem.description || "-",
+    external_id: currentItem.external_id || "-",
+    category_name: currentItem.category?.name || "-",
+    project_type: currentItem.projectType === 1 ? "Científico" : "Tecnológico",
+    year: currentItem.year,
+    students_count: currentItem.students?.length || 0,
+    assessments_count: currentItem.assessments?.length || 0,
+    file: currentItem.file || "-",
+    created_at: currentItem.created_at,
+    updated_at: currentItem.updated_at
+  } : null;
 
-      {error && (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-      
-      {loading && (
-        <div className="flex items-center justify-center p-4">
-          <Loader2 className="h-6 w-6 animate-spin" />
-          <span className="ml-2">Carregando...</span>
-        </div>
-      )}
-      
-      {!isFormOpen ? (
-        <DataTable
-          title="Lista de Projetos"
-          columns={columns}
-          data={transformedData}
-          searchPlaceholder="Buscar por título, categoria..."
-          onAdd={openAddForm}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          loading={loading}
-          selectable={true}
-          onSelectionChange={handleSelectionChange}
-          pageSize={15}
-          pageSizeOptions={[10, 15, 25, 50, 100]}
-          baseEndpoint="/projects"
-          actionButtons={
-            <Button 
-              onClick={handleGerarFichasBannerSelecionados}
-              variant="outline"
-              className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
-            >
-              <FileText className="h-4 w-4" />
-              Fichas de Banner
-            </Button>
-          }
-        />
-      ) : (
-        <CrudForm
-          title="Projeto"
-          fields={formFields}
-          initialData={editingItem || {}}
-          onSubmit={handleSubmit}
-          onCancel={closeForm}
-          isEditing={!!editingItem}
-          loading={loading}
-        />
-      )}
+  // Render based on current view
+  if (view === 'detail') {
+    return (
+      <ItemDetail
+        title="Projeto"
+        description="Detalhes do projeto inscrito na FECITEL"
+        data={transformedCurrentItem || {}}
+        fields={detailFields}
+        loading={loadingItem}
+        error={itemError}
+      />
+    );
+  }
+
+  if (view === 'create' || view === 'edit') {
+    return (
+      <CrudFormPage
+        title="Projeto"
+        description="Gerencie os projetos inscritos na FECITEL"
+        fields={formFields}
+        initialData={view === 'edit' ? currentItem || {} : {}}
+        onSubmit={handleSubmit}
+        isEditing={view === 'edit'}
+        loading={loading || loadingItem}
+      />
+    );
+  }
+
+  // Default: List view
+  return (
+    <>
+      <CrudListPage
+        title="Projetos"
+        description="Gerencie os projetos inscritos na FECITEL"
+        columns={columns}
+        data={transformedData}
+        onAdd={handleAdd}
+        onView={handleView}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        loading={loading}
+        error={error}
+        baseEndpoint="/projects"
+      />
 
       <AlertDialog open={!!itemToDelete} onOpenChange={() => setItemToDelete(null)}>
         <AlertDialogContent>
@@ -283,6 +364,6 @@ export const ProjetosPage = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </>
   );
 };

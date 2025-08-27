@@ -1,0 +1,6 @@
+id,title,description,year,category_id,projectType,external_id,file,created_at,updated_at,deleted_at
+1,Robô Seguidor de Linha,Projeto de robótica educacional para ensino fundamental,2024,4,1,PROJ001,robot_linha.pdf,2024-01-15 10:00:00,2024-01-15 10:00:00,
+2,Sistema de Irrigação Automática,Sistema inteligente para controle de irrigação,2024,5,1,PROJ002,irrigacao.pdf,2024-01-15 10:00:00,2024-01-15 10:00:00,
+3,Aplicativo de Gestão Escolar,App para controle de notas e frequência,2024,7,2,PROJ003,app_escola.pdf,2024-01-15 10:00:00,2024-01-15 10:00:00,
+4,Energia Solar Sustentável,Projeto de energia renovável para escolas,2024,8,1,PROJ004,energia_solar.pdf,2024-01-15 10:00:00,2024-01-15 10:00:00,
+5,Reciclagem Inteligente,Sistema automatizado de separação de lixo,2024,9,1,PROJ005,reciclagem.pdf,2024-01-15 10:00:00,2024-01-15 10:00:00,

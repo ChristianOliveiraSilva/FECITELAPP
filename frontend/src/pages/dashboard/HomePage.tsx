@@ -1,18 +1,14 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
-  BarChart3, 
   FileText, 
   CheckCircle, 
   Clock, 
   Users
 } from "lucide-react";
 import { cardsService, CardsData } from "@/services/cards";
-import { projectsService, Projeto } from "@/services/projects";
 import { useToast } from "@/hooks/use-toast";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { DataTable } from "@/components/ui/data-table";
-import { Loader2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const HomePage = () => {
   const [dashboardData, setDashboardData] = useState<CardsData>({
@@ -29,11 +25,7 @@ const HomePage = () => {
   });
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalTitle, setModalTitle] = useState("");
-  const [modalProjects, setModalProjects] = useState<Projeto[]>([]);
-  const [modalLoading, setModalLoading] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchCardsData = async () => {
@@ -55,123 +47,15 @@ const HomePage = () => {
     fetchCardsData();
   }, [toast]);
 
-  const handleCardClick = async (status: 'pending' | 'evaluated' | 'missing_1' | 'missing_2' | 'missing_3') => {
-    try {
-      setModalLoading(true);
-      setIsModalOpen(true);
-      
-      let title = "";
-      switch (status) {
-        case 'pending':
-          title = "Trabalhos para Avaliar";
-          break;
-        case 'evaluated':
-          title = "Trabalhos Avaliados";
-          break;
-        case 'missing_1':
-          title = "Faltam 1 Avaliação";
-          break;
-        case 'missing_2':
-          title = "Faltam 2 Avaliações";
-          break;
-        case 'missing_3':
-          title = "Faltam 3 Avaliações";
-          break;
-      }
-      
-      setModalTitle(title);
-      
-      const projects = await projectsService.getProjectsByStatus(status);
-      setModalProjects(projects);
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Erro ao carregar projetos",
-        variant: "destructive",
-      });
-    } finally {
-      setModalLoading(false);
+  const handleCardClick = (type: 'all_projects' | 'evaluators' | 'pending' | 'evaluated' | 'missing_1' | 'missing_2' | 'missing_3') => {
+    if (type === 'all_projects') {
+      navigate('/dashboard/projetos');
+    } else if (type === 'evaluators') {
+      navigate('/dashboard/usuarios?role=avaliador');
+    } else {
+      navigate(`/dashboard/projetos?status=${type}`);
     }
   };
-
-  const columns = [
-    { 
-      key: "title", 
-      label: "Título", 
-      sortable: true, 
-      filterable: true, 
-      filterType: 'text' as const 
-    },
-    { 
-      key: "year", 
-      label: "Ano", 
-      sortable: true, 
-      filterable: true, 
-      filterType: 'number' as const 
-    },
-    { 
-      key: "category_name", 
-      label: "Categoria", 
-      sortable: true, 
-      filterable: true, 
-      filterType: 'text' as const 
-    },
-    { 
-      key: "projectType", 
-      label: "Tipo", 
-      sortable: true, 
-      filterable: true, 
-      filterType: 'select' as const,
-      filterOptions: [
-        { value: "Científico", label: "Científico" },
-        { value: "Tecnológico", label: "Tecnológico" }
-      ]
-    },
-    { 
-      key: "file", 
-      label: "Arquivo", 
-      sortable: false, 
-      filterable: false 
-    },
-    { 
-      key: "students_count", 
-      label: "Estudantes", 
-      sortable: false, 
-      filterable: true, 
-      filterType: 'number' as const 
-    },
-    { 
-      key: "created_at", 
-      label: "Criado em", 
-      sortable: true, 
-      filterable: true, 
-      filterType: 'date' as const 
-    }
-  ];
-
-  const transformedModalData = modalProjects.map(item => ({
-    id: item.id,
-    title: item.title,
-    description: item.description,
-    year: item.year,
-    category_id: item.category_id,
-    projectType: item.projectType === 1 ? "Científico" : "Tecnológico",
-    external_id: item.external_id,
-    file: item.file ? (
-      <a 
-        href={`/uploads/projects/${item.file}`} 
-        target="_blank" 
-        rel="noopener noreferrer"
-        className="text-blue-600 hover:text-blue-800 underline"
-      >
-        {item.file}
-      </a>
-    ) : "-",
-    created_at: item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : "-",
-    updated_at: item.updated_at,
-    category_name: item.category?.name || "-",
-    students_count: item.students?.length || 0
-  }));
 
   const cards = [
     {
@@ -181,7 +65,8 @@ const HomePage = () => {
       color: "text-blue-600",
       bgColor: "bg-blue-50",
       description: "Projetos inscritos na FECITEL",
-      clickable: false
+      clickable: true,
+      type: 'all_projects' as const
     },
     {
       title: "Trabalhos para Avaliar",
@@ -191,7 +76,7 @@ const HomePage = () => {
       bgColor: "bg-orange-50",
       description: "Projetos sem nenhuma avaliação",
       clickable: true,
-      status: 'pending' as const
+      type: 'pending' as const
     },
     {
       title: "Trabalhos Avaliados",
@@ -201,7 +86,7 @@ const HomePage = () => {
       bgColor: "bg-green-50",
       description: "Projetos com ao menos 1 avaliação concluída",
       clickable: true,
-      status: 'evaluated' as const
+      type: 'evaluated' as const
     },
     {
       title: "Avaliadores Ativos",
@@ -210,7 +95,8 @@ const HomePage = () => {
       color: "text-indigo-600",
       bgColor: "bg-indigo-50",
       description: "Participando da avaliação",
-      clickable: false
+      clickable: true,
+      type: 'evaluators' as const
     }
   ];
 
@@ -257,7 +143,7 @@ const HomePage = () => {
               <Card 
                 key={index} 
                 className={`hover:shadow-lg transition-shadow ${card.clickable ? 'cursor-pointer hover:scale-105' : ''}`}
-                onClick={card.clickable ? () => handleCardClick(card.status!) : undefined}
+                onClick={card.clickable ? () => handleCardClick(card.type!) : undefined}
               >
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -362,36 +248,7 @@ const HomePage = () => {
         </Card>
       </div>
 
-      {/* Modal para exibir projetos */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-6xl max-h-[80vh] overflow-hidden">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-semibold text-ifms-green-dark">
-              {modalTitle}
-            </DialogTitle>
-          </DialogHeader>
-          
-          {modalLoading ? (
-            <div className="flex items-center justify-center p-8">
-              <Loader2 className="h-8 w-8 animate-spin" />
-              <span className="ml-2">Carregando projetos...</span>
-            </div>
-          ) : (
-            <div className="overflow-auto">
-              <DataTable
-                title=""
-                columns={columns}
-                data={transformedModalData}
-                searchPlaceholder="Buscar por título, categoria..."
-                loading={false}
-                pageSize={10}
-                pageSizeOptions={[10, 25, 50]}
-                baseEndpoint="/projects"
-              />
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+
     </div>
   );
 };

@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File, Form
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.event import Event
@@ -9,6 +10,12 @@ from typing import Optional
 import uuid
 from pathlib import Path
 import shutil
+import csv
+import io
+import pandas as pd
+from datetime import datetime
+import os
+import tempfile
 
 router = APIRouter()
 
@@ -280,4 +287,137 @@ async def delete_event(event_id: int, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Erro ao excluir evento: {str(e)}"
+        )
+
+@router.get("/export/csv")
+async def export_events_csv(
+    db: Session = Depends(get_db)
+):
+    """Exporta todos os eventos para CSV"""
+    try:
+        events = db.query(Event).filter(Event.deleted_at == None).all()
+        
+        # Criar arquivo temporário
+        temp_file = tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.csv', encoding='utf-8')
+        
+        writer = csv.writer(temp_file)
+        
+        # Cabeçalhos
+        headers = ["id", "year", "app_primary_color", "app_font_color", "app_logo_url", "created_at", "updated_at", "deleted_at"]
+        writer.writerow(headers)
+        
+        # Dados
+        for event in events:
+            writer.writerow([
+                event.id,
+                event.year,
+                event.app_primary_color or "",
+                event.app_font_color or "",
+                event.app_logo_url or "",
+                event.created_at.isoformat() if event.created_at else "",
+                event.updated_at.isoformat() if event.updated_at else "",
+                event.deleted_at.isoformat() if event.deleted_at else ""
+            ])
+        
+        temp_file.close()
+        
+        return FileResponse(
+            path=temp_file.name,
+            filename="events_export.csv",
+            media_type="text/csv"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao exportar eventos: {str(e)}"
+        )
+
+@router.get("/import/molde")
+async def download_event_molde():
+    """Download do arquivo molde para eventos"""
+    try:
+        # Caminho do arquivo molde
+        molde_path = "uploads/moldes/event.csv"
+        
+        # Verificar se o arquivo existe
+        if not os.path.exists(molde_path):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Arquivo molde não encontrado"
+            )
+        
+        return FileResponse(
+            path=molde_path,
+            filename="event_molde.csv",
+            media_type="text/csv"
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao baixar molde: {str(e)}"
+        )
+
+@router.post("/import")
+async def import_events_csv(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    """Importa eventos de um arquivo CSV"""
+    try:
+        if not file.filename.endswith('.csv'):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Arquivo deve ser um CSV"
+            )
+        
+        # Ler o arquivo CSV
+        content = await file.read()
+        csv_text = content.decode('utf-8')
+        
+        # Usar pandas para ler o CSV
+        df = pd.read_csv(io.StringIO(csv_text))
+        
+        imported_count = 0
+        errors = []
+        
+        for index, row in df.iterrows():
+            try:
+                # Verificar se o evento já existe
+                existing_event = db.query(Event).filter(Event.year == row['year']).first()
+                if existing_event:
+                    errors.append(f"Linha {index + 2}: Evento para o ano {row['year']} já existe")
+                    continue
+                
+                # Criar novo evento
+                event = Event(
+                    year=row['year'],
+                    app_primary_color=row.get('app_primary_color'),
+                    app_font_color=row.get('app_font_color'),
+                    app_logo_url=row.get('app_logo_url')
+                )
+                
+                db.add(event)
+                imported_count += 1
+                
+            except Exception as e:
+                errors.append(f"Linha {index + 2}: {str(e)}")
+        
+        db.commit()
+        
+        return {
+            "status": True,
+            "message": f"Importação concluída. {imported_count} eventos importados.",
+            "data": {
+                "imported_count": imported_count,
+                "errors": errors
+            }
+        }
+        
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao importar eventos: {str(e)}"
         ) 

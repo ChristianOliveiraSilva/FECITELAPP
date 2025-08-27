@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { apiService, ApiResponse } from "@/lib/api";
 
 interface UseApiCrudProps<T> {
@@ -20,10 +20,8 @@ export const useApiCrud = <T extends Record<string, unknown>>({
   const [originalData, setOriginalData] = useState<T[]>(initialData);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<T | null>(null);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     setError(null);
     
@@ -43,11 +41,11 @@ export const useApiCrud = <T extends Record<string, unknown>>({
     } finally {
       setLoading(false);
     }
-  };
+  }, [endpoint]);
 
   useEffect(() => {
     loadData();
-  }, [endpoint]);
+  }, [endpoint, loadData]);
 
   const addItem = async (newItem: T) => {
     setLoading(true);
@@ -73,7 +71,6 @@ export const useApiCrud = <T extends Record<string, unknown>>({
       
       if (response.status) {
         await loadData();
-        setIsFormOpen(false);
       } else {
         setError(response.message);
       }
@@ -84,8 +81,7 @@ export const useApiCrud = <T extends Record<string, unknown>>({
     }
   };
 
-  const updateItem = async (updatedItem: T) => {
-    if (!editingItem?.id) return;
+  const updateItem = async (id: string | number, updatedItem: T) => {
     
     setLoading(true);
     setError(null);
@@ -105,15 +101,13 @@ export const useApiCrud = <T extends Record<string, unknown>>({
           }
         });
         
-        response = await apiService.updateWithFormData<T>(customUpdateEndpoint, editingItem.id, formData);
+        response = await apiService.updateWithFormData<T>(customUpdateEndpoint, id, formData);
       } else {
-        response = await apiService.update<T>(endpoint, editingItem.id, updatedItem);
+        response = await apiService.update<T>(endpoint, id, updatedItem);
       }
       
       if (response.status) {
         await loadData();
-        setEditingItem(null);
-        setIsFormOpen(false);
       } else {
         setError(response.message);
       }
@@ -124,14 +118,13 @@ export const useApiCrud = <T extends Record<string, unknown>>({
     }
   };
 
-  const deleteItem = async (itemToDelete: T) => {
-    if (!itemToDelete.id) return;
+  const deleteItem = async (id: string | number) => {
     
     setLoading(true);
     setError(null);
     
     try {
-      const response = await apiService.delete(endpoint, itemToDelete.id);
+      const response = await apiService.delete(endpoint, id);
       
       if (response.status) {
         await loadData();
@@ -145,46 +138,18 @@ export const useApiCrud = <T extends Record<string, unknown>>({
     }
   };
 
-  const openAddForm = () => {
-    setEditingItem(null);
-    setIsFormOpen(true);
-    setError(null);
-  };
-
-  const openEditForm = (item: T) => {
-    const originalItem = originalData.find((orig: T) => orig.id === item.id);
-    setEditingItem(originalItem || item);
-    setIsFormOpen(true);
-    setError(null);
-  };
-
-  const closeForm = () => {
-    setIsFormOpen(false);
-    setEditingItem(null);
-    setError(null);
-  };
-
-  const handleSubmit = async (formData: T) => {
-    if (editingItem) {
-      await updateItem(formData);
-    } else {
-      await addItem(formData);
-    }
+  const getOriginalItem = (id: string | number): T | undefined => {
+    return originalData.find((item: T) => item.id === id);
   };
 
   return {
     data,
     loading,
     error,
-    isFormOpen,
-    editingItem,
     addItem,
     updateItem,
     deleteItem,
-    openAddForm,
-    openEditForm,
-    closeForm,
-    handleSubmit,
+    getOriginalItem,
     refreshData: loadData,
   };
 }; 

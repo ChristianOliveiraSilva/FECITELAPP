@@ -1,11 +1,15 @@
-import { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { DataTable } from "@/components/ui/data-table";
 import { CrudForm } from "@/components/ui/crud-form";
 import { useApiCrud } from "@/hooks/use-api-crud";
+import { apiService } from "@/lib/api";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
-import { ReactNode } from "react";
+import { ReactNode, useState, useEffect } from "react";
+import { ItemDetail } from "@/components/ui/item-detail";
+import { CrudFormPage } from "@/components/ui/crud-form-page";
+import { CrudListPage } from "@/components/ui/crud-list-page";
 
 interface Escola extends Record<string, unknown> {
   id?: number;
@@ -15,7 +19,8 @@ interface Escola extends Record<string, unknown> {
   students?: Array<{
     id: number;
     name: string;
-    school_grade: string;
+    school_grade: number;
+    year: number;
   }>;
 }
 
@@ -53,24 +58,71 @@ const formFields = [
   }
 ];
 
-export const EscolasPage = () => {
+const detailFields = [
+  { key: "id", label: "ID", type: "number" as const },
+  { key: "name", label: "Nome da Escola", type: "text" as const },
+  { key: "students_count", label: "Estudantes", type: "array" as const },
+  { key: "created_at", label: "Criado em", type: "date" as const },
+  { key: "updated_at", label: "Atualizado em", type: "date" as const }
+];
+
+interface EscolasPageProps {
+  view: 'list' | 'detail' | 'create' | 'edit';
+}
+
+export const EscolasPage = ({ view }: EscolasPageProps) => {
+  const params = useParams();
+  const navigate = useNavigate();
+  const [currentItem, setCurrentItem] = useState<Escola | null>(null);
+  const [loadingItem, setLoadingItem] = useState(false);
+  const [itemError, setItemError] = useState<string | null>(null);
+
   const {
     data,
     loading,
     error,
-    isFormOpen,
-    editingItem,
-    openAddForm,
-    openEditForm,
-    closeForm,
-    handleSubmit,
-    deleteItem
+    addItem,
+    updateItem,
+    deleteItem,
+    getOriginalItem
   } = useApiCrud<Escola>({ endpoint: "/schools" });
 
   const [itemToDelete, setItemToDelete] = useState<Escola | null>(null);
 
+  // Fetch single item when viewing details or editing
+  useEffect(() => {
+    if ((view === 'detail' || view === 'edit') && params.id) {
+      fetchItem(parseInt(params.id));
+    }
+  }, [params.id, view]);
+
+  const fetchItem = async (id: number) => {
+    setLoadingItem(true);
+    setItemError(null);
+    try {
+      const response = await apiService.getById<Escola>('/schools', id);
+      if (response.status) {
+        setCurrentItem(response.data);
+      } else {
+        throw new Error(response.message || 'Escola não encontrada');
+      }
+    } catch (err) {
+      setItemError(err instanceof Error ? err.message : 'Erro ao carregar escola');
+    } finally {
+      setLoadingItem(false);
+    }
+  };
+
+  const handleAdd = () => {
+    navigate('/dashboard/escolas/create');
+  };
+
+  const handleView = (item: Record<string, ReactNode>) => {
+    navigate(`/dashboard/escolas/${item.id}`);
+  };
+
   const handleEdit = (item: Record<string, ReactNode>) => {
-    openEditForm(item as Escola);
+    navigate(`/dashboard/escolas/${item.id}/edit`);
   };
 
   const handleDelete = (item: Record<string, ReactNode>) => {
@@ -78,9 +130,19 @@ export const EscolasPage = () => {
   };
 
   const confirmDelete = async () => {
-    if (itemToDelete) {
-      await deleteItem(itemToDelete);
+    if (itemToDelete?.id) {
+      await deleteItem(itemToDelete.id as string | number);
       setItemToDelete(null);
+    }
+  };
+
+  const handleSubmit = async (formData: Escola) => {
+    if (view === 'edit' && params.id) {
+      await updateItem(params.id, formData);
+      navigate('/dashboard/escolas');
+    } else if (view === 'create') {
+      await addItem(formData);
+      navigate('/dashboard/escolas');
     }
   };
 
@@ -92,51 +154,59 @@ export const EscolasPage = () => {
     updated_at: item.updated_at
   }));
 
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-ifms-green-dark">Escolas</h1>
-        <p className="text-muted-foreground">
-          Gerencie as escolas participantes da FECITEL
-        </p>
-      </div>
+  // Transform current item for detail view
+  const transformedCurrentItem = currentItem ? {
+    id: currentItem.id,
+    name: currentItem.name,
+    students_count: currentItem.students?.length || 0,
+    created_at: currentItem.created_at,
+    updated_at: currentItem.updated_at
+  } : null;
 
-      {error && (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-      
-      {loading && (
-        <div className="flex items-center justify-center p-4">
-          <Loader2 className="h-6 w-6 animate-spin" />
-          <span className="ml-2">Carregando...</span>
-        </div>
-      )}
-      
-      {!isFormOpen ? (
-        <DataTable
-          title="Lista de Escolas"
-          columns={columns}
-          data={transformedData}
-          searchPlaceholder="Buscar por nome da escola..."
-          onAdd={openAddForm}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          loading={loading}
-          baseEndpoint="/schools"
-        />
-      ) : (
-        <CrudForm
-          title="Escola"
-          fields={formFields}
-          initialData={editingItem || {}}
-          onSubmit={handleSubmit}
-          onCancel={closeForm}
-          isEditing={!!editingItem}
-          loading={loading}
-        />
-      )}
+  // Render based on current view
+  if (view === 'detail') {
+    return (
+      <ItemDetail
+        title="Escola"
+        description="Detalhes da escola participante da FECITEL"
+        data={transformedCurrentItem || {}}
+        fields={detailFields}
+        loading={loadingItem}
+        error={itemError}
+      />
+    );
+  }
+
+  if (view === 'create' || view === 'edit') {
+    return (
+      <CrudFormPage
+        title="Escola"
+        description="Gerencie as escolas participantes da FECITEL"
+        fields={formFields}
+        initialData={view === 'edit' ? currentItem || {} : {}}
+        onSubmit={handleSubmit}
+        isEditing={view === 'edit'}
+        loading={loading || loadingItem}
+      />
+    );
+  }
+
+  // Default: List view
+  return (
+    <>
+      <CrudListPage
+        title="Escolas"
+        description="Gerencie as escolas participantes da FECITEL"
+        columns={columns}
+        data={transformedData}
+        onAdd={handleAdd}
+        onView={handleView}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        loading={loading}
+        error={error}
+        baseEndpoint="/schools"
+      />
 
       <AlertDialog open={!!itemToDelete} onOpenChange={() => setItemToDelete(null)}>
         <AlertDialogContent>
@@ -154,6 +224,6 @@ export const EscolasPage = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </>
   );
 };

@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session, joinedload
 from app.database import get_db
 from app.models.school import School
@@ -6,6 +7,12 @@ from app.schemas.school import (
     SchoolCreate, SchoolUpdate, SchoolListResponse, SchoolDetailResponse
 )
 from typing import Optional
+import csv
+import io
+from datetime import datetime
+import pandas as pd
+import os
+import tempfile
 
 router = APIRouter()
 
@@ -228,4 +235,135 @@ async def delete_school(school_id: int, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error deleting school: {str(e)}"
+        ) 
+
+@router.get("/export/csv")
+async def export_schools_csv(
+    db: Session = Depends(get_db)
+):
+    """Exporta todas as escolas para CSV"""
+    try:
+        schools = db.query(School).filter(School.deleted_at == None).all()
+        
+        # Criar arquivo temporário
+        temp_file = tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.csv', encoding='utf-8')
+        
+        writer = csv.writer(temp_file)
+        
+        # Cabeçalhos
+        headers = ["id", "name", "city", "state", "created_at", "updated_at", "deleted_at"]
+        writer.writerow(headers)
+        
+        # Dados
+        for school in schools:
+            writer.writerow([
+                school.id,
+                school.name,
+                school.city or "",
+                school.state or "",
+                school.created_at.isoformat() if school.created_at else "",
+                school.updated_at.isoformat() if school.updated_at else "",
+                school.deleted_at.isoformat() if school.deleted_at else ""
+            ])
+        
+        temp_file.close()
+        
+        return FileResponse(
+            path=temp_file.name,
+            filename="schools_export.csv",
+            media_type="text/csv"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao exportar escolas: {str(e)}"
+        )
+
+@router.get("/import/molde")
+async def download_school_molde():
+    """Download do arquivo molde para escolas"""
+    try:
+        # Caminho do arquivo molde
+        molde_path = "uploads/moldes/school.csv"
+        
+        # Verificar se o arquivo existe
+        if not os.path.exists(molde_path):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Arquivo molde não encontrado"
+            )
+        
+        return FileResponse(
+            path=molde_path,
+            filename="school_molde.csv",
+            media_type="text/csv"
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao baixar molde: {str(e)}"
+        )
+
+@router.post("/import")
+async def import_schools_csv(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    """Importa escolas de um arquivo CSV"""
+    try:
+        if not file.filename.endswith('.csv'):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Arquivo deve ser um CSV"
+            )
+        
+        # Ler o arquivo CSV
+        content = await file.read()
+        csv_text = content.decode('utf-8')
+        
+        # Usar pandas para ler o CSV
+        df = pd.read_csv(io.StringIO(csv_text))
+        
+        imported_count = 0
+        errors = []
+        
+        for index, row in df.iterrows():
+            try:
+                # Verificar se a escola já existe
+                existing_school = db.query(School).filter(School.name == row['name']).first()
+                if existing_school:
+                    errors.append(f"Linha {index + 2}: Escola {row['name']} já existe")
+                    continue
+                
+                # Criar nova escola
+                school = School(
+                    name=row['name'],
+                    city=row.get('city'),
+                    state=row.get('state')
+                )
+                
+                db.add(school)
+                imported_count += 1
+                
+            except Exception as e:
+                errors.append(f"Linha {index + 2}: {str(e)}")
+        
+        db.commit()
+        
+        return {
+            "status": True,
+            "message": f"Importação concluída. {imported_count} escolas importadas.",
+            "data": {
+                "imported_count": imported_count,
+                "errors": errors
+            }
+        }
+        
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao importar escolas: {str(e)}"
         ) 

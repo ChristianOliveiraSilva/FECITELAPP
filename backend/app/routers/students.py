@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session, joinedload
 from app.database import get_db
 from app.models.student import Student
@@ -9,6 +10,11 @@ from app.schemas.student import (
 from app.enums.school_grade import SchoolGrade
 from typing import Optional
 from datetime import datetime
+import csv
+import io
+import pandas as pd
+import os
+import tempfile
 
 router = APIRouter()
 
@@ -347,4 +353,153 @@ async def delete_student(student_id: int, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Erro ao excluir estudante: {str(e)}"
+        ) 
+
+@router.get("/export/csv")
+async def export_students_csv(
+    db: Session = Depends(get_db)
+):
+    """Exporta todos os estudantes para CSV"""
+    try:
+        students = db.query(Student).filter(Student.deleted_at == None).all()
+        
+        # Criar arquivo temporário
+        temp_file = tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.csv', encoding='utf-8')
+        
+        writer = csv.writer(temp_file)
+        
+        # Cabeçalhos
+        headers = ["id", "name", "email", "school_grade", "year", "school_id", "created_at", "updated_at", "deleted_at"]
+        writer.writerow(headers)
+        
+        # Dados
+        for student in students:
+            school_grade_enum = SchoolGrade(student.school_grade)
+            school_grade_label = school_grade_enum.get_label()
+            
+            writer.writerow([
+                student.id,
+                student.name,
+                student.email or "",
+                school_grade_label,
+                student.year,
+                student.school_id,
+                student.created_at.isoformat() if student.created_at else "",
+                student.updated_at.isoformat() if student.updated_at else "",
+                student.deleted_at.isoformat() if student.deleted_at else ""
+            ])
+        
+        temp_file.close()
+        
+        return FileResponse(
+            path=temp_file.name,
+            filename="students_export.csv",
+            media_type="text/csv"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao exportar estudantes: {str(e)}"
+        )
+
+@router.get("/import/molde")
+async def download_student_molde():
+    """Download do arquivo molde para estudantes"""
+    try:
+        # Caminho do arquivo molde
+        molde_path = "uploads/moldes/student.csv"
+        
+        # Verificar se o arquivo existe
+        if not os.path.exists(molde_path):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Arquivo molde não encontrado"
+            )
+        
+        return FileResponse(
+            path=molde_path,
+            filename="student_molde.csv",
+            media_type="text/csv"
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao baixar molde: {str(e)}"
+        )
+
+@router.post("/import")
+async def import_students_csv(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    """Importa estudantes de um arquivo CSV"""
+    try:
+        if not file.filename.endswith('.csv'):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Arquivo deve ser um CSV"
+            )
+        
+        # Ler o arquivo CSV
+        content = await file.read()
+        csv_text = content.decode('utf-8')
+        
+        # Usar pandas para ler o CSV
+        df = pd.read_csv(io.StringIO(csv_text))
+        
+        imported_count = 0
+        errors = []
+        
+        for index, row in df.iterrows():
+            try:
+                # Verificar se a escola existe
+                school = db.query(School).filter(School.id == row['school_id']).first()
+                if not school:
+                    errors.append(f"Linha {index + 2}: Escola com ID {row['school_id']} não encontrada")
+                    continue
+                
+                # Converter série escolar
+                school_grade_value = None
+                for grade_value, grade_label in SchoolGrade.get_values().items():
+                    if grade_label == row['school_grade']:
+                        school_grade_value = grade_value
+                        break
+                
+                if school_grade_value is None:
+                    errors.append(f"Linha {index + 2}: Série escolar inválida: {row['school_grade']}")
+                    continue
+                
+                # Criar novo estudante
+                student = Student(
+                    name=row['name'],
+                    email=row.get('email'),
+                    school_grade=school_grade_value,
+                    year=row.get('year', datetime.now().year),
+                    school_id=row['school_id']
+                )
+                
+                db.add(student)
+                imported_count += 1
+                
+            except Exception as e:
+                errors.append(f"Linha {index + 2}: {str(e)}")
+        
+        db.commit()
+        
+        return {
+            "status": True,
+            "message": f"Importação concluída. {imported_count} estudantes importados.",
+            "data": {
+                "imported_count": imported_count,
+                "errors": errors
+            }
+        }
+        
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao importar estudantes: {str(e)}"
         ) 

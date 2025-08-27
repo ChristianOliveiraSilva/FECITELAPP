@@ -1,17 +1,21 @@
-import { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { DataTable } from "@/components/ui/data-table";
 import { CrudForm } from "@/components/ui/crud-form";
 import { useApiCrud } from "@/hooks/use-api-crud";
+import { apiService } from "@/lib/api";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
-import { ReactNode } from "react";
+import { ReactNode, useState, useEffect } from "react";
+import { ItemDetail } from "@/components/ui/item-detail";
+import { CrudFormPage } from "@/components/ui/crud-form-page";
+import { CrudListPage } from "@/components/ui/crud-list-page";
 
 interface Evento extends Record<string, unknown> {
   id?: number;
   year: number;
-  app_primary_color?: string;
-  app_font_color?: string;
+  app_primary_color: string;
+  app_font_color: string;
   app_logo_url?: string;
   created_at?: string;
   updated_at?: string;
@@ -29,15 +33,19 @@ const columns = [
     key: "app_primary_color", 
     label: "Cor Primária", 
     sortable: false, 
-    filterable: true, 
-    filterType: 'text' as const 
+    filterable: false 
   },
   { 
     key: "app_font_color", 
     label: "Cor da Fonte", 
     sortable: false, 
-    filterable: true, 
-    filterType: 'text' as const 
+    filterable: false 
+  },
+  { 
+    key: "app_logo_url", 
+    label: "Logo", 
+    sortable: false, 
+    filterable: false 
   },
   { 
     key: "created_at", 
@@ -60,49 +68,92 @@ const formFields = [
     name: "app_primary_color",
     label: "Cor Primária",
     type: "color" as const,
-    required: false,
-    placeholder: "#56BA54"
+    required: true,
+    placeholder: "Selecione a cor primária"
   },
   {
     name: "app_font_color",
     label: "Cor da Fonte",
     type: "color" as const,
-    required: false,
-    placeholder: "#FFFFFF"
+    required: true,
+    placeholder: "Selecione a cor da fonte"
   },
   {
     name: "logo",
-    label: "Logo do Evento",
+    label: "Logo",
     type: "file" as const,
-    required: false,
-    accept: "image/*",
-    placeholder: "Selecione uma imagem"
+    required: true,
+    accept: "image/*"
   }
 ];
 
-export const EventosPage = () => {
+const detailFields = [
+  { key: "id", label: "ID", type: "number" as const },
+  { key: "year", label: "Ano", type: "number" as const },
+  { key: "app_primary_color", label: "Cor Primária", type: "text" as const },
+  { key: "app_font_color", label: "Cor da Fonte", type: "text" as const },
+  { key: "app_logo_url", label: "Logo", type: "text" as const },
+  { key: "created_at", label: "Criado em", type: "date" as const },
+  { key: "updated_at", label: "Atualizado em", type: "date" as const }
+];
+
+interface EventosPageProps {
+  view: 'list' | 'detail' | 'create' | 'edit';
+}
+
+export const EventosPage = ({ view }: EventosPageProps) => {
+  const params = useParams();
+  const navigate = useNavigate();
+  const [currentItem, setCurrentItem] = useState<Evento | null>(null);
+  const [loadingItem, setLoadingItem] = useState(false);
+  const [itemError, setItemError] = useState<string | null>(null);
+
   const {
     data,
     loading,
     error,
-    isFormOpen,
-    editingItem,
-    openAddForm,
-    openEditForm,
-    closeForm,
-    handleSubmit,
-    deleteItem
-  } = useApiCrud<Evento>({ 
-    endpoint: "/events",
-    customCreateEndpoint: "/events",
-    customUpdateEndpoint: "/events",
-    useFormData: true
-  });
+    addItem,
+    updateItem,
+    deleteItem,
+    getOriginalItem
+  } = useApiCrud<Evento>({ endpoint: "/events" });
 
   const [itemToDelete, setItemToDelete] = useState<Evento | null>(null);
 
+  // Fetch single item when viewing details or editing
+  useEffect(() => {
+    if ((view === 'detail' || view === 'edit') && params.id) {
+      fetchItem(parseInt(params.id));
+    }
+  }, [params.id, view]);
+
+  const fetchItem = async (id: number) => {
+    setLoadingItem(true);
+    setItemError(null);
+    try {
+      const response = await apiService.getById<Evento>('/events', id);
+      if (response.status) {
+        setCurrentItem(response.data);
+      } else {
+        throw new Error(response.message || 'Evento não encontrado');
+      }
+    } catch (err) {
+      setItemError(err instanceof Error ? err.message : 'Erro ao carregar evento');
+    } finally {
+      setLoadingItem(false);
+    }
+  };
+
+  const handleAdd = () => {
+    navigate('/dashboard/eventos/create');
+  };
+
+  const handleView = (item: Record<string, ReactNode>) => {
+    navigate(`/dashboard/eventos/${item.id}`);
+  };
+
   const handleEdit = (item: Record<string, ReactNode>) => {
-    openEditForm(item as Evento);
+    navigate(`/dashboard/eventos/${item.id}/edit`);
   };
 
   const handleDelete = (item: Record<string, ReactNode>) => {
@@ -110,111 +161,118 @@ export const EventosPage = () => {
   };
 
   const confirmDelete = async () => {
-    if (itemToDelete) {
-      await deleteItem(itemToDelete);
+    if (itemToDelete?.id) {
+      await deleteItem(itemToDelete.id as string | number);
       setItemToDelete(null);
     }
   };
 
-  const cleanFormData = (data: Record<string, unknown>) => {
-    const cleanData: Record<string, unknown> = {};
+  const handleSubmit = async (formData: Record<string, unknown>) => {
+    // Implementar lógica personalizada para envio de formulário com FormData
+    const formDataToSend = new FormData();
+    formDataToSend.append('year', String(formData.year));
+    formDataToSend.append('app_primary_color', String(formData.app_primary_color));
+    formDataToSend.append('app_font_color', String(formData.app_font_color));
+    if (formData.logo && formData.logo instanceof File) {
+      formDataToSend.append('logo', formData.logo);
+    }
     
-    Object.keys(data).forEach(key => {
-      const value = data[key];
-      
-      if (key.startsWith('_') || typeof value === 'function') {
-        return;
-      }
-      
-      if (value instanceof File) {
-        cleanData[key] = value;
-      }
-      else if (value !== null && value !== undefined) {
-        try {
-          JSON.stringify(value);
-          cleanData[key] = value;
-        } catch (error) {
-          console.warn(`Skipping field ${key} due to circular reference`);
-        }
-      }
-    });
-    
-    return cleanData;
+    if (view === 'edit' && params.id) {
+      await updateItem(params.id, formDataToSend as unknown as Evento);
+      navigate('/dashboard/eventos');
+    } else if (view === 'create') {
+      await addItem(formDataToSend as unknown as Evento);
+      navigate('/dashboard/eventos');
+    }
   };
 
-  const handleCustomSubmit = (data: Record<string, unknown>) => {
-    const cleanData = cleanFormData(data);
-    handleSubmit(cleanData as Evento);
-  };
-
-  const transformedData = data.map(item => ({
-    ...item,
-    app_primary_color: item.app_primary_color ? (
-      <div className="flex items-center gap-2">
+  const transformedData: Record<string, ReactNode>[] = data.map(item => ({
+    id: item.id,
+    year: item.year,
+    app_primary_color: (
+      <div className="flex items-center space-x-2">
         <div 
-          className="w-4 h-4 rounded border"
+          className="w-6 h-6 rounded border"
           style={{ backgroundColor: item.app_primary_color as string }}
         />
         <span>{item.app_primary_color}</span>
       </div>
-    ) : "-",
-    app_font_color: item.app_font_color ? (
-      <div className="flex items-center gap-2">
+    ),
+    app_font_color: (
+      <div className="flex items-center space-x-2">
         <div 
-          className="w-4 h-4 rounded border"
+          className="w-6 h-6 rounded border"
           style={{ backgroundColor: item.app_font_color as string }}
         />
         <span>{item.app_font_color}</span>
       </div>
+    ),
+    app_logo_url: item.app_logo_url ? (
+      <img 
+        src={item.app_logo_url as string} 
+        alt="Logo" 
+        className="w-8 h-8 object-contain"
+      />
     ) : "-",
-    created_at: item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : "-"
+    created_at: item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : "-",
+    updated_at: item.updated_at
   }));
 
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-ifms-green-dark">Eventos</h1>
-        <p className="text-muted-foreground">
-          Gerencie os eventos anuais da FECITEL e suas customizações
-        </p>
-      </div>
+  // Transform current item for detail view
+  const transformedCurrentItem = currentItem ? {
+    id: currentItem.id,
+    year: currentItem.year,
+    app_primary_color: currentItem.app_primary_color,
+    app_font_color: currentItem.app_font_color,
+    app_logo_url: currentItem.app_logo_url || "-",
+    created_at: currentItem.created_at,
+    updated_at: currentItem.updated_at
+  } : null;
 
-      {error && (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-      
-      {loading && (
-        <div className="flex items-center justify-center p-4">
-          <Loader2 className="h-6 w-6 animate-spin" />
-          <span className="ml-2">Carregando...</span>
-        </div>
-      )}
-      
-      {!isFormOpen ? (
-        <DataTable
-          title="Lista de Eventos"
-          columns={columns}
-          data={transformedData}
-          searchPlaceholder="Buscar por ano do evento..."
-          onAdd={openAddForm}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          loading={loading}
-          baseEndpoint="/events"
-        />
-      ) : (
-        <CrudForm
-          title="Evento"
-          fields={formFields}
-          initialData={editingItem || {}}
-          onSubmit={handleCustomSubmit}
-          onCancel={closeForm}
-          isEditing={!!editingItem}
-          loading={loading}
-        />
-      )}
+  // Render based on current view
+  if (view === 'detail') {
+    return (
+      <ItemDetail
+        title="Evento"
+        description="Detalhes do evento da FECITEL"
+        data={transformedCurrentItem || {}}
+        fields={detailFields}
+        loading={loadingItem}
+        error={itemError}
+      />
+    );
+  }
+
+  if (view === 'create' || view === 'edit') {
+    return (
+      <CrudFormPage
+        title="Evento"
+        description="Gerencie os eventos da FECITEL"
+        fields={formFields}
+        initialData={view === 'edit' ? currentItem || {} : {}}
+        onSubmit={handleSubmit}
+        isEditing={view === 'edit'}
+        loading={loading || loadingItem}
+      />
+    );
+  }
+
+  // Default: List view
+  return (
+    <>
+      <CrudListPage
+        title="Eventos"
+        description="Gerencie os eventos da FECITEL"
+        columns={columns}
+        data={transformedData}
+        onAdd={handleAdd}
+        onView={handleView}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        loading={loading}
+        error={error}
+        baseEndpoint="/events"
+      />
 
       <AlertDialog open={!!itemToDelete} onOpenChange={() => setItemToDelete(null)}>
         <AlertDialogContent>
@@ -232,6 +290,6 @@ export const EventosPage = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </>
   );
 }; 

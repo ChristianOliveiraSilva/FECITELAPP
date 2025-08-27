@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session, joinedload
 from app.database import get_db
 from app.models.category import Category
@@ -6,6 +7,12 @@ from app.schemas.category import (
     CategoryCreate, CategoryUpdate, CategoryListResponse, CategoryDetailResponse
 )
 from typing import Optional
+import csv
+import io
+from datetime import datetime
+import pandas as pd
+import os
+import tempfile
 
 router = APIRouter()
 
@@ -403,7 +410,6 @@ async def delete_category(category_id: int, db: Session = Depends(get_db)):
                 detail="Category not found"
             )
         
-        from datetime import datetime
         category.deleted_at = datetime.utcnow()
         
         db.commit()
@@ -419,4 +425,142 @@ async def delete_category(category_id: int, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error deleting category: {str(e)}"
+        ) 
+
+@router.get("/export/csv")
+async def export_categories_csv(
+    db: Session = Depends(get_db)
+):
+    """Exporta todas as categorias para CSV"""
+    try:
+        categories = db.query(Category).filter(Category.deleted_at == None).all()
+        
+        # Criar arquivo temporário
+        temp_file = tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.csv', encoding='utf-8')
+        
+        writer = csv.writer(temp_file)
+        
+        # Cabeçalhos
+        headers = ["id", "name", "main_category_id", "created_at", "updated_at", "deleted_at"]
+        writer.writerow(headers)
+        
+        # Dados
+        for category in categories:
+            writer.writerow([
+                category.id,
+                category.name,
+                category.main_category_id or "",
+                category.created_at.isoformat() if category.created_at else "",
+                category.updated_at.isoformat() if category.updated_at else "",
+                category.deleted_at.isoformat() if category.deleted_at else ""
+            ])
+        
+        temp_file.close()
+        
+        return FileResponse(
+            path=temp_file.name,
+            filename="categories_export.csv",
+            media_type="text/csv"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao exportar categorias: {str(e)}"
+        )
+
+@router.get("/import/molde")
+async def download_category_molde():
+    """Download do arquivo molde para categorias"""
+    try:
+        # Caminho do arquivo molde
+        molde_path = "uploads/moldes/category.csv"
+        
+        # Verificar se o arquivo existe
+        if not os.path.exists(molde_path):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Arquivo molde não encontrado"
+            )
+        
+        return FileResponse(
+            path=molde_path,
+            filename="category_molde.csv",
+            media_type="text/csv"
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao baixar molde: {str(e)}"
+        )
+
+@router.post("/import")
+async def import_categories_csv(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    """Importa categorias de um arquivo CSV"""
+    try:
+        if not file.filename.endswith('.csv'):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Arquivo deve ser um CSV"
+            )
+        
+        # Ler o arquivo CSV
+        content = await file.read()
+        csv_text = content.decode('utf-8')
+        
+        # Usar pandas para ler o CSV
+        df = pd.read_csv(io.StringIO(csv_text))
+        
+        imported_count = 0
+        errors = []
+        
+        for index, row in df.iterrows():
+            try:
+                # Verificar se a categoria já existe
+                existing_category = db.query(Category).filter(Category.name == row['name']).first()
+                if existing_category:
+                    errors.append(f"Linha {index + 2}: Categoria {row['name']} já existe")
+                    continue
+                
+                # Verificar se a categoria pai existe (se especificada)
+                main_category_id = None
+                if pd.notna(row.get('main_category_id')) and row['main_category_id']:
+                    parent_category = db.query(Category).filter(Category.id == row['main_category_id']).first()
+                    if not parent_category:
+                        errors.append(f"Linha {index + 2}: Categoria pai com ID {row['main_category_id']} não encontrada")
+                        continue
+                    main_category_id = row['main_category_id']
+                
+                # Criar nova categoria
+                category = Category(
+                    name=row['name'],
+                    main_category_id=main_category_id
+                )
+                
+                db.add(category)
+                imported_count += 1
+                
+            except Exception as e:
+                errors.append(f"Linha {index + 2}: {str(e)}")
+        
+        db.commit()
+        
+        return {
+            "status": True,
+            "message": f"Importação concluída. {imported_count} categorias importadas.",
+            "data": {
+                "imported_count": imported_count,
+                "errors": errors
+            }
+        }
+        
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao importar categorias: {str(e)}"
         ) 

@@ -147,3 +147,4 @@ uploads/*
 !uploads/projects/
 uploads/projects/*
 !uploads/projects/teste.docx
+!uploads/moldes
