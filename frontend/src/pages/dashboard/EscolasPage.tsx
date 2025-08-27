@@ -185,7 +185,6 @@ export const EscolasPage = () => {
         description="Gerencie as escolas participantes da FECITEL"
         columns={columns}
         data={transformedData}
-        searchPlaceholder="Buscar por nome da escola..."
         onAdd={openAddForm}
         onEdit={handleEdit}
         onDelete={handleDelete}

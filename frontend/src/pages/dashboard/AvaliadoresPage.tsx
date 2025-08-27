@@ -253,7 +253,6 @@ export const AvaliadoresPage = () => {
         description="Gerencie os avaliadores da FECITEL"
         columns={columns}
         data={transformedData}
-        searchPlaceholder="Buscar por PIN, nome, email..."
         onAdd={openAddForm}
         onEdit={handleEdit}
         onDelete={handleDelete}

@@ -302,7 +302,6 @@ export const PremiacoesPage = () => {
         description="Gerencie as premiações da FECITEL"
         columns={columns}
         data={transformedData}
-        searchPlaceholder="Buscar por nome da premiação..."
         onAdd={openAddForm}
         onEdit={handleEdit}
         onDelete={handleDelete}

@@ -255,7 +255,6 @@ export const EventosPage = () => {
         description="Gerencie os eventos da FECITEL"
         columns={columns}
         data={transformedData}
-        searchPlaceholder="Buscar por ano do evento..."
         onAdd={openAddForm}
         onEdit={handleEdit}
         onDelete={handleDelete}

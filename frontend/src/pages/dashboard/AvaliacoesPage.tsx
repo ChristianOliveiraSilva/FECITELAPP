@@ -260,7 +260,6 @@ export const AvaliacoesPage = () => {
         description="Gerencie as avaliações dos projetos da FECITEL"
         columns={columns}
         data={transformedData}
-        searchPlaceholder="Buscar por projeto, avaliador..."
         onAdd={openAddForm}
         onEdit={handleEdit}
         onDelete={handleDelete}

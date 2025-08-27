@@ -280,7 +280,6 @@ export const PerguntasPage = () => {
         description="Gerencie as perguntas de avaliação da FECITEL"
         columns={columns}
         data={transformedData}
-        searchPlaceholder="Buscar por texto da pergunta..."
         onAdd={openAddForm}
         onEdit={handleEdit}
         onDelete={handleDelete}

@@ -238,7 +238,6 @@ export const AreasPage = () => {
         description="Gerencie as áreas de projetos da FECITEL"
         columns={columns}
         data={transformedData}
-        searchPlaceholder="Buscar por nome da área..."
         onAdd={openAddForm}
         onEdit={handleEdit}
         onDelete={handleDelete}

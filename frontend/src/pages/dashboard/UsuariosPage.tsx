@@ -246,7 +246,6 @@ export const UsuariosPage = () => {
         description="Gerencie os usuários do sistema FECITEL"
         columns={columns}
         data={transformedData}
-        searchPlaceholder="Buscar por nome, email..."
         onAdd={openAddForm}
         onEdit={handleEdit}
         onDelete={handleDelete}

@@ -325,7 +325,6 @@ export const ProjetosPage = () => {
         description="Gerencie os projetos inscritos na FECITEL"
         columns={columns}
         data={transformedData}
-        searchPlaceholder="Buscar por título, categoria..."
         onAdd={openAddForm}
         onEdit={handleEdit}
         onDelete={handleDelete}

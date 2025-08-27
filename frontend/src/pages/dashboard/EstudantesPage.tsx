@@ -273,7 +273,6 @@ export const EstudantesPage = () => {
         description="Gerencie os estudantes participantes da FECITEL"
         columns={columns}
         data={transformedData}
-        searchPlaceholder="Buscar por nome, escola..."
         onAdd={openAddForm}
         onEdit={handleEdit}
         onDelete={handleDelete}

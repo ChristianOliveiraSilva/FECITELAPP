@@ -10,9 +10,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, Plus, Edit, Trash2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, MoreHorizontal, Download, Upload, FileDown, Filter, X } from "lucide-react";
-import { useState } from "react";
+import { Plus, Edit, Trash2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, MoreHorizontal, Download, Upload, FileDown, Filter, X } from "lucide-react";
+import { useState, useRef } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { apiService } from "@/lib/api";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,7 +37,7 @@ interface DataTableProps {
   onAdd?: () => void;
   onEdit?: (item: Record<string, React.ReactNode>) => void;
   onDelete?: (item: Record<string, React.ReactNode>) => void;
-  searchPlaceholder?: string;
+
   loading?: boolean;
   selectable?: boolean;
   onSelectionChange?: (selectedItems: Record<string, React.ReactNode>[]) => void;
@@ -57,7 +58,6 @@ export const DataTable = ({
   onAdd,
   onEdit,
   onDelete,
-  searchPlaceholder = "Buscar...",
   loading = false,
   selectable = false,
   onSelectionChange,
@@ -69,7 +69,6 @@ export const DataTable = ({
   onDownloadTemplate,
   onExportCsv
 }: DataTableProps) => {
-  const [searchTerm, setSearchTerm] = useState("");
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [selectedItems, setSelectedItems] = useState<Record<string, unknown>[]>([]);
@@ -79,15 +78,11 @@ export const DataTable = ({
   // Estado para filtros por coluna
   const [columnFilters, setColumnFilters] = useState<Record<string, string>>({});
   const [showFilters, setShowFilters] = useState(false);
+  
+  // Ref para o input de arquivo
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const filteredData = data.filter((item) => {
-    // Filtro global de busca
-    const matchesSearch = searchTerm === "" || Object.values(item).some(
-      (value) =>
-        value &&
-        value.toString().toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
     // Filtros por coluna
     const matchesColumnFilters = Object.entries(columnFilters).every(([columnKey, filterValue]) => {
       if (!filterValue) return true;
@@ -98,7 +93,7 @@ export const DataTable = ({
       return itemValue.toString().toLowerCase().includes(filterValue.toLowerCase());
     });
 
-    return matchesSearch && matchesColumnFilters;
+    return matchesColumnFilters;
   });
 
   const sortedData = sortColumn
@@ -141,7 +136,6 @@ export const DataTable = ({
 
   const clearAllFilters = () => {
     setColumnFilters({});
-    setSearchTerm("");
     setCurrentPage(1);
   };
 
@@ -200,31 +194,78 @@ export const DataTable = ({
   const goToNextPage = () => setCurrentPage(Math.min(totalPages, currentPage + 1));
   const goToLastPage = () => setCurrentPage(totalPages);
 
-  // Funções para o kebab menu
   const handleImport = () => {
     if (onImport) {
       onImport();
     } else if (baseEndpoint) {
-      // Redirecionar para a rota de importação
-      window.open(`${baseEndpoint}/import`, '_blank');
+      fileInputRef.current?.click();
     }
   };
 
-  const handleDownloadTemplate = () => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !baseEndpoint) return;
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      await apiService.createWithFormData(`${baseEndpoint}/import`, formData);
+      
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      
+      window.location.reload();
+    } catch (error) {
+      console.error('Erro ao importar arquivo:', error);
+      alert('Erro ao importar arquivo. Verifique o formato e tente novamente.');
+    }
+  };
+
+  const handleDownloadTemplate = async () => {
     if (onDownloadTemplate) {
       onDownloadTemplate();
     } else if (baseEndpoint) {
-      // Redirecionar para a rota de download do molde
-      window.open(`${baseEndpoint}/import/molde`, '_blank');
+      try {
+        const blob = await apiService.downloadFile(`${baseEndpoint}/import/molde`);
+        
+        // Criar URL do blob e fazer download
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'molde.csv';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error('Erro ao baixar molde:', error);
+        alert('Erro ao baixar molde.');
+      }
     }
   };
 
-  const handleExportCsv = () => {
+  const handleExportCsv = async () => {
     if (onExportCsv) {
       onExportCsv();
     } else if (baseEndpoint) {
-      // Redirecionar para a rota de exportação CSV
-      window.open(`${baseEndpoint}/export/csv`, '_blank');
+      try {
+        const blob = await apiService.downloadFile(`${baseEndpoint}/export/csv`);
+        
+        // Criar URL do blob e fazer download
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'export.csv';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error('Erro ao exportar CSV:', error);
+        alert('Erro ao exportar dados.');
+      }
     }
   };
 
@@ -300,6 +341,13 @@ export const DataTable = ({
 
   return (
     <Card>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".csv,.xlsx,.xls"
+        onChange={handleFileUpload}
+        style={{ display: 'none' }}
+      />
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-ifms-green-dark">{title}</CardTitle>
@@ -356,17 +404,6 @@ export const DataTable = ({
           </div>
         </div>
         
-        {/* Barra de busca global */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-          <Input
-            placeholder={searchPlaceholder}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-
         {/* Filtros por coluna */}
         {showFilters && (
           <div className="space-y-3">

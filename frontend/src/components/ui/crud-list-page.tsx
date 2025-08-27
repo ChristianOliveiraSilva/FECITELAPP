@@ -7,9 +7,16 @@ import { ReactNode } from "react";
 interface CrudListPageProps {
   title: string;
   description?: string;
-  columns: any[];
+  columns: Array<{
+    key: string;
+    label: string;
+    sortable?: boolean;
+    filterable?: boolean;
+    filterType?: 'text' | 'select' | 'date' | 'number';
+    filterOptions?: { value: string; label: string }[];
+  }>;
   data: Record<string, ReactNode>[];
-  searchPlaceholder?: string;
+
   onAdd: () => void;
   onEdit: (item: Record<string, ReactNode>) => void;
   onDelete: (item: Record<string, ReactNode>) => void;
@@ -23,7 +30,6 @@ export const CrudListPage = ({
   description,
   columns,
   data,
-  searchPlaceholder = "Buscar...",
   onAdd,
   onEdit,
   onDelete,
@@ -41,11 +47,6 @@ export const CrudListPage = ({
             <p className="text-muted-foreground mt-2">{description}</p>
           )}
         </div>
-        
-        <Button onClick={onAdd}>
-          <Plus className="mr-2 h-4 w-4" />
-          Adicionar
-        </Button>
       </div>
 
       {/* Error Alert */}
@@ -68,7 +69,6 @@ export const CrudListPage = ({
         title={`Lista de ${title}`}
         columns={columns}
         data={data}
-        searchPlaceholder={searchPlaceholder}
         onAdd={onAdd}
         onEdit={onEdit}
         onDelete={onDelete}
