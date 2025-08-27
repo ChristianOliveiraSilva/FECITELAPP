@@ -91,7 +91,6 @@ export const DocumentosConfiguracoesPage = () => {
   };
 
   const handleSalvar = () => {
-    console.log("Configurações salvas:", configuracoes);
     toast({
       title: "Configurações salvas",
       description: "As configurações dos documentos foram salvas com sucesso!",

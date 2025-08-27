@@ -37,8 +37,6 @@ export const CrudForm = ({
   isEditing = false,
   loading = false
 }: CrudFormProps) => {
-  console.log(initialData);
-
   const form = useForm({
     defaultValues: initialData
   });
