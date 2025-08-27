@@ -14,6 +14,7 @@ import io
 import pandas as pd
 from datetime import datetime
 import os
+import tempfile
 
 router = APIRouter()
 
@@ -349,9 +350,10 @@ async def export_responses_csv(
     try:
         responses = db.query(Response).filter(Response.deleted_at == None).all()
         
-        # Criar buffer de memória para o CSV
-        output = io.StringIO()
-        writer = csv.writer(output)
+        # Criar arquivo temporário
+        temp_file = tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.csv', encoding='utf-8')
+        
+        writer = csv.writer(temp_file)
         
         # Cabeçalhos
         headers = ["id", "question_id", "assessment_id", "response", "score", "created_at", "updated_at", "deleted_at"]
@@ -370,15 +372,13 @@ async def export_responses_csv(
                 response.deleted_at.isoformat() if response.deleted_at else ""
             ])
         
-        output.seek(0)
-        csv_content = output.getvalue()
-        output.close()
+        temp_file.close()
         
-        return {
-            "status": True,
-            "message": "Respostas exportadas com sucesso",
-            "data": csv_content
-        }
+        return FileResponse(
+            path=temp_file.name,
+            filename="responses_export.csv",
+            media_type="text/csv"
+        )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

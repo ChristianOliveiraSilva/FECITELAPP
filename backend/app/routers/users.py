@@ -12,6 +12,7 @@ import io
 from datetime import datetime
 import pandas as pd
 import os
+import tempfile
 
 router = APIRouter()
 
@@ -258,9 +259,10 @@ async def export_users_csv(
     try:
         users = db.query(User).filter(User.deleted_at == None).all()
         
-        # Criar buffer de memória para o CSV
-        output = io.StringIO()
-        writer = csv.writer(output)
+        # Criar arquivo temporário
+        temp_file = tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.csv', encoding='utf-8')
+        
+        writer = csv.writer(temp_file)
         
         # Cabeçalhos
         headers = ["id", "name", "email", "password", "active", "email_verified_at", "remember_token", "created_at", "updated_at", "deleted_at"]
@@ -281,15 +283,13 @@ async def export_users_csv(
                 user.deleted_at.isoformat() if user.deleted_at else ""
             ])
         
-        output.seek(0)
-        csv_content = output.getvalue()
-        output.close()
+        temp_file.close()
         
-        return {
-            "status": True,
-            "message": "Usuários exportados com sucesso",
-            "data": csv_content
-        }
+        return FileResponse(
+            path=temp_file.name,
+            filename="users_export.csv",
+            media_type="text/csv"
+        )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -364,7 +364,7 @@ async def import_users_csv(
                 
                 db.add(user)
                 imported_count += 1
-                
+
             except Exception as e:
                 errors.append(f"Linha {index + 2}: {str(e)}")
         
