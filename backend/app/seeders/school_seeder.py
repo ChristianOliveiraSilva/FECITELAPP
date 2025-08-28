@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from app.models import School
+from app.enums.school_type import SchoolType
 
 class SchoolSeeder:
     def __init__(self, db: Session):
@@ -16,56 +17,67 @@ class SchoolSeeder:
         schools_data = [
             {
                 'name': 'Instituto Federal de Mato Grosso do Sul',
+                'type': SchoolType.FEDERAL.value,
                 'city': 'Três Lagoas',
                 'state': 'MS',
             },
             {
                 'name': 'Escola Estadual Afonso Pena',
+                'type': SchoolType.ESTADUAL.value,
                 'city': 'Três Lagoas',
                 'state': 'MS',
             },
             {
                 'name': 'Escola Estadual João Magiano Pinto (JOMAP)',
+                'type': SchoolType.ESTADUAL.value,
                 'city': 'Três Lagoas',
                 'state': 'MS',
             },
             {
                 'name': 'Escola Estadual Luiz Lopes de Carvalho',
+                'type': SchoolType.ESTADUAL.value,
                 'city': 'Três Lagoas',
                 'state': 'MS',
             },
             {
                 'name': 'Escola Estadual Fernando Corrêa da Costa',
+                'type': SchoolType.ESTADUAL.value,
                 'city': 'Três Lagoas',
                 'state': 'MS',
             },
             {
                 'name': 'Escola Municipal Parque São Carlos',
+                'type': SchoolType.MUNICIPAL.value,
                 'city': 'Três Lagoas',
                 'state': 'MS',
             },
             {
                 'name': 'Escola Municipal Elma Garcia Lata Batista',
+                'type': SchoolType.MUNICIPAL.value,
                 'city': 'Três Lagoas',
                 'state': 'MS',
             },
             {
                 'name': 'Colégio SESI Três Lagoas',
+                'type': SchoolType.ESTADUAL.value,
                 'city': 'Três Lagoas',
                 'state': 'MS',
             },
             {
                 'name': 'Colégio Anglo Três Lagoas',
+                'type': SchoolType.ESTADUAL.value,
                 'city': 'Três Lagoas',
                 'state': 'MS',
             },
             {
                 'name': 'Colégio Objetivo Três Lagoas',
+                'type': SchoolType.ESTADUAL.value,
                 'city': 'Três Lagoas',
                 'state': 'MS',
             },
             {
                 'name': 'Colégio Dom Bosco',
+                'type': SchoolType.ESTADUAL.value,
                 'city': 'Três Lagoas',
                 'state': 'MS',
             },

@@ -32,6 +32,7 @@ async def get_schools(
             school_dict = {
                 "id": school.id,
                 "name": school.name,
+                "type": school.type,
                 "city": school.city,
                 "state": school.state,
                 "created_at": school.created_at,
@@ -81,6 +82,7 @@ async def get_school(
         school_dict = {
             "id": school.id,
             "name": school.name,
+            "type": school.type,
             "city": school.city,
             "state": school.state,
             "created_at": school.created_at,
@@ -114,7 +116,12 @@ async def get_school(
 @router.post("/", response_model=SchoolDetailResponse)
 async def create_school(school_data: SchoolCreate, db: Session = Depends(get_db)):
     try:
-        school = School(name=school_data.name, city=school_data.city, state=school_data.state)
+        school = School(
+            name=school_data.name, 
+            type=school_data.type,
+            city=school_data.city, 
+            state=school_data.state
+        )
         
         db.add(school)
         db.commit()
@@ -123,6 +130,7 @@ async def create_school(school_data: SchoolCreate, db: Session = Depends(get_db)
         school_dict = {
             "id": school.id,
             "name": school.name,
+            "type": school.type,
             "city": school.city,
             "state": school.state,
             "created_at": school.created_at,
@@ -177,6 +185,7 @@ async def update_school(
         school_dict = {
             "id": school.id,
             "name": school.name,
+            "type": school.type,
             "city": school.city,
             "state": school.state,
             "created_at": school.created_at,
@@ -251,7 +260,7 @@ async def export_schools_csv(
         writer = csv.writer(temp_file)
         
         # Cabeçalhos
-        headers = ["id", "name", "city", "state", "created_at", "updated_at", "deleted_at"]
+        headers = ["id", "name", "type", "city", "state", "created_at", "updated_at", "deleted_at"]
         writer.writerow(headers)
         
         # Dados
@@ -259,6 +268,7 @@ async def export_schools_csv(
             writer.writerow([
                 school.id,
                 school.name,
+                school.type or "",
                 school.city or "",
                 school.state or "",
                 school.created_at.isoformat() if school.created_at else "",
@@ -340,6 +350,7 @@ async def import_schools_csv(
                 # Criar nova escola
                 school = School(
                     name=row['name'],
+                    type=row.get('type', 'estadual'),
                     city=row.get('city'),
                     state=row.get('state')
                 )

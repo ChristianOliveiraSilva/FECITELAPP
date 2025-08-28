@@ -14,6 +14,9 @@ import { CrudListPage } from "@/components/ui/crud-list-page";
 interface Escola extends Record<string, unknown> {
   id?: number;
   name: string;
+  type: string;
+  city: string;
+  state: string;
   created_at?: string;
   updated_at?: string;
   students?: Array<{
@@ -28,6 +31,32 @@ const columns = [
   { 
     key: "name", 
     label: "Nome da Escola", 
+    sortable: true, 
+    filterable: true, 
+    filterType: 'text' as const 
+  },
+  { 
+    key: "type", 
+    label: "Tipo", 
+    sortable: true, 
+    filterable: true, 
+    filterType: 'select' as const,
+    filterOptions: [
+      { value: "estadual", label: "Estadual" },
+      { value: "municipal", label: "Municipal" },
+      { value: "federal", label: "Federal" }
+    ]
+  },
+  { 
+    key: "city", 
+    label: "Cidade", 
+    sortable: true, 
+    filterable: true, 
+    filterType: 'text' as const 
+  },
+  { 
+    key: "state", 
+    label: "Estado", 
     sortable: true, 
     filterable: true, 
     filterType: 'text' as const 
@@ -55,12 +84,41 @@ const formFields = [
     type: "text" as const,
     required: true,
     placeholder: "Digite o nome da escola"
+  },
+  {
+    name: "type",
+    label: "Tipo de Escola",
+    type: "select" as const,
+    required: true,
+    placeholder: "Selecione o tipo de escola",
+    options: [
+      { value: "estadual", label: "Estadual" },
+      { value: "municipal", label: "Municipal" },
+      { value: "federal", label: "Federal" }
+    ]
+  },
+  {
+    name: "city",
+    label: "Cidade",
+    type: "text" as const,
+    required: true,
+    placeholder: "Digite a cidade"
+  },
+  {
+    name: "state",
+    label: "Estado",
+    type: "text" as const,
+    required: true,
+    placeholder: "Digite o estado (ex: MS)"
   }
 ];
 
 const detailFields = [
   { key: "id", label: "ID", type: "number" as const },
   { key: "name", label: "Nome da Escola", type: "text" as const },
+  { key: "type", label: "Tipo", type: "text" as const },
+  { key: "city", label: "Cidade", type: "text" as const },
+  { key: "state", label: "Estado", type: "text" as const },
   { key: "students_count", label: "Estudantes", type: "array" as const },
   { key: "created_at", label: "Criado em", type: "date" as const },
   { key: "updated_at", label: "Atualizado em", type: "date" as const }
@@ -149,6 +207,9 @@ export const EscolasPage = ({ view }: EscolasPageProps) => {
   const transformedData: Record<string, ReactNode>[] = data.map(item => ({
     id: item.id,
     name: item.name,
+    type: item.type || "-",
+    city: item.city || "-",
+    state: item.state || "-",
     students_count: item.students?.length || 0,
     created_at: item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : "-",
     updated_at: item.updated_at
@@ -158,6 +219,9 @@ export const EscolasPage = ({ view }: EscolasPageProps) => {
   const transformedCurrentItem = currentItem ? {
     id: currentItem.id,
     name: currentItem.name,
+    type: currentItem.type || "-",
+    city: currentItem.city || "-",
+    state: currentItem.state || "-",
     students_count: currentItem.students?.length || 0,
     created_at: currentItem.created_at,
     updated_at: currentItem.updated_at
