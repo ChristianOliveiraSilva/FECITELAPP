@@ -15,6 +15,7 @@ import io
 import pandas as pd
 import os
 import tempfile
+from sqlalchemy import and_
 
 router = APIRouter()
 
@@ -23,15 +24,42 @@ async def get_students(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
     year: Optional[int] = Query(None, description="Filter by year (defaults to current year)"),
+    name: Optional[str] = Query(None, description="Filter by student name"),
+    email: Optional[str] = Query(None, description="Filter by student email"),
+    school_grade: Optional[str] = Query(None, description="Filter by school grade"),
+    school_id: Optional[int] = Query(None, description="Filter by school ID"),
     db: Session = Depends(get_db)
 ):
     try:
         filter_year = year if year is not None else datetime.now().year
         
-        query = db.query(Student).filter(
+        # Construir filtros dinâmicos
+        filters = [
             Student.deleted_at == None,
             Student.year == filter_year
-        ).options(
+        ]
+        
+        if name:
+            filters.append(Student.name.ilike(f"%{name}%"))
+        
+        if email:
+            filters.append(Student.email.ilike(f"%{email}%"))
+        
+        if school_grade:
+            # Converter série escolar para valor numérico
+            school_grade_value = None
+            for grade_value, grade_label in SchoolGrade.get_values().items():
+                if grade_label.lower() == school_grade.lower():
+                    school_grade_value = grade_value
+                    break
+            
+            if school_grade_value is not None:
+                filters.append(Student.school_grade == school_grade_value)
+        
+        if school_id:
+            filters.append(Student.school_id == school_id)
+        
+        query = db.query(Student).filter(and_(*filters)).options(
             joinedload(Student.school),
             joinedload(Student.projects)
         )

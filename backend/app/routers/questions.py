@@ -13,6 +13,7 @@ import io
 import pandas as pd
 import os
 import tempfile
+from sqlalchemy import and_
 
 router = APIRouter()
 
@@ -21,15 +22,34 @@ async def get_questions(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
     year: Optional[int] = Query(None, description="Filter by year (defaults to current year)"),
+    scientific_text: Optional[str] = Query(None, description="Filter by scientific text"),
+    technological_text: Optional[str] = Query(None, description="Filter by technological text"),
+    type: Optional[int] = Query(None, description="Filter by question type"),
+    number_alternatives: Optional[int] = Query(None, description="Filter by number of alternatives"),
     db: Session = Depends(get_db)
 ):
     try:
         filter_year = year if year is not None else datetime.now().year
         
-        query = db.query(Question).filter(
+        # Construir filtros dinâmicos
+        filters = [
             Question.deleted_at == None,
             Question.year == filter_year
-        ).options(
+        ]
+        
+        if scientific_text:
+            filters.append(Question.scientific_text.ilike(f"%{scientific_text}%"))
+        
+        if technological_text:
+            filters.append(Question.technological_text.ilike(f"%{technological_text}%"))
+        
+        if type is not None:
+            filters.append(Question.type == type)
+        
+        if number_alternatives is not None:
+            filters.append(Question.number_alternatives == number_alternatives)
+        
+        query = db.query(Question).filter(and_(*filters)).options(
             joinedload(Question.responses),
             joinedload(Question.awards)
         )

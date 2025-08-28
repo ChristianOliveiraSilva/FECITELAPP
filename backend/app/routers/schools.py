@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import and_, or_
 from app.database import get_db
 from app.models.school import School
 from app.schemas.school import (
@@ -20,10 +21,29 @@ router = APIRouter()
 async def get_schools(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
+    name: Optional[str] = Query(None, description="Filter by school name"),
+    type: Optional[str] = Query(None, description="Filter by school type"),
+    city: Optional[str] = Query(None, description="Filter by city"),
+    state: Optional[str] = Query(None, description="Filter by state"),
     db: Session = Depends(get_db)
 ):
     try:
-        query = db.query(School).filter(School.deleted_at == None).options(joinedload(School.students))
+        # Construir filtros dinâmicos
+        filters = [School.deleted_at == None]
+        
+        if name:
+            filters.append(School.name.ilike(f"%{name}%"))
+        
+        if type:
+            filters.append(School.type.ilike(f"%{type}%"))
+        
+        if city:
+            filters.append(School.city.ilike(f"%{city}%"))
+        
+        if state:
+            filters.append(School.state.ilike(f"%{state}%"))
+        
+        query = db.query(School).filter(and_(*filters)).options(joinedload(School.students))
         
         schools = query.offset(skip).limit(limit).all()
         

@@ -15,6 +15,7 @@ import pandas as pd
 from datetime import datetime
 import os
 import tempfile
+from sqlalchemy import and_
 
 router = APIRouter()
 
@@ -22,10 +23,21 @@ router = APIRouter()
 async def get_assessments(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
+    evaluator_id: Optional[int] = Query(None, description="Filter by evaluator ID"),
+    project_id: Optional[int] = Query(None, description="Filter by project ID"),
     db: Session = Depends(get_db)
 ):
     try:
-        query = db.query(Assessment).filter(Assessment.deleted_at == None).options(
+        # Construir filtros dinâmicos
+        filters = [Assessment.deleted_at == None]
+        
+        if evaluator_id:
+            filters.append(Assessment.evaluator_id == evaluator_id)
+        
+        if project_id:
+            filters.append(Assessment.project_id == project_id)
+        
+        query = db.query(Assessment).filter(and_(*filters)).options(
             joinedload(Assessment.evaluator),
             joinedload(Assessment.project),
             joinedload(Assessment.responses)

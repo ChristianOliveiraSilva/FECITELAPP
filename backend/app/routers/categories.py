@@ -13,6 +13,7 @@ from datetime import datetime
 import pandas as pd
 import os
 import tempfile
+from sqlalchemy import and_
 
 router = APIRouter()
 
@@ -20,10 +21,21 @@ router = APIRouter()
 async def get_categories(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
+    name: Optional[str] = Query(None, description="Filter by category name"),
+    main_category_id: Optional[int] = Query(None, description="Filter by main category ID"),
     db: Session = Depends(get_db)
 ):
     try:
-        query = db.query(Category).filter(Category.deleted_at == None).options(
+        # Construir filtros dinâmicos
+        filters = [Category.deleted_at == None]
+        
+        if name:
+            filters.append(Category.name.ilike(f"%{name}%"))
+        
+        if main_category_id is not None:
+            filters.append(Category.main_category_id == main_category_id)
+        
+        query = db.query(Category).filter(and_(*filters)).options(
             joinedload(Category.projects),
             joinedload(Category.evaluators),
             joinedload(Category.main_category),

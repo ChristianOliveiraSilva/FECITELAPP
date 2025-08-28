@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import and_, or_
 from app.database import get_db
 from app.models.user import User
 from app.schemas.user import (
@@ -20,10 +21,25 @@ router = APIRouter()
 async def get_users(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
+    name: Optional[str] = Query(None, description="Filter by name"),
+    email: Optional[str] = Query(None, description="Filter by email"),
+    active: Optional[bool] = Query(None, description="Filter by active status"),
     db: Session = Depends(get_db)
 ):
     try:
-        query = db.query(User).filter(User.deleted_at == None).options(joinedload(User.evaluator))
+        # Construir filtros dinâmicos
+        filters = [User.deleted_at == None]
+        
+        if name:
+            filters.append(User.name.ilike(f"%{name}%"))
+        
+        if email:
+            filters.append(User.email.ilike(f"%{email}%"))
+        
+        if active is not None:
+            filters.append(User.active == active)
+        
+        query = db.query(User).filter(and_(*filters)).options(joinedload(User.evaluator))
         users = query.offset(skip).limit(limit).all()
 
         user_data = []

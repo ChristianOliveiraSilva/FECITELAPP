@@ -13,6 +13,7 @@ import pandas as pd
 from datetime import datetime
 import os
 import tempfile
+from sqlalchemy import and_
 
 router = APIRouter()
 
@@ -20,10 +21,37 @@ router = APIRouter()
 async def get_awards(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
+    name: Optional[str] = Query(None, description="Filter by award name"),
+    description: Optional[str] = Query(None, description="Filter by award description"),
+    school_grade: Optional[str] = Query(None, description="Filter by school grade"),
+    total_positions: Optional[int] = Query(None, description="Filter by total positions"),
+    use_school_grades: Optional[bool] = Query(None, description="Filter by use school grades"),
+    use_categories: Optional[bool] = Query(None, description="Filter by use categories"),
     db: Session = Depends(get_db)
 ):
     try:
-        query = db.query(Award).filter(Award.deleted_at == None).options(joinedload(Award.questions))
+        # Construir filtros dinâmicos
+        filters = [Award.deleted_at == None]
+        
+        if name:
+            filters.append(Award.name.ilike(f"%{name}%"))
+        
+        if description:
+            filters.append(Award.description.ilike(f"%{description}%"))
+        
+        if school_grade:
+            filters.append(Award.school_grade.ilike(f"%{school_grade}%"))
+        
+        if total_positions is not None:
+            filters.append(Award.total_positions == total_positions)
+        
+        if use_school_grades is not None:
+            filters.append(Award.use_school_grades == use_school_grades)
+        
+        if use_categories is not None:
+            filters.append(Award.use_categories == use_categories)
+        
+        query = db.query(Award).filter(and_(*filters)).options(joinedload(Award.questions))
         
         awards = query.offset(skip).limit(limit).all()
         

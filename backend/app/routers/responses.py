@@ -15,6 +15,7 @@ import pandas as pd
 from datetime import datetime
 import os
 import tempfile
+from sqlalchemy import and_
 
 router = APIRouter()
 
@@ -22,10 +23,29 @@ router = APIRouter()
 async def get_responses(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
+    question_id: Optional[int] = Query(None, description="Filter by question ID"),
+    assessment_id: Optional[int] = Query(None, description="Filter by assessment ID"),
+    response: Optional[str] = Query(None, description="Filter by response text"),
+    score: Optional[float] = Query(None, description="Filter by score"),
     db: Session = Depends(get_db)
 ):
     try:
-        query = db.query(Response).filter(Response.deleted_at == None).options(
+        # Construir filtros dinâmicos
+        filters = [Response.deleted_at == None]
+        
+        if question_id:
+            filters.append(Response.question_id == question_id)
+        
+        if assessment_id:
+            filters.append(Response.assessment_id == assessment_id)
+        
+        if response:
+            filters.append(Response.response.ilike(f"%{response}%"))
+        
+        if score is not None:
+            filters.append(Response.score == score)
+        
+        query = db.query(Response).filter(and_(*filters)).options(
             joinedload(Response.question),
             joinedload(Response.assessment)
         )
