@@ -10,12 +10,12 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 interface ItemDetailProps {
   title: string;
   description?: string;
-  data: Record<string, any>;
+  data: Record<string, unknown>;
   fields: Array<{
     key: string;
     label: string;
     type?: 'text' | 'date' | 'number' | 'boolean' | 'array' | 'object';
-    format?: (value: any) => string;
+    format?: (value: unknown) => string;
   }>;
   onEdit?: () => void;
   onDelete?: () => void;
@@ -61,7 +61,7 @@ export const ItemDetail = ({
     setShowDeleteDialog(false);
   };
 
-  const formatValue = (value: any, field: any) => {
+  const formatValue = (value: unknown, field: ItemDetailProps['fields'][0]) => {
     if (field.format) {
       return field.format(value);
     }
@@ -72,7 +72,7 @@ export const ItemDetail = ({
 
     switch (field.type) {
       case 'date':
-        return new Date(value).toLocaleDateString('pt-BR');
+        return new Date(value as string | number | Date).toLocaleDateString('pt-BR');
       case 'boolean':
         return value ? "Sim" : "Não";
       case 'array':
@@ -158,9 +158,9 @@ export const ItemDetail = ({
                   </span>
                   <div className="text-right">
                     {field.type === 'array' ? (
-                      <Badge variant="secondary">{formattedValue}</Badge>
+                      <Badge variant="secondary">{formattedValue as React.ReactNode}</Badge>
                     ) : (
-                      <span className="text-sm">{formattedValue}</span>
+                      <span className="text-sm">{formattedValue as React.ReactNode}</span>
                     )}
                   </div>
                 </div>

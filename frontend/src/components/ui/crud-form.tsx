@@ -21,8 +21,8 @@ interface Field {
 interface CrudFormProps {
   title: string;
   fields: Field[];
-  initialData?: Record<string, any>;
-  onSubmit: (data: Record<string, any>) => void;
+  initialData?: Record<string, unknown>;
+  onSubmit: (data: Record<string, unknown>) => void;
   onCancel: () => void;
   isEditing?: boolean;
   loading?: boolean;
@@ -47,7 +47,7 @@ export const CrudForm = ({
     }
   }, [initialData, form]);
 
-  const handleSubmit = (data: Record<string, any>) => {
+  const handleSubmit = (data: Record<string, unknown>) => {
     onSubmit(data);
   };
 
@@ -67,6 +67,7 @@ export const CrudForm = ({
                   <Textarea
                     placeholder={field.placeholder}
                     {...formField}
+                    value={String(formField.value || '')}
                   />
                 </FormControl>
                 <FormMessage />
@@ -85,7 +86,7 @@ export const CrudForm = ({
             render={({ field: formField }) => (
               <FormItem>
                 <FormLabel>{field.label}</FormLabel>
-                <Select onValueChange={formField.onChange} defaultValue={formField.value}>
+                <Select onValueChange={formField.onChange} defaultValue={String(formField.value || '')}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder={field.placeholder || "Selecione uma opção"} />
@@ -146,6 +147,7 @@ export const CrudForm = ({
                     type="color"
                     placeholder={field.placeholder}
                     {...formField}
+                    value={String(formField.value || '')}
                   />
                 </FormControl>
                 <FormMessage />
@@ -169,6 +171,7 @@ export const CrudForm = ({
                     type={field.type}
                     placeholder={field.placeholder}
                     {...formField}
+                    value={String(formField.value || '')}
                   />
                 </FormControl>
                 <FormMessage />

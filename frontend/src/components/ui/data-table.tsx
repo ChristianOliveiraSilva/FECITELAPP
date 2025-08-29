@@ -122,7 +122,7 @@ export const DataTable = ({
   const handleColumnFilter = (columnKey: string, value: string) => {
     setColumnFilters(prev => ({
       ...prev,
-      [columnKey]: value
+      [columnKey]: value === "__all__" ? "" : value
     }));
     setCurrentPage(1);
   };
@@ -280,12 +280,12 @@ export const DataTable = ({
     switch (column.filterType) {
       case 'select':
         return (
-          <Select value={filterValue} onValueChange={(value) => handleColumnFilter(column.key, value)}>
+          <Select value={filterValue || "__all__"} onValueChange={(value) => handleColumnFilter(column.key, value)}>
             <SelectTrigger className="h-8 w-full">
               <SelectValue placeholder="Filtrar" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos</SelectItem>
+              <SelectItem value="__all__">Todos</SelectItem>
               {column.filterOptions?.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
                   {option.label}
