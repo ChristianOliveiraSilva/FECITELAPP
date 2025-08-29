@@ -15,6 +15,7 @@ import io
 import pandas as pd
 import os
 import tempfile
+from sqlalchemy import and_
 
 router = APIRouter()
 
@@ -23,15 +24,26 @@ async def get_evaluators(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
     year: Optional[int] = Query(None, description="Filter by year (defaults to current year)"),
+    user_id: Optional[int] = Query(None, description="Filter by user ID"),
+    PIN: Optional[str] = Query(None, description="Filter by PIN"),
     db: Session = Depends(get_db)
 ):
     try:
         filter_year = year if year is not None else datetime.now().year
         
-        query = db.query(Evaluator).filter(
+        # Construir filtros dinâmicos
+        filters = [
             Evaluator.deleted_at == None,
             Evaluator.year == filter_year
-        ).options(
+        ]
+        
+        if user_id:
+            filters.append(Evaluator.user_id == user_id)
+        
+        if PIN:
+            filters.append(Evaluator.PIN.ilike(f"%{PIN}%"))
+        
+        query = db.query(Evaluator).filter(and_(*filters)).options(
             joinedload(Evaluator.user),
             joinedload(Evaluator.assessments),
             joinedload(Evaluator.categories)

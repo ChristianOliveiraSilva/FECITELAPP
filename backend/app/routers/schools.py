@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import and_, or_
 from app.database import get_db
 from app.models.school import School
 from app.schemas.school import (
@@ -20,10 +21,29 @@ router = APIRouter()
 async def get_schools(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
+    name: Optional[str] = Query(None, description="Filter by school name"),
+    type: Optional[str] = Query(None, description="Filter by school type"),
+    city: Optional[str] = Query(None, description="Filter by city"),
+    state: Optional[str] = Query(None, description="Filter by state"),
     db: Session = Depends(get_db)
 ):
     try:
-        query = db.query(School).filter(School.deleted_at == None).options(joinedload(School.students))
+        # Construir filtros dinâmicos
+        filters = [School.deleted_at == None]
+        
+        if name:
+            filters.append(School.name.ilike(f"%{name}%"))
+        
+        if type:
+            filters.append(School.type.ilike(f"%{type}%"))
+        
+        if city:
+            filters.append(School.city.ilike(f"%{city}%"))
+        
+        if state:
+            filters.append(School.state.ilike(f"%{state}%"))
+        
+        query = db.query(School).filter(and_(*filters)).options(joinedload(School.students))
         
         schools = query.offset(skip).limit(limit).all()
         
@@ -32,6 +52,7 @@ async def get_schools(
             school_dict = {
                 "id": school.id,
                 "name": school.name,
+                "type": school.type,
                 "city": school.city,
                 "state": school.state,
                 "created_at": school.created_at,
@@ -81,6 +102,7 @@ async def get_school(
         school_dict = {
             "id": school.id,
             "name": school.name,
+            "type": school.type,
             "city": school.city,
             "state": school.state,
             "created_at": school.created_at,
@@ -114,7 +136,12 @@ async def get_school(
 @router.post("/", response_model=SchoolDetailResponse)
 async def create_school(school_data: SchoolCreate, db: Session = Depends(get_db)):
     try:
-        school = School(name=school_data.name, city=school_data.city, state=school_data.state)
+        school = School(
+            name=school_data.name, 
+            type=school_data.type,
+            city=school_data.city, 
+            state=school_data.state
+        )
         
         db.add(school)
         db.commit()
@@ -123,6 +150,7 @@ async def create_school(school_data: SchoolCreate, db: Session = Depends(get_db)
         school_dict = {
             "id": school.id,
             "name": school.name,
+            "type": school.type,
             "city": school.city,
             "state": school.state,
             "created_at": school.created_at,
@@ -177,6 +205,7 @@ async def update_school(
         school_dict = {
             "id": school.id,
             "name": school.name,
+            "type": school.type,
             "city": school.city,
             "state": school.state,
             "created_at": school.created_at,
@@ -251,7 +280,7 @@ async def export_schools_csv(
         writer = csv.writer(temp_file)
         
         # Cabeçalhos
-        headers = ["id", "name", "city", "state", "created_at", "updated_at", "deleted_at"]
+        headers = ["id", "name", "type", "city", "state", "created_at", "updated_at", "deleted_at"]
         writer.writerow(headers)
         
         # Dados
@@ -259,6 +288,7 @@ async def export_schools_csv(
             writer.writerow([
                 school.id,
                 school.name,
+                school.type or "",
                 school.city or "",
                 school.state or "",
                 school.created_at.isoformat() if school.created_at else "",
@@ -340,6 +370,7 @@ async def import_schools_csv(
                 # Criar nova escola
                 school = School(
                     name=row['name'],
+                    type=row.get('type', 'estadual'),
                     city=row.get('city'),
                     state=row.get('state')
                 )
