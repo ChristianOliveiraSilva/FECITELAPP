@@ -77,15 +77,6 @@ const ExclusaoConta = () => {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <Button
-            variant="ghost"
-            onClick={() => navigate(-1)}
-            className="mb-4 hover:bg-ifms-green/10"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar
-          </Button>
-          
           <div className="text-center">
             <div className="flex items-center justify-center mb-4">
               <Trash2 className="h-12 w-12 text-red-600 mr-3" />

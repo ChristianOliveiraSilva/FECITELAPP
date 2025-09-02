@@ -24,13 +24,13 @@ class Header extends StatelessWidget {
                       height: 30,
                       errorBuilder: (context, error, stackTrace) {
                         return Image.asset(
-                          'assets/images/fecitel-logo.png',
+                          'assets/images/IFecitel_logo.png',
                           height: 30,
                         );
                       },
                     )
                   : Image.asset(
-                      'assets/images/fecitel-logo.png',
+                      'assets/images/IFecitel_logo.png',
                       height: 30,
                     ),
               const Spacer(),

@@ -50,7 +50,7 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Image.asset(
-                  'assets/images/logo.png',
+                  'assets/images/IFecitel_logo.png',
                   height: 180,
                   width: 280,
                 ),

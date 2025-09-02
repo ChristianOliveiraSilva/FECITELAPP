@@ -101,7 +101,7 @@ class TestSeeder:
                 
                 project = Project(
                     title=title,
-                    description=fake.paragraph(),
+                    description="Teste " + str(random.randint(1000, 9999)),
                     year=current_year,
                     projectType=project_type.value,
                     category_id=category.id,

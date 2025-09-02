@@ -12,15 +12,6 @@ const PoliticaPrivacidade = () => {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <Button
-            variant="ghost"
-            onClick={() => navigate(-1)}
-            className="mb-4 hover:bg-ifms-green/10"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar
-          </Button>
-          
           <div className="text-center">
             <div className="flex items-center justify-center mb-4">
               <Shield className="h-12 w-12 text-ifms-green mr-3" />
@@ -46,11 +37,12 @@ const PoliticaPrivacidade = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-muted-foreground">
-                O <strong>iFecitel</strong> é o aplicativo oficial da Fecitel, a Feira de Ciências e Tecnologia de Três Lagoas – IFMS. 
-                Com ele, avaliadores podem registrar notas, comentários e critérios de avaliação de forma prática, digital e organizada.
+                O <strong>iFecitel</strong> é um aplicativo para avaliação de trabalhos em Feiras de Ciências e Tecnologia. 
+                Com ele, os avaliadores podem registrar notas e comentários de forma prática, digital e organizada.
               </p>
               <p className="text-muted-foreground">
-                Otimize seu tempo, evite papelada e contribua para uma avaliação mais justa e eficiente dos projetos apresentados pelos alunos.
+                O uso do aplicativo otimiza o tempo de compilação dos resultados da feira, elimina a necessidade de impressão de formulários em papel e, assim, contribui com o meio ambiente. 
+                Dessa forma, o processo de avaliação torna-se mais eficiente.
               </p>
             </CardContent>
           </Card>
@@ -245,8 +237,7 @@ const PoliticaPrivacidade = () => {
               <div className="bg-muted p-4 rounded-lg">
                 <p className="font-medium">IFMS - Campus Três Lagoas</p>
                 <p className="text-muted-foreground">Fecitel - Feira de Ciências e Tecnologia</p>
-                <p className="text-muted-foreground">Email: fecitel@ifms.edu.br</p>
-                <p className="text-muted-foreground">Telefone: (67) 3508-9400</p>
+                <p className="text-muted-foreground">Email: gt.computacao.tl@gmail.com</p>
               </div>
             </CardContent>
           </Card>

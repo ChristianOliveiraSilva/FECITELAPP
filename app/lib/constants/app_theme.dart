@@ -97,7 +97,7 @@ class AppTheme {
   static Widget logo({
     required BuildContext context,
     double height = 40,
-    String fallbackAsset = 'assets/images/fecitel-logo.png',
+    String fallbackAsset = 'assets/images/IFecitel_logo.png',
   }) {
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, _) {

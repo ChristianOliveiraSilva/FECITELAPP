@@ -214,7 +214,7 @@ export const DocumentosConfiguracoesPage = () => {
                     ...prev,
                     cabecalho: { ...prev.cabecalho, logo: e.target.value }
                   }))}
-                  placeholder="https://exemplo.com/logo.png"
+                  placeholder="https://exemplo.com/IFecitel_logo.png"
                 />
               </div>
             </div>
@@ -265,7 +265,7 @@ export const DocumentosConfiguracoesPage = () => {
                     <Input
                       value={apoiador.logo}
                       onChange={(e) => handleApoiadorChange(index, "logo", e.target.value)}
-                      placeholder="https://exemplo.com/logo.png"
+                      placeholder="https://exemplo.com/IFecitel_logo.png"
                     />
                   </div>
                 </div>
