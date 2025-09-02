@@ -171,7 +171,6 @@ const PoliticaPrivacidade = () => {
                 <li>Acessar suas informações pessoais</li>
                 <li>Corrigir dados incorretos ou incompletos</li>
                 <li>Solicitar a exclusão de seus dados</li>
-                <li>Limitar o processamento de suas informações</li>
                 <li>Portabilidade dos seus dados</li>
                 <li>Revogar consentimento a qualquer momento</li>
               </ul>
@@ -235,8 +234,8 @@ const PoliticaPrivacidade = () => {
                 Se você tiver dúvidas sobre esta política ou sobre como tratamos suas informações, entre em contato:
               </p>
               <div className="bg-muted p-4 rounded-lg">
-                <p className="font-medium">IFMS - Campus Três Lagoas</p>
-                <p className="text-muted-foreground">Fecitel - Feira de Ciências e Tecnologia</p>
+                <p className="font-medium">Suporte Técnico</p>
+                <p className="text-muted-foreground">Para dúvidas sobre privacidade e proteção de dados</p>
                 <p className="text-muted-foreground">Email: gt.computacao.tl@gmail.com</p>
               </div>
             </CardContent>
