@@ -37,6 +37,11 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  Future<void> _loginWithQr() async {
+    // TODO: Implementar navegação para tela de scanner QR
+    // Navigator.push(context, MaterialPageRoute(builder: (context) => QrScannerScreen()));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -63,6 +68,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 40),
+                // Campo de entrada para PIN
                 TextFormField(
                   controller: _pinController,
                   keyboardType: TextInputType.number,
@@ -95,9 +101,50 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: authProvider.isLoading
                             ? const CircularProgressIndicator(color: Colors.white)
                             : const Text(
-                                'Entrar',
+                                'Entrar com PIN',
                                 style: TextStyle(fontSize: 18),
                               ),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 20),
+                // Linha separadora
+                Row(
+                  children: [
+                    Expanded(child: Divider(color: Colors.grey.shade300)),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Text(
+                        'OU',
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    Expanded(child: Divider(color: Colors.grey.shade300)),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                // Botão para login com QR Code
+                Consumer<AuthProvider>(
+                  builder: (context, authProvider, child) {
+                    return SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton.icon(
+                        onPressed: authProvider.isLoading ? null : _loginWithQr,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: const Color(0xFF56BA54),
+                          side: BorderSide(color: const Color(0xFF56BA54), width: 2),
+                        ),
+                        icon: const Icon(Icons.qr_code_scanner, size: 24),
+                        label: const Text(
+                          'Entrar com QR Code',
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+                        ),
                       ),
                     );
                   },
