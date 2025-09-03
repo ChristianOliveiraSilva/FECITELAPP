@@ -31,7 +31,7 @@ class TestSeeder:
         current_year = datetime.now().year
         
         users = []
-        for i in range(5):
+        for i in range(20):
             user = User(
                 name=fake.name(),
                 email=fake.unique.email(),
@@ -45,12 +45,14 @@ class TestSeeder:
         print(f"👤 Criados {len(users)} usuários para avaliadores")
         
         evaluators = []
+        pin = 1111
         for user in users:
             evaluator = Evaluator(
-                PIN=random.randint(1000, 9999),
+                PIN=pin,
                 user_id=user.id,
                 year=current_year
             )
+            pin += 1
             self.db.add(evaluator)
             evaluators.append(evaluator)
         
