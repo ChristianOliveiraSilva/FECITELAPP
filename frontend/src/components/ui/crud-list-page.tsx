@@ -24,6 +24,11 @@ interface CrudListPageProps {
   loading?: boolean;
   error?: string;
   baseEndpoint?: string;
+  // Props para filtros via API
+  onFiltersChange?: (filters: Record<string, string>, sortColumn: string | null, sortDirection: 'asc' | 'desc', page: number, pageSize: number) => void;
+  totalItems?: number;
+  currentPage?: number;
+  enableApiFiltering?: boolean;
 }
 
 export const CrudListPage = ({
@@ -37,7 +42,11 @@ export const CrudListPage = ({
   onDelete,
   loading = false,
   error,
-  baseEndpoint
+  baseEndpoint,
+  onFiltersChange,
+  totalItems,
+  currentPage,
+  enableApiFiltering = false
 }: CrudListPageProps) => {
   return (
     <div className="space-y-6">
@@ -77,6 +86,10 @@ export const CrudListPage = ({
         onDelete={onDelete}
         loading={loading}
         baseEndpoint={baseEndpoint}
+        onFiltersChange={onFiltersChange}
+        totalItems={totalItems}
+        currentPage={currentPage}
+        enableApiFiltering={enableApiFiltering}
       />
     </div>
   );

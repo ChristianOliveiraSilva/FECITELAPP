@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { DataTable } from "@/components/ui/data-table";
 import { CrudForm } from "@/components/ui/crud-form";
-import { useApiCrud } from "@/hooks/use-api-crud";
+import { useApiCrudWithFilters } from "@/hooks/use-api-crud-with-filters";
 import { apiService } from "@/lib/api";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -139,11 +139,15 @@ export const EscolasPage = ({ view }: EscolasPageProps) => {
     data,
     loading,
     error,
+    totalItems,
+    currentPage,
+    pageSize,
     addItem,
     updateItem,
     deleteItem,
-    getOriginalItem
-  } = useApiCrud<Escola>({ endpoint: "/schools" });
+    getOriginalItem,
+    handleFiltersChange
+  } = useApiCrudWithFilters<Escola>({ endpoint: "/schools" });
 
   const [itemToDelete, setItemToDelete] = useState<Escola | null>(null);
 
@@ -270,6 +274,10 @@ export const EscolasPage = ({ view }: EscolasPageProps) => {
         loading={loading}
         error={error}
         baseEndpoint="/schools"
+        onFiltersChange={handleFiltersChange}
+        totalItems={totalItems}
+        currentPage={currentPage}
+        enableApiFiltering={true}
       />
 
       <AlertDialog open={!!itemToDelete} onOpenChange={() => setItemToDelete(null)}>

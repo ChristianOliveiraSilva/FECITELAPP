@@ -18,6 +18,7 @@ class DatabaseSeeder:
         CategorySeeder(self.db).run()
         EventSeeder(self.db).run()
         PasswordResetConfigSeeder(self.db).run()
+
         if os.getenv('APP_ENV') != 'production':
             TestSeeder(self.db).run()
         
