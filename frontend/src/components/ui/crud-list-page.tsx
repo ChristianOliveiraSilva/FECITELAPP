@@ -15,7 +15,9 @@ interface CrudListPageProps {
     filterType?: 'text' | 'select' | 'date' | 'number';
     filterOptions?: { value: string; label: string }[];
   }>;
+  selectable?: boolean;
   data: Record<string, ReactNode>[];
+  actionButtons?: ReactNode | ((selectedItems: Record<string, unknown>[]) => ReactNode);
 
   onAdd: () => void;
   onView: (item: Record<string, ReactNode>) => void;
@@ -36,11 +38,13 @@ export const CrudListPage = ({
   description,
   columns,
   data,
+  actionButtons,
   onAdd,
   onView,
   onEdit,
   onDelete,
   loading = false,
+  selectable = false,
   error,
   baseEndpoint,
   onFiltersChange,
@@ -80,10 +84,12 @@ export const CrudListPage = ({
         title={`Lista de ${title}`}
         columns={columns}
         data={data}
+        actionButtons={actionButtons}
         onAdd={onAdd}
         onView={onView}
         onEdit={onEdit}
         onDelete={onDelete}
+        selectable={selectable}
         loading={loading}
         baseEndpoint={baseEndpoint}
         onFiltersChange={onFiltersChange}

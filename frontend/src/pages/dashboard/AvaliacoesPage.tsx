@@ -212,6 +212,9 @@ export const AvaliacoesPage = ({ view }: AvaliacoesPageProps) => {
     }
   };
 
+
+
+
   const transformedData: Record<string, ReactNode>[] = data.map(item => ({
     id: item.id,
     evaluator_id: item.evaluator_id,
@@ -269,6 +272,7 @@ export const AvaliacoesPage = ({ view }: AvaliacoesPageProps) => {
       />
     );
   }
+
 
   // Default: List view
   return (

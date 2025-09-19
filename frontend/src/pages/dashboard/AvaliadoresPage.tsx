@@ -5,7 +5,8 @@ import { useApiCrudWithFilters } from "@/hooks/use-api-crud-with-filters";
 import { apiService } from "@/lib/api";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Loader2, FileText } from "lucide-react";
 import { ReactNode, useState, useEffect } from "react";
 import { ItemDetail } from "@/components/ui/item-detail";
 import { CrudFormPage } from "@/components/ui/crud-form-page";
@@ -209,6 +210,48 @@ export const AvaliadoresPage = ({ view }: AvaliadoresPageProps) => {
     }
   };
 
+  const handleGerarInstrucoes = async (selectedItems: Record<string, unknown>[]) => {
+    try {
+      const ids = selectedItems.map(item => item.id).filter(id => id !== undefined);
+      if (ids.length === 0) {
+        alert('Selecione pelo menos um avaliador');
+        return;
+      }
+
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v3/docs/generate/instrucoes`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ ids })
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao gerar documento');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'instrucoes_avaliacao.docx';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Erro ao gerar documento de instruções:', error);
+      alert('Erro ao gerar documento de instruções');
+    }
+  };
+
   const transformedData: Record<string, ReactNode>[] = data.map(item => ({
     id: item.id,
     PIN: item.PIN,
@@ -263,6 +306,21 @@ export const AvaliadoresPage = ({ view }: AvaliadoresPageProps) => {
     );
   }
 
+  // Create action buttons for document generation
+  const createActionButtons = (selectedItems: Record<string, unknown>[]) => (
+    <div className="flex gap-2">
+      <Button
+        onClick={() => handleGerarInstrucoes(selectedItems)}
+        variant="outline"
+        className="flex items-center gap-2"
+        size="sm"
+      >
+        <FileText className="h-4 w-4 mr-2" />
+        Instruções
+      </Button>
+    </div>
+  );
+
   // Default: List view
   return (
     <>
@@ -271,10 +329,12 @@ export const AvaliadoresPage = ({ view }: AvaliadoresPageProps) => {
         description="Gerencie os avaliadores da FECITEL"
         columns={columns}
         data={transformedData}
+        actionButtons={createActionButtons}
         onAdd={handleAdd}
         onView={handleView}
         onEdit={handleEdit}
         onDelete={handleDelete}
+        selectable={true}
         loading={loading}
         error={error}
         baseEndpoint="/evaluators"

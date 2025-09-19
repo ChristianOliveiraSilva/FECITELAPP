@@ -105,7 +105,7 @@ export const DashboardWrapper = () => {
               variant="ghost"
               size="sm"
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="text-white hover:bg-ifms-green-dark"
+              className="text-white"
             >
               <Menu className="h-5 w-5" />
             </Button>
@@ -133,7 +133,7 @@ export const DashboardWrapper = () => {
               variant="ghost"
               size="sm"
               onClick={handleLogout}
-              className="text-white hover:bg-ifms-green-dark"
+              className="text-white"
             >
               <LogOut className="h-4 w-4 mr-2" />
               Sair

@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 
 class DocumentBase(BaseModel):
@@ -39,3 +39,6 @@ class DocumentDetailResponse(BaseModel):
     status: bool
     message: str
     data: DocumentResponse
+
+class DocumentGenerationRequest(BaseModel):
+    ids: List[int]

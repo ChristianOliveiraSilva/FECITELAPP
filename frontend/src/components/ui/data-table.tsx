@@ -41,8 +41,7 @@ interface DataTableProps {
 
   loading?: boolean;
   selectable?: boolean;
-  onSelectionChange?: (selectedItems: Record<string, React.ReactNode>[]) => void;
-  actionButtons?: React.ReactNode;
+  actionButtons?: React.ReactNode | ((selectedItems: Record<string, unknown>[]) => React.ReactNode);
   pageSize?: number;
   pageSizeOptions?: number[];
   // Novas props para o kebab menu
@@ -67,7 +66,6 @@ export const DataTable = ({
   onDelete,
   loading = false,
   selectable = false,
-  onSelectionChange,
   actionButtons,
   pageSize = 15,
   pageSizeOptions = [10, 15, 25, 50, 100],
@@ -168,7 +166,6 @@ export const DataTable = ({
     } else {
       setSelectedItems([]);
     }
-    onSelectionChange?.(checked ? sortedData : []);
   };
 
   const handleSelectItem = (item: Record<string, unknown>, checked: boolean) => {
@@ -184,7 +181,6 @@ export const DataTable = ({
       });
     }
     setSelectedItems(newSelectedItems);
-    onSelectionChange?.(newSelectedItems);
   };
 
   const isItemSelected = (item: Record<string, unknown>) => {
@@ -384,7 +380,7 @@ export const DataTable = ({
           <div className="flex items-center gap-2">
             {actionButtons && selectedItems.length > 0 && (
               <div className="flex gap-2">
-                {actionButtons}
+                {typeof actionButtons === 'function' ? actionButtons(selectedItems) : actionButtons}
               </div>
             )}
             
