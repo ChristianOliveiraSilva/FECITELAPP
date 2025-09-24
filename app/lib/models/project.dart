@@ -86,6 +86,6 @@ class Project {
 
   String? get fullFileUrl {
     if (file == null || file!.isEmpty) return null;
-    return 'http://10.0.2.2:8000$file';
+    return 'http://ifms.pro.br:2067$file';
   }
 } 
