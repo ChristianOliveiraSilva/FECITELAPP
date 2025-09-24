@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { DataTable } from "@/components/ui/data-table";
 import { CrudForm } from "@/components/ui/crud-form";
-import { useApiCrud } from "@/hooks/use-api-crud";
+import { useApiCrudWithFilters } from "@/hooks/use-api-crud-with-filters";
 import { apiService } from "@/lib/api";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -190,17 +190,20 @@ export const ProjetosPage = ({ view }: ProjetosPageProps) => {
   const [currentItem, setCurrentItem] = useState<Projeto | null>(null);
   const [loadingItem, setLoadingItem] = useState(false);
   const [itemError, setItemError] = useState<string | null>(null);
-  const [selectedItems, setSelectedItems] = useState<Projeto[]>([]);
 
   const {
     data,
     loading,
     error,
+    totalItems,
+    currentPage,
+    pageSize,
     addItem,
     updateItem,
     deleteItem,
-    getOriginalItem
-  } = useApiCrud<Projeto>({ endpoint: "/projects" });
+    getOriginalItem,
+    handleFiltersChange
+  } = useApiCrudWithFilters<Projeto>({ endpoint: "/projects" });
 
   const [itemToDelete, setItemToDelete] = useState<Projeto | null>(null);
 
@@ -261,13 +264,89 @@ export const ProjetosPage = ({ view }: ProjetosPageProps) => {
     }
   };
 
-  const handleSelectionChange = (selected: Record<string, ReactNode>[]) => {
-    setSelectedItems(selected as Projeto[]);
+  const handleGerarParticipacao = async (selectedItems: Record<string, unknown>[]) => {
+    try {
+      const ids = selectedItems.map(item => item.id).filter(id => id !== undefined);
+      if (ids.length === 0) {
+        alert('Selecione pelo menos um projeto');
+        return;
+      }
+
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v3/docs/generate/participacao`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ ids })
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao gerar documento');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'participacao_feira.pdf';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Erro ao gerar documento de participação:', error);
+      alert('Erro ao gerar documento de participação');
+    }
   };
 
-  const handleGerarFichasBannerSelecionados = () => {
-    // Implementar geração de fichas de banner
-    console.log('Gerar fichas para:', selectedItems);
+
+  const handleGerarPremiacao = async (selectedItems: Record<string, unknown>[]) => {
+    try {
+      const ids = selectedItems.map(item => item.id).filter(id => id !== undefined);
+      if (ids.length === 0) {
+        alert('Selecione pelo menos um projeto');
+        return;
+      }
+
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v3/docs/generate/premiacao`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ ids })
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao gerar documento');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'premiacao.pdf';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Erro ao gerar documento de premiação:', error);
+      alert('Erro ao gerar documento de premiação');
+    }
   };
 
   const transformedData: Record<string, ReactNode>[] = data.map(item => ({
@@ -331,6 +410,30 @@ export const ProjetosPage = ({ view }: ProjetosPageProps) => {
     );
   }
 
+  // Create action buttons for generating documents
+  const createActionButtons = (selectedItems: Record<string, unknown>[]) => (
+    <div className="flex gap-2">
+      <Button
+        onClick={() => handleGerarParticipacao(selectedItems)}
+        variant="outline"
+        className="flex items-center gap-2"
+        size="sm"
+      >
+        <FileText className="h-4 w-4 mr-2" />
+        Participação
+      </Button>
+      <Button
+        onClick={() => handleGerarPremiacao(selectedItems)}
+        variant="outline"
+        className="flex items-center gap-2"
+        size="sm"
+      >
+        <FileText className="h-4 w-4 mr-2" />
+        Premiação
+      </Button>
+    </div>
+  );
+
   // Default: List view
   return (
     <>
@@ -339,13 +442,19 @@ export const ProjetosPage = ({ view }: ProjetosPageProps) => {
         description="Gerencie os projetos inscritos na FECITEL"
         columns={columns}
         data={transformedData}
+        actionButtons={createActionButtons}
         onAdd={handleAdd}
         onView={handleView}
         onEdit={handleEdit}
         onDelete={handleDelete}
+        selectable={true}
         loading={loading}
         error={error}
         baseEndpoint="/projects"
+        onFiltersChange={handleFiltersChange}
+        totalItems={totalItems}
+        currentPage={currentPage}
+        enableApiFiltering={true}
       />
 
       <AlertDialog open={!!itemToDelete} onOpenChange={() => setItemToDelete(null)}>

@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Edit, Trash2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, MoreHorizontal, Download, Upload, FileDown, Filter, X, Eye } from "lucide-react";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { apiService } from "@/lib/api";
 import {
@@ -41,8 +41,7 @@ interface DataTableProps {
 
   loading?: boolean;
   selectable?: boolean;
-  onSelectionChange?: (selectedItems: Record<string, React.ReactNode>[]) => void;
-  actionButtons?: React.ReactNode;
+  actionButtons?: React.ReactNode | ((selectedItems: Record<string, unknown>[]) => React.ReactNode);
   pageSize?: number;
   pageSizeOptions?: number[];
   // Novas props para o kebab menu
@@ -50,6 +49,11 @@ interface DataTableProps {
   onImport?: () => void;
   onDownloadTemplate?: () => void;
   onExportCsv?: () => void;
+  // Props para filtros via API
+  onFiltersChange?: (filters: Record<string, string>, sortColumn: string | null, sortDirection: 'asc' | 'desc', page: number, pageSize: number) => void;
+  totalItems?: number;
+  currentPage?: number;
+  enableApiFiltering?: boolean;
 }
 
 export const DataTable = ({
@@ -62,19 +66,22 @@ export const DataTable = ({
   onDelete,
   loading = false,
   selectable = false,
-  onSelectionChange,
   actionButtons,
   pageSize = 15,
   pageSizeOptions = [10, 15, 25, 50, 100],
   baseEndpoint,
   onImport,
   onDownloadTemplate,
-  onExportCsv
+  onExportCsv,
+  onFiltersChange,
+  totalItems = 0,
+  currentPage: externalCurrentPage,
+  enableApiFiltering = false
 }: DataTableProps) => {
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [selectedItems, setSelectedItems] = useState<Record<string, unknown>[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(externalCurrentPage || 1);
   const [currentPageSize, setCurrentPageSize] = useState(pageSize);
   
   // Estado para filtros por coluna
@@ -84,31 +91,43 @@ export const DataTable = ({
   // Ref para o input de arquivo
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const filteredData = data.filter((item) => {
-    // Filtros por coluna
-    const matchesColumnFilters = Object.entries(columnFilters).every(([columnKey, filterValue]) => {
-      if (!filterValue) return true;
-      
-      const itemValue = item[columnKey];
-      if (!itemValue) return false;
-      
-      return itemValue.toString().toLowerCase().includes(filterValue.toLowerCase());
-    });
+  // Usar dados filtrados localmente apenas se não estiver usando filtros via API
+  const filteredData = enableApiFiltering 
+    ? data 
+    : data.filter((item) => {
+        // Filtros por coluna
+        const matchesColumnFilters = Object.entries(columnFilters).every(([columnKey, filterValue]) => {
+          if (!filterValue) return true;
+          
+          const itemValue = item[columnKey];
+          if (!itemValue) return false;
+          
+          return itemValue.toString().toLowerCase().includes(filterValue.toLowerCase());
+        });
 
-    return matchesColumnFilters;
-  });
+        return matchesColumnFilters;
+      });
 
-  const sortedData = sortColumn
-    ? [...filteredData].sort((a, b) => {
-        const aVal = a[sortColumn];
-        const bVal = b[sortColumn];
-        
-        if (sortDirection === "asc") {
-          return aVal > bVal ? 1 : -1;
-        }
-        return aVal < bVal ? 1 : -1;
-      })
-    : filteredData;
+  const sortedData = enableApiFiltering 
+    ? filteredData 
+    : (sortColumn
+        ? [...filteredData].sort((a, b) => {
+            const aVal = a[sortColumn];
+            const bVal = b[sortColumn];
+            
+            if (sortDirection === "asc") {
+              return aVal > bVal ? 1 : -1;
+            }
+            return aVal < bVal ? 1 : -1;
+          })
+        : filteredData);
+
+  // Effect para chamar a API quando filtros mudarem (apenas se enableApiFiltering estiver ativo)
+  useEffect(() => {
+    if (enableApiFiltering && onFiltersChange) {
+      onFiltersChange(columnFilters, sortColumn, sortDirection, currentPage, currentPageSize);
+    }
+  }, [columnFilters, sortColumn, sortDirection, currentPage, currentPageSize, enableApiFiltering, onFiltersChange]);
 
   const handleSort = (column: string) => {
     if (sortColumn === column) {
@@ -147,7 +166,6 @@ export const DataTable = ({
     } else {
       setSelectedItems([]);
     }
-    onSelectionChange?.(checked ? sortedData : []);
   };
 
   const handleSelectItem = (item: Record<string, unknown>, checked: boolean) => {
@@ -163,7 +181,6 @@ export const DataTable = ({
       });
     }
     setSelectedItems(newSelectedItems);
-    onSelectionChange?.(newSelectedItems);
   };
 
   const isItemSelected = (item: Record<string, unknown>) => {
@@ -176,10 +193,14 @@ export const DataTable = ({
     return isSelected;
   };
 
-  const totalPages = Math.ceil(sortedData.length / currentPageSize);
-  const startIndex = (currentPage - 1) * currentPageSize;
-  const endIndex = startIndex + currentPageSize;
-  const paginatedData = sortedData.slice(startIndex, endIndex);
+  const totalPages = enableApiFiltering 
+    ? Math.ceil(totalItems / currentPageSize)
+    : Math.ceil(sortedData.length / currentPageSize);
+  const startIndex = enableApiFiltering ? 0 : (currentPage - 1) * currentPageSize;
+  const endIndex = enableApiFiltering ? sortedData.length : startIndex + currentPageSize;
+  const paginatedData = enableApiFiltering 
+    ? sortedData 
+    : sortedData.slice(startIndex, endIndex);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -195,6 +216,9 @@ export const DataTable = ({
   const goToPreviousPage = () => setCurrentPage(Math.max(1, currentPage - 1));
   const goToNextPage = () => setCurrentPage(Math.min(totalPages, currentPage + 1));
   const goToLastPage = () => setCurrentPage(totalPages);
+
+  // Usar página externa se disponível
+  const displayCurrentPage = externalCurrentPage || currentPage;
 
   const handleImport = () => {
     if (onImport) {
@@ -356,7 +380,7 @@ export const DataTable = ({
           <div className="flex items-center gap-2">
             {actionButtons && selectedItems.length > 0 && (
               <div className="flex gap-2">
-                {actionButtons}
+                {typeof actionButtons === 'function' ? actionButtons(selectedItems) : actionButtons}
               </div>
             )}
             
@@ -553,7 +577,10 @@ export const DataTable = ({
         <div className="flex items-center justify-between pt-4">
           <div className="flex items-center gap-4">
             <div className="text-sm text-muted-foreground">
-              Mostrando {startIndex + 1}-{Math.min(endIndex, sortedData.length)} de {sortedData.length} registros
+              {enableApiFiltering 
+                ? `Mostrando ${startIndex + 1}-${Math.min(endIndex, totalItems)} de ${totalItems} registros`
+                : `Mostrando ${startIndex + 1}-${Math.min(endIndex, sortedData.length)} de ${sortedData.length} registros`
+              }
             </div>
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">Linhas por página:</span>
@@ -578,7 +605,7 @@ export const DataTable = ({
                 variant="outline"
                 size="sm"
                 onClick={goToFirstPage}
-                disabled={currentPage === 1}
+                disabled={displayCurrentPage === 1}
               >
                 <ChevronsLeft className="h-4 w-4" />
               </Button>
@@ -586,7 +613,7 @@ export const DataTable = ({
                 variant="outline"
                 size="sm"
                 onClick={goToPreviousPage}
-                disabled={currentPage === 1}
+                disabled={displayCurrentPage === 1}
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
@@ -596,18 +623,18 @@ export const DataTable = ({
                   let pageNumber;
                   if (totalPages <= 5) {
                     pageNumber = i + 1;
-                  } else if (currentPage <= 3) {
+                  } else if (displayCurrentPage <= 3) {
                     pageNumber = i + 1;
-                  } else if (currentPage >= totalPages - 2) {
+                  } else if (displayCurrentPage >= totalPages - 2) {
                     pageNumber = totalPages - 4 + i;
                   } else {
-                    pageNumber = currentPage - 2 + i;
+                    pageNumber = displayCurrentPage - 2 + i;
                   }
                   
                   return (
                     <Button
                       key={pageNumber}
-                      variant={currentPage === pageNumber ? "default" : "outline"}
+                      variant={displayCurrentPage === pageNumber ? "default" : "outline"}
                       size="sm"
                       onClick={() => handlePageChange(pageNumber)}
                       className="w-8 h-8"
@@ -622,7 +649,7 @@ export const DataTable = ({
                 variant="outline"
                 size="sm"
                 onClick={goToNextPage}
-                disabled={currentPage === totalPages}
+                disabled={displayCurrentPage === totalPages}
               >
                 <ChevronRight className="h-4 w-4" />
               </Button>
@@ -630,7 +657,7 @@ export const DataTable = ({
                 variant="outline"
                 size="sm"
                 onClick={goToLastPage}
-                disabled={currentPage === totalPages}
+                disabled={displayCurrentPage === totalPages}
               >
                 <ChevronsRight className="h-4 w-4" />
               </Button>

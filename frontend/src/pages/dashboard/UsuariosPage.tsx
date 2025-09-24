@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { DataTable } from "@/components/ui/data-table";
 import { CrudForm } from "@/components/ui/crud-form";
-import { useApiCrud } from "@/hooks/use-api-crud";
+import { useApiCrudWithFilters } from "@/hooks/use-api-crud-with-filters";
 import { apiService } from "@/lib/api";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -134,11 +134,15 @@ export const UsuariosPage = ({ view }: UsuariosPageProps) => {
     data,
     loading,
     error,
+    totalItems,
+    currentPage,
+    pageSize,
     addItem,
     updateItem,
     deleteItem,
-    getOriginalItem
-  } = useApiCrud<Usuario>({ endpoint: "/users" });
+    getOriginalItem,
+    handleFiltersChange
+  } = useApiCrudWithFilters<Usuario>({ endpoint: "/users" });
 
   const [itemToDelete, setItemToDelete] = useState<Usuario | null>(null);
 
@@ -267,6 +271,10 @@ export const UsuariosPage = ({ view }: UsuariosPageProps) => {
         loading={loading}
         error={error}
         baseEndpoint="/users"
+        onFiltersChange={handleFiltersChange}
+        totalItems={totalItems}
+        currentPage={currentPage}
+        enableApiFiltering={true}
       />
 
       <AlertDialog open={!!itemToDelete} onOpenChange={() => setItemToDelete(null)}>

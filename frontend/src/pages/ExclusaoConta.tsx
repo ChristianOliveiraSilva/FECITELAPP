@@ -168,7 +168,7 @@ const ExclusaoConta = () => {
               <div className="text-center">
                 <Button
                   variant="outline"
-                  onClick={() => navigate(-1)}
+                  onClick={() => navigate("/")}
                   className="w-full"
                   disabled={isLoading}
                 >

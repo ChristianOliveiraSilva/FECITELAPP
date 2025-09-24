@@ -9,6 +9,7 @@ export interface ApiResponse<T> {
 export interface PaginationParams {
   skip?: number;
   limit?: number;
+  [key: string]: any;
 }
 
 class ApiService {
@@ -62,8 +63,12 @@ class ApiService {
   ): Promise<ApiResponse<T[]>> {
     const searchParams = new URLSearchParams();
     
-    if (params.skip !== undefined) searchParams.append('skip', params.skip.toString());
-    if (params.limit !== undefined) searchParams.append('limit', params.limit.toString());
+    // Adicionar todos os parâmetros de filtro
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        searchParams.append(key, value.toString());
+      }
+    });
 
     const year = this.getYear();
     if (year) {

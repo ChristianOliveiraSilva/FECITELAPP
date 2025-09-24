@@ -15,7 +15,9 @@ interface CrudListPageProps {
     filterType?: 'text' | 'select' | 'date' | 'number';
     filterOptions?: { value: string; label: string }[];
   }>;
+  selectable?: boolean;
   data: Record<string, ReactNode>[];
+  actionButtons?: ReactNode | ((selectedItems: Record<string, unknown>[]) => ReactNode);
 
   onAdd: () => void;
   onView: (item: Record<string, ReactNode>) => void;
@@ -24,6 +26,11 @@ interface CrudListPageProps {
   loading?: boolean;
   error?: string;
   baseEndpoint?: string;
+  // Props para filtros via API
+  onFiltersChange?: (filters: Record<string, string>, sortColumn: string | null, sortDirection: 'asc' | 'desc', page: number, pageSize: number) => void;
+  totalItems?: number;
+  currentPage?: number;
+  enableApiFiltering?: boolean;
 }
 
 export const CrudListPage = ({
@@ -31,13 +38,19 @@ export const CrudListPage = ({
   description,
   columns,
   data,
+  actionButtons,
   onAdd,
   onView,
   onEdit,
   onDelete,
   loading = false,
+  selectable = false,
   error,
-  baseEndpoint
+  baseEndpoint,
+  onFiltersChange,
+  totalItems,
+  currentPage,
+  enableApiFiltering = false
 }: CrudListPageProps) => {
   return (
     <div className="space-y-6">
@@ -71,12 +84,18 @@ export const CrudListPage = ({
         title={`Lista de ${title}`}
         columns={columns}
         data={data}
+        actionButtons={actionButtons}
         onAdd={onAdd}
         onView={onView}
         onEdit={onEdit}
         onDelete={onDelete}
+        selectable={selectable}
         loading={loading}
         baseEndpoint={baseEndpoint}
+        onFiltersChange={onFiltersChange}
+        totalItems={totalItems}
+        currentPage={currentPage}
+        enableApiFiltering={enableApiFiltering}
       />
     </div>
   );
