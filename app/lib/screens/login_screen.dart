@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import '../providers/auth_provider.dart';
-
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -13,10 +13,12 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _pinController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  MobileScannerController? _scannerController;
 
   @override
   void dispose() {
     _pinController.dispose();
+    _scannerController?.dispose();
     super.dispose();
   }
 
@@ -38,8 +40,80 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _loginWithQr() async {
-    // TODO: Implementar navegação para tela de scanner QR
-    // Navigator.push(context, MaterialPageRoute(builder: (context) => QrScannerScreen()));
+    _scannerController = MobileScannerController();
+    
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.8,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          children: [
+            // Header do modal
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: const BoxDecoration(
+                color: Color(0xFF56BA54),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.qr_code_scanner, color: Colors.white, size: 24),
+                  const SizedBox(width: 12),
+                  const Text(
+                    'Escanear QR Code',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close, color: Colors.white),
+                  ),
+                ],
+              ),
+            ),
+            // Scanner
+            Expanded(
+              child: MobileScanner(
+                controller: _scannerController,
+                onDetect: (BarcodeCapture capture) {
+                  final List<Barcode> barcodes = capture.barcodes;
+                  for (final barcode in barcodes) {
+                    if (barcode.rawValue != null) {
+                      Navigator.pop(context);
+                      _pinController.text = barcode.rawValue!;
+                      _login();
+                      break;
+                    }
+                  }
+                },
+              ),
+            ),
+            // Instruções
+            Container(
+              padding: const EdgeInsets.all(16),
+              child: const Text(
+                'Posicione o QR Code dentro do quadro para escaneá-lo',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.black54,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override

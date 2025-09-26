@@ -7,9 +7,12 @@ import 'providers/theme_provider.dart';
 import 'services/event_service.dart';
 import 'screens/login_screen.dart';
 import 'screens/list_screen.dart';
+import 'constants/environment.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  EnvironmentConfig.setEnvironment(Environment.production);
   
   // Initialize theme from API on app start
   await EventService.initializeTheme();

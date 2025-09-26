@@ -1,5 +1,6 @@
 import 'category.dart';
 import 'student.dart';
+import '../constants/api_config.dart';
 
 enum ProjectType {
   technological(1),
@@ -86,6 +87,6 @@ class Project {
 
   String? get fullFileUrl {
     if (file == null || file!.isEmpty) return null;
-    return 'http://ifms.pro.br:2067$file';
+    return '${ApiConfig.fileBaseUrl}$file';
   }
 } 
