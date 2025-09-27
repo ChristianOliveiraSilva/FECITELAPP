@@ -19,7 +19,7 @@ class ProjectsProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await ApiService.get('/assessments/');
+      final response = await ApiService.get('/assessments');
       final data = json.decode(utf8.decode(response.bodyBytes));
       
       if (data['status'] == true) {

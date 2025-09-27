@@ -13,7 +13,7 @@ class EventService {
   /// Fetch current year event data from API
   static Future<Map<String, dynamic>?> getCurrentYearEvent() async {
     try {
-      final response = await ApiService.get('/events/current-year/');
+      final response = await ApiService.get('/events/current-year');
       
       if (response.statusCode == 200) {
         final data = json.decode(response.body);

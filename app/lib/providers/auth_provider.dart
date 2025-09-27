@@ -19,7 +19,7 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await ApiService.post('/login/', {'PIN': pin});
+      final response = await ApiService.post('/login', {'PIN': pin});
       final data = json.decode(utf8.decode(response.bodyBytes));
       
       if (data['status'] == true) {
@@ -45,7 +45,7 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> logout() async {
     try {
-      await ApiService.post('/logout/', {});
+      await ApiService.post('/logout', {});
     } catch (e) {
       // Logout error handled silently
     }

@@ -27062,7 +27062,7 @@ a2F(){var s=0,r=A.I(t.nA),q,p=2,o=[],n,m,l,k,j,i
 var $async$a2F=A.E(function(a,b){if(a===1){o.push(b)
 s=p}while(true)switch(s){case 0:p=4
 s=7
-return A.C(A.rx("/events/current-year/"),$async$a2F)
+return A.C(A.rx("/events/current-year"),$async$a2F)
 case 7:n=b
 if(n.b===200){k=n
 m=B.aZ.d8(A.aTj(A.aQU(k.e)).d8(k.w))
@@ -41933,7 +41933,7 @@ s=q}while(true)switch(s){case 0:n.c=!0
 n.aA()
 q=3
 s=6
-return A.C(A.ry("/login/",A.ai(["PIN",a],t.N,t.z)),$async$oc)
+return A.C(A.ry("/login",A.ai(["PIN",a],t.N,t.z)),$async$oc)
 case 6:m=c
 l=B.aZ.d8(B.X.d8(m.w))
 s=J.d(J.cE(l,"status"),!0)?7:9
@@ -41976,7 +41976,7 @@ od(){var s=0,r=A.I(t.H),q=1,p=[],o=this,n,m,l
 var $async$od=A.E(function(a,b){if(a===1){p.push(b)
 s=q}while(true)switch(s){case 0:q=3
 s=6
-return A.C(A.ry("/logout/",A.r(t.N,t.z)),$async$od)
+return A.C(A.ry("/logout",A.r(t.N,t.z)),$async$od)
 case 6:q=1
 s=5
 break
@@ -42017,7 +42017,7 @@ n.c=null
 n.aA()
 q=3
 s=6
-return A.C(A.rx("/assessments/"),$async$mv)
+return A.C(A.rx("/assessments"),$async$mv)
 case 6:m=a6
 l=B.aZ.d8(B.X.d8(m.w))
 if(J.d(J.cE(l,"status"),!0)){k=J.cE(l,"data")
@@ -42362,7 +42362,7 @@ n.ag(new A.apb(n))
 j=n.a.c
 n.d=j
 s=6
-return A.C(A.rx("/questions/"+j.a+"/"),$async$x7)
+return A.C(A.rx("/questions/"+j.a),$async$x7)
 case 6:m=b
 l=B.aZ.d8(B.X.d8(m.w))
 if(J.d(J.cE(l,"status"),!0)){k=J.cE(l,"data")
@@ -42403,7 +42403,7 @@ k=o.a.c
 j=o.e
 n=A.ai(["assessment",k.a,"responses",new A.zF(j,A.W(j).i("zF<1>")).ghE().hd(0,new A.apl(o),t.nf).eb(0)],t.N,t.K)
 s=6
-return A.C(A.ry("/responses/",n),$async$xT)
+return A.C(A.ry("/responses",n),$async$xT)
 case 6:m=b
 l=B.aZ.d8(B.X.d8(m.w))
 if(J.d(J.cE(l,"status"),!0)){if(o.c!=null){o.a.d.$0()
