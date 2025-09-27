@@ -15,8 +15,8 @@ class EnvironmentConfig {
   // URLs por ambiente
   static const Map<Environment, Map<String, String>> _urls = {
     Environment.production: {
-      'apiBaseUrl': 'http://fecitelbackend.cossoftware.com.br:3333/api/v3/mobile',
-      'fileBaseUrl': 'http://fecitelbackend.cossoftware.com.br:3333',
+      'apiBaseUrl': 'https://fecitel.cossoftware.com.br/api/api/v3/mobile',
+      'fileBaseUrl': 'https://fecitel.cossoftware.com.br/api',
     },
     Environment.development: {
       'apiBaseUrl': 'http://localhost:8000/api/v3/mobile',
