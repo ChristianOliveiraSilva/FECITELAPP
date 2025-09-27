@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../providers/projects_provider.dart';
 import '../widgets/header.dart';
 import '../widgets/project_item.dart';
-import 'questionnaire_screen.dart';
 
 class ListScreen extends StatefulWidget {
   const ListScreen({super.key});
@@ -130,16 +129,11 @@ class _ListScreenState extends State<ListScreen> {
                             ...assessments.map((assessment) => ProjectItem(
                               assessment: assessment,
                               onTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) => QuestionnaireScreen(
-                                      assessment: assessment,
-                                      onAssessmentCompleted: () {
-                                        projectsProvider.loadProjects();
-                                      },
-                                    ),
-                                  ),
-                                );
+                                // Esta função não será mais usada diretamente
+                                // A validação por QR Code será feita no ProjectItem
+                              },
+                              onAssessmentCompleted: () {
+                                projectsProvider.loadProjects();
                               },
                             )),
                           ],
