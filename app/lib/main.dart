@@ -12,7 +12,7 @@ import 'constants/environment.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  EnvironmentConfig.setEnvironment(Environment.production);
+  EnvironmentConfig.setEnvironment(Environment.development);
   
   // Initialize theme from API on app start
   await EventService.initializeTheme();
