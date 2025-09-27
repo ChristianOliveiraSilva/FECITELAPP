@@ -1,10 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { DataTable } from "@/components/ui/data-table";
-import { CrudForm } from "@/components/ui/crud-form";
 import { useApiCrudWithFilters } from "@/hooks/use-api-crud-with-filters";
 import { apiService } from "@/lib/api";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Loader2, FileText } from "lucide-react";
 import { ReactNode, useState, useEffect } from "react";
@@ -203,7 +200,7 @@ export const ProjetosPage = ({ view }: ProjetosPageProps) => {
     deleteItem,
     getOriginalItem,
     handleFiltersChange
-  } = useApiCrudWithFilters<Projeto>({ endpoint: "/projects" });
+  } = useApiCrudWithFilters<Projeto>({ endpoint: "/projects/" });
 
   const [itemToDelete, setItemToDelete] = useState<Projeto | null>(null);
 
@@ -218,7 +215,7 @@ export const ProjetosPage = ({ view }: ProjetosPageProps) => {
     setLoadingItem(true);
     setItemError(null);
     try {
-      const response = await apiService.getById<Projeto>('/projects', id);
+      const response = await apiService.getById<Projeto>('/projects/', id);
       if (response.status) {
         setCurrentItem(response.data);
       } else {
@@ -305,7 +302,6 @@ export const ProjetosPage = ({ view }: ProjetosPageProps) => {
       alert('Erro ao gerar documento de participação');
     }
   };
-
 
   const handleGerarPremiacao = async (selectedItems: Record<string, unknown>[]) => {
     try {
@@ -450,7 +446,7 @@ export const ProjetosPage = ({ view }: ProjetosPageProps) => {
         selectable={true}
         loading={loading}
         error={error}
-        baseEndpoint="/projects"
+        baseEndpoint="/projects/"
         onFiltersChange={handleFiltersChange}
         totalItems={totalItems}
         currentPage={currentPage}

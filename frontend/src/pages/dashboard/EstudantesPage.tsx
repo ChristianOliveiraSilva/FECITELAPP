@@ -168,7 +168,7 @@ export const EstudantesPage = ({ view }: EstudantesPageProps) => {
     deleteItem,
     getOriginalItem,
     handleFiltersChange
-  } = useApiCrudWithFilters<Estudante>({ endpoint: "/students" });
+  } = useApiCrudWithFilters<Estudante>({ endpoint: "/students/" });
 
   const [itemToDelete, setItemToDelete] = useState<Estudante | null>(null);
 
@@ -183,7 +183,7 @@ export const EstudantesPage = ({ view }: EstudantesPageProps) => {
     setLoadingItem(true);
     setItemError(null);
     try {
-      const response = await apiService.getById<Estudante>('/students', id);
+      const response = await apiService.getById<Estudante>('/students/', id);
       if (response.status) {
         setCurrentItem(response.data);
       } else {
@@ -297,7 +297,7 @@ export const EstudantesPage = ({ view }: EstudantesPageProps) => {
         onDelete={handleDelete}
         loading={loading}
         error={error}
-        baseEndpoint="/students"
+        baseEndpoint="/students/"
         onFiltersChange={handleFiltersChange}
         totalItems={totalItems}
         currentPage={currentPage}

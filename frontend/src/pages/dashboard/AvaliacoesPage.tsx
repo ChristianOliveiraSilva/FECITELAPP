@@ -151,7 +151,7 @@ export const AvaliacoesPage = ({ view }: AvaliacoesPageProps) => {
     deleteItem,
     getOriginalItem,
     handleFiltersChange
-  } = useApiCrudWithFilters<Avaliacao>({ endpoint: "/assessments" });
+  } = useApiCrudWithFilters<Avaliacao>({ endpoint: "/assessments/" });
 
   const [itemToDelete, setItemToDelete] = useState<Avaliacao | null>(null);
 
@@ -166,7 +166,7 @@ export const AvaliacoesPage = ({ view }: AvaliacoesPageProps) => {
     setLoadingItem(true);
     setItemError(null);
     try {
-      const response = await apiService.getById<Avaliacao>('/assessments', id);
+      const response = await apiService.getById<Avaliacao>('/assessments/', id);
       if (response.status) {
         setCurrentItem(response.data);
       } else {
@@ -288,7 +288,7 @@ export const AvaliacoesPage = ({ view }: AvaliacoesPageProps) => {
         onDelete={handleDelete}
         loading={loading}
         error={error}
-        baseEndpoint="/assessments"
+        baseEndpoint="/assessments/"
         onFiltersChange={handleFiltersChange}
         totalItems={totalItems}
         currentPage={currentPage}

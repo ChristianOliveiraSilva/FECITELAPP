@@ -142,7 +142,7 @@ export const UsuariosPage = ({ view }: UsuariosPageProps) => {
     deleteItem,
     getOriginalItem,
     handleFiltersChange
-  } = useApiCrudWithFilters<Usuario>({ endpoint: "/users" });
+  } = useApiCrudWithFilters<Usuario>({ endpoint: "/users/" });
 
   const [itemToDelete, setItemToDelete] = useState<Usuario | null>(null);
 
@@ -157,7 +157,7 @@ export const UsuariosPage = ({ view }: UsuariosPageProps) => {
     setLoadingItem(true);
     setItemError(null);
     try {
-      const response = await apiService.getById<Usuario>('/users', id);
+      const response = await apiService.getById<Usuario>('/users/', id);
       if (response.status) {
         setCurrentItem(response.data);
       } else {
@@ -270,7 +270,7 @@ export const UsuariosPage = ({ view }: UsuariosPageProps) => {
         onDelete={handleDelete}
         loading={loading}
         error={error}
-        baseEndpoint="/users"
+        baseEndpoint="/users/"
         onFiltersChange={handleFiltersChange}
         totalItems={totalItems}
         currentPage={currentPage}

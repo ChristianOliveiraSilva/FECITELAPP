@@ -192,7 +192,7 @@ export const PremiacoesPage = ({ view }: PremiacoesPageProps) => {
     updateItem,
     deleteItem,
     getOriginalItem
-  } = useApiCrud<Premiacao>({ endpoint: "/awards" });
+  } = useApiCrud<Premiacao>({ endpoint: "/awards/" });
 
   const [itemToDelete, setItemToDelete] = useState<Premiacao | null>(null);
 
@@ -207,7 +207,7 @@ export const PremiacoesPage = ({ view }: PremiacoesPageProps) => {
     setLoadingItem(true);
     setItemError(null);
     try {
-      const response = await apiService.getById<Premiacao>('/awards', id);
+      const response = await apiService.getById<Premiacao>('/awards/', id);
       if (response.status) {
         setCurrentItem(response.data);
       } else {
@@ -322,7 +322,7 @@ export const PremiacoesPage = ({ view }: PremiacoesPageProps) => {
         onDelete={handleDelete}
         loading={loading}
         error={error}
-        baseEndpoint="/awards"
+        baseEndpoint="/awards/"
       />
 
       <AlertDialog open={!!itemToDelete} onOpenChange={() => setItemToDelete(null)}>

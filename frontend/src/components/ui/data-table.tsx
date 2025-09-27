@@ -236,7 +236,7 @@ export const DataTable = ({
       const formData = new FormData();
       formData.append('file', file);
 
-      await apiService.createWithFormData(`${baseEndpoint}/import`, formData);
+      await apiService.createWithFormData(`${baseEndpoint}/import/`, formData);
       
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -254,7 +254,7 @@ export const DataTable = ({
       onDownloadTemplate();
     } else if (baseEndpoint) {
       try {
-        const blob = await apiService.downloadFile(`${baseEndpoint}/import/molde`);
+        const blob = await apiService.downloadFile(`${baseEndpoint}/import/molde/`);
         
         // Criar URL do blob e fazer download
         const url = window.URL.createObjectURL(blob);
@@ -277,7 +277,7 @@ export const DataTable = ({
       onExportCsv();
     } else if (baseEndpoint) {
       try {
-        const blob = await apiService.downloadFile(`${baseEndpoint}/export/csv`);
+        const blob = await apiService.downloadFile(`${baseEndpoint}/export/csv/`);
         
         // Criar URL do blob e fazer download
         const url = window.URL.createObjectURL(blob);

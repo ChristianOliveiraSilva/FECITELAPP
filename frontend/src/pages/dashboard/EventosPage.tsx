@@ -120,7 +120,7 @@ export const EventosPage = ({ view }: EventosPageProps) => {
     deleteItem,
     getOriginalItem,
     handleFiltersChange
-  } = useApiCrudWithFilters<Evento>({ endpoint: "/events" });
+  } = useApiCrudWithFilters<Evento>({ endpoint: "/events/" });
 
   const [itemToDelete, setItemToDelete] = useState<Evento | null>(null);
 
@@ -135,7 +135,7 @@ export const EventosPage = ({ view }: EventosPageProps) => {
     setLoadingItem(true);
     setItemError(null);
     try {
-      const response = await apiService.getById<Evento>('/events', id);
+      const response = await apiService.getById<Evento>('/events/', id);
       if (response.status) {
         setCurrentItem(response.data);
       } else {
@@ -275,7 +275,7 @@ export const EventosPage = ({ view }: EventosPageProps) => {
         onDelete={handleDelete}
         loading={loading}
         error={error}
-        baseEndpoint="/events"
+        baseEndpoint="/events/"
         onFiltersChange={handleFiltersChange}
         totalItems={totalItems}
         currentPage={currentPage}

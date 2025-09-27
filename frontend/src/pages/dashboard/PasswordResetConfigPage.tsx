@@ -63,11 +63,11 @@ const PasswordResetConfigPage: React.FC = () => {
       let result;
       
       if (config) {
-        result = await apiService.update<PasswordResetConfig>('/password-reset-configs', config.id, {
+        result = await apiService.update<PasswordResetConfig>('/password-reset-configs/', config.id, {
           mail_template: mailTemplate
         });
       } else {
-        result = await apiService.create<PasswordResetConfig>('/password-reset-configs', {
+        result = await apiService.create<PasswordResetConfig>('/password-reset-configs/', {
           mail_template: mailTemplate
         });
       }

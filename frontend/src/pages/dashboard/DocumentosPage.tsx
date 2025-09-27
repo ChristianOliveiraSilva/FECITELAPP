@@ -35,7 +35,7 @@ const documentos: Documento[] = [
     dataUpload: "15/03/2024",
     categoria: "anais",
     descricao: "Anais da FECITEL com todos os trabalhos apresentados",
-    endpoint: "/api/v3/docs/anais"
+    endpoint: "/api/v3/docs/anais/"
   },
   {
     id: "2",
@@ -45,7 +45,7 @@ const documentos: Documento[] = [
     dataUpload: "05/03/2024",
     categoria: "mensagem",
     descricao: "Mensagem especial para os avaliadores",
-    endpoint: "/api/v3/docs/mensagem-avaliador"
+    endpoint: "/api/v3/docs/mensagem-avaliador/"
   },
   {
     id: "3",
@@ -55,7 +55,7 @@ const documentos: Documento[] = [
     dataUpload: "08/03/2024",
     categoria: "relacao",
     descricao: "Apresentação com relação de todos os trabalhos",
-    endpoint: "/api/v3/docs/relacao-trabalhos"
+    endpoint: "/api/v3/docs/relacao-trabalhos/"
   },
   {
     id: "4",
@@ -65,7 +65,7 @@ const documentos: Documento[] = [
     dataUpload: "14/03/2024",
     categoria: "script",
     descricao: "Script para cerimônia de encerramento",
-    endpoint: "/api/v3/docs/script-encerramento"
+    endpoint: "/api/v3/docs/script-encerramento/"
   },
   {
     id: "5",
@@ -75,7 +75,7 @@ const documentos: Documento[] = [
     dataUpload: "06/03/2024",
     categoria: "slide",
     descricao: "Slides de apresentação da FECITEL",
-    endpoint: "/api/v3/docs/slide-fecitel"
+    endpoint: "/api/v3/docs/slide-fecitel/"
   }
 ];
 

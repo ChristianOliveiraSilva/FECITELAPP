@@ -149,7 +149,7 @@ export const AvaliadoresPage = ({ view }: AvaliadoresPageProps) => {
     deleteItem,
     getOriginalItem,
     handleFiltersChange
-  } = useApiCrudWithFilters<Avaliador>({ endpoint: "/evaluators" });
+  } = useApiCrudWithFilters<Avaliador>({ endpoint: "/evaluators/" });
 
   const [itemToDelete, setItemToDelete] = useState<Avaliador | null>(null);
 
@@ -164,7 +164,7 @@ export const AvaliadoresPage = ({ view }: AvaliadoresPageProps) => {
     setLoadingItem(true);
     setItemError(null);
     try {
-      const response = await apiService.getById<Avaliador>('/evaluators', id);
+      const response = await apiService.getById<Avaliador>('/evaluators/', id);
       if (response.status) {
         setCurrentItem(response.data);
       } else {
@@ -337,7 +337,7 @@ export const AvaliadoresPage = ({ view }: AvaliadoresPageProps) => {
         selectable={true}
         loading={loading}
         error={error}
-        baseEndpoint="/evaluators"
+        baseEndpoint="/evaluators/"
         onFiltersChange={handleFiltersChange}
         totalItems={totalItems}
         currentPage={currentPage}

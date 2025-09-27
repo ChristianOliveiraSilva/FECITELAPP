@@ -136,7 +136,7 @@ export const AreasPage = ({ view }: AreasPageProps) => {
     deleteItem,
     getOriginalItem,
     handleFiltersChange
-  } = useApiCrudWithFilters<Area>({ endpoint: "/categories" });
+  } = useApiCrudWithFilters<Area>({ endpoint: "/categories/" });
 
   const [itemToDelete, setItemToDelete] = useState<Area | null>(null);
 
@@ -151,7 +151,7 @@ export const AreasPage = ({ view }: AreasPageProps) => {
     setLoadingItem(true);
     setItemError(null);
     try {
-      const response = await apiService.getById<Area>('/categories', id);
+      const response = await apiService.getById<Area>('/categories/', id);
       if (response.status) {
         setCurrentItem(response.data);
       } else {
@@ -262,7 +262,7 @@ export const AreasPage = ({ view }: AreasPageProps) => {
         onDelete={handleDelete}
         loading={loading}
         error={error}
-        baseEndpoint="/categories"
+        baseEndpoint="/categories/"
         onFiltersChange={handleFiltersChange}
         totalItems={totalItems}
         currentPage={currentPage}

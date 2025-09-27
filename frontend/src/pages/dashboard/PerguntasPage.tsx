@@ -174,7 +174,7 @@ export const PerguntasPage = ({ view }: PerguntasPageProps) => {
     deleteItem,
     getOriginalItem,
     handleFiltersChange
-  } = useApiCrudWithFilters<Pergunta>({ endpoint: "/questions" });
+  } = useApiCrudWithFilters<Pergunta>({ endpoint: "/questions/" });
 
   const [itemToDelete, setItemToDelete] = useState<Pergunta | null>(null);
 
@@ -189,7 +189,7 @@ export const PerguntasPage = ({ view }: PerguntasPageProps) => {
     setLoadingItem(true);
     setItemError(null);
     try {
-      const response = await apiService.getById<Pergunta>('/questions', id);
+      const response = await apiService.getById<Pergunta>('/questions/', id);
       if (response.status) {
         setCurrentItem(response.data);
       } else {
@@ -304,7 +304,7 @@ export const PerguntasPage = ({ view }: PerguntasPageProps) => {
         onDelete={handleDelete}
         loading={loading}
         error={error}
-        baseEndpoint="/questions"
+        baseEndpoint="/questions/"
         onFiltersChange={handleFiltersChange}
         totalItems={totalItems}
         currentPage={currentPage}
