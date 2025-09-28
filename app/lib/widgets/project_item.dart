@@ -107,62 +107,161 @@ class ProjectItem extends StatelessWidget {
       );
     } else {
       // QR Code inválido - mostrar mensagem de erro
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            title: Row(
+      _showErrorDialog(context, 'Projeto não encontrado. Verifique se o QR Code escaneado corresponde ao projeto correto.');
+    }
+  }
+
+  void _showManualInputDialog(BuildContext context) {
+    final TextEditingController idController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF56BA54).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.edit,
+                  color: Color(0xFF56BA54),
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                'Inserir ID do Projeto',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF56BA54),
+                ),
+              ),
+            ],
+          ),
+          content: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(
-                    Icons.error_outline,
-                    color: Colors.red,
-                    size: 24,
+                const Text(
+                  'Digite o ID externo do projeto para validar e acessar a avaliação.',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.black87,
                   ),
                 ),
-                const SizedBox(width: 12),
-                const Text(
-                  'Erro',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.red,
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: idController,
+                  decoration: const InputDecoration(
+                    labelText: 'ID do Projeto',
+                    hintText: 'Ex: 2024-001',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.numbers),
                   ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Por favor, insira o ID do projeto.';
+                    }
+                    return null;
+                  },
+                  autofocus: true,
                 ),
               ],
             ),
-            content: const Text(
-              'Projeto não encontrado. Verifique se o QR Code escaneado corresponde ao projeto correto.',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.black87,
-              ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancelar'),
             ),
-            actions: [
-              ElevatedButton(
-                onPressed: () => Navigator.of(context).pop(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+            ElevatedButton(
+              onPressed: () {
+                if (formKey.currentState!.validate()) {
+                  Navigator.of(context).pop();
+                  _validateAndOpenProject(context, idController.text.trim());
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF56BA54),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Text('OK'),
+              ),
+              child: const Text('Validar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showErrorDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.red.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.error_outline,
+                  color: Colors.red,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                'Erro',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                ),
               ),
             ],
-          );
-        },
-      );
-    }
+          ),
+          content: Text(
+            message,
+            style: const TextStyle(
+              fontSize: 16,
+              color: Colors.black87,
+            ),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -171,79 +270,121 @@ class ProjectItem extends StatelessWidget {
     
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 0),
-      child: InkWell(
-        onTap: () => _scanQRCodeAndValidate(context),
-        child: Padding(
-          padding: const EdgeInsets.all(15),
-          child: Row(
-            children: [
-              Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  color: isScientific 
-                      ? AppTheme.primaryColor(context)
-                      : const Color(0xFF036DAA),
-                  borderRadius: BorderRadius.circular(25),
-                ),
-                child: Icon(
-                  isScientific ? Icons.science : Icons.computer,
-                  color: Colors.white,
-                  size: 25,
-                ),
-              ),
-              const SizedBox(width: 15),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${assessment.project.externalId} - ${assessment.project.title}',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+      child: Padding(
+        padding: const EdgeInsets.all(15),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Linha superior com badges
+            Row(
+              children: [
+                // Badge do tipo de projeto
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: isScientific 
+                        ? AppTheme.primaryColor(context)
+                        : const Color(0xFF036DAA),
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        isScientific ? Icons.science : Icons.computer,
+                        color: Colors.white,
+                        size: 16,
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    RichText(
-                      text: TextSpan(
+                      const SizedBox(width: 6),
+                      Text(
+                        isScientific ? 'Científico' : 'Tecnológico',
                         style: const TextStyle(
-                          color: Colors.grey,
-                          fontSize: 14,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
                         ),
-                        children: [
-                          TextSpan(
-                            text: 'Estudante(s): ${assessment.project.students.map((s) => s.name).join(', ')} - ',
-                          ),
-                          TextSpan(
-                            text: isScientific ? 'Científico' : 'Tecnológico',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ],
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: assessment.hasResponse 
-                      ? const Color(0xFF56BA54) 
-                      : Colors.red,
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                child: Text(
-                  assessment.hasResponse ? 'Avaliado' : 'Avaliar',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
+                    ],
                   ),
                 ),
+                const SizedBox(width: 10),
+                // Badge de status da avaliação
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: assessment.hasResponse 
+                        ? const Color(0xFF56BA54) 
+                        : Colors.red,
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: Text(
+                    assessment.hasResponse ? 'Avaliado' : 'Avaliar',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            // Informações do projeto
+            Text(
+              '${assessment.project.externalId} - ${assessment.project.title}',
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Estudante(s): ${assessment.project.students.map((s) => s.name).join(', ')}',
+              style: const TextStyle(
+                color: Colors.grey,
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 12),
+            // Botões de ação
+            Row(
+              children: [
+                // Botão QR Code
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () => _scanQRCodeAndValidate(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF56BA54),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    icon: const Icon(Icons.qr_code_scanner, size: 18),
+                    label: const Text('QR Code'),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                // Botão Input Manual
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () => _showManualInputDialog(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF036DAA),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    icon: const Icon(Icons.edit, size: 18),
+                    label: const Text('Digitar ID'),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
