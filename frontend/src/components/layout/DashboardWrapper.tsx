@@ -16,26 +16,45 @@ import {
   Home,
   FileText,
   Calendar,
-  Settings
+  Settings,
+  Upload
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 
-const menuItems = [
-  { id: "home", label: "Painel de Controle", icon: Home, path: "/dashboard/home" },
-  { id: "avaliacoes", label: "Avaliações", icon: BarChart3, path: "/dashboard/avaliacoes" },
-  { id: "areas", label: "Áreas", icon: FolderOpen, path: "/dashboard/areas" },
-  { id: "projetos", label: "Projetos", icon: FolderOpen, path: "/dashboard/projetos" },
-  { id: "perguntas", label: "Perguntas", icon: HelpCircle, path: "/dashboard/perguntas" },
-  { id: "avaliadores", label: "Avaliadores", icon: UserCheck, path: "/dashboard/avaliadores" },
-  { id: "estudantes", label: "Estudantes", icon: GraduationCap, path: "/dashboard/estudantes" },
-  { id: "escolas", label: "Escolas", icon: School, path: "/dashboard/escolas" },
-  { id: "eventos", label: "Eventos", icon: Calendar, path: "/dashboard/eventos" },
-  { id: "usuarios", label: "Usuários", icon: Users, path: "/dashboard/usuarios" },
-  { id: "premiacoes", label: "Premiações", icon: Trophy, path: "/dashboard/premiacoes" },
-  { id: "documentos", label: "Documentos", icon: FileText, path: "/dashboard/documentos" },
-  { id: "password-reset-config", label: "Reset Senha", icon: Settings, path: "/dashboard/password-reset-config" },
+const menuGroups = [
+  {
+    id: "home",
+    items: [
+      { id: "home", label: "Painel de Controle", icon: Home, path: "/dashboard/home" }
+    ]
+  },
+  {
+    id: "recursos",
+    title: "Recursos",
+    items: [
+      { id: "avaliacoes", label: "Avaliações", icon: BarChart3, path: "/dashboard/avaliacoes" },
+      { id: "areas", label: "Áreas", icon: FolderOpen, path: "/dashboard/areas" },
+      { id: "projetos", label: "Projetos", icon: FolderOpen, path: "/dashboard/projetos" },
+      { id: "perguntas", label: "Perguntas", icon: HelpCircle, path: "/dashboard/perguntas" },
+      { id: "avaliadores", label: "Avaliadores", icon: UserCheck, path: "/dashboard/avaliadores" },
+      { id: "estudantes", label: "Estudantes", icon: GraduationCap, path: "/dashboard/estudantes" },
+      { id: "escolas", label: "Escolas", icon: School, path: "/dashboard/escolas" },
+      { id: "eventos", label: "Eventos", icon: Calendar, path: "/dashboard/eventos" },
+      { id: "usuarios", label: "Usuários", icon: Users, path: "/dashboard/usuarios" },
+      { id: "premiacoes", label: "Premiações", icon: Trophy, path: "/dashboard/premiacoes" },
+    ]
+  },
+  {
+    id: "configuracoes",
+    title: "Configurações do sistema",
+    items: [
+      { id: "documentos", label: "Documentos", icon: FileText, path: "/dashboard/documentos" },
+      { id: "importar-dados-gerais", label: "Importar dados gerais", icon: Upload, path: "/dashboard/importar-dados-gerais" },
+      { id: "password-reset-config", label: "Reset Senha", icon: Settings, path: "/dashboard/password-reset-config" },
+    ]
+  }
 ];
 
 export const DashboardWrapper = () => {
@@ -65,14 +84,22 @@ export const DashboardWrapper = () => {
 
   const getCurrentPage = () => {
     const path = location.pathname;
-    const menuItem = menuItems.find(item => item.path === path);
-    return menuItem ? menuItem.id : "home";
+    for (const group of menuGroups) {
+      const menuItem = group.items.find(item => item.path === path);
+      if (menuItem) {
+        return menuItem.id;
+      }
+    }
+    return "home";
   };
 
   const handlePageChange = (pageId: string) => {
-    const menuItem = menuItems.find(item => item.id === pageId);
-    if (menuItem) {
-      navigate(menuItem.path);
+    for (const group of menuGroups) {
+      const menuItem = group.items.find(item => item.id === pageId);
+      if (menuItem) {
+        navigate(menuItem.path);
+        break;
+      }
     }
   };
 
@@ -148,25 +175,46 @@ export const DashboardWrapper = () => {
           "bg-card border-r transition-all duration-300 flex-shrink-0",
           sidebarOpen ? "w-64" : "w-16"
         )}>
-          <nav className="p-4 space-y-2">
-            {menuItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Button
-                  key={item.id}
-                  variant={currentPage === item.id ? "default" : "ghost"}
-                  className={cn(
-                    "w-full justify-start",
-                    currentPage === item.id && "bg-ifms-green hover:bg-ifms-green-dark",
-                    !sidebarOpen && "px-2"
-                  )}
-                  onClick={() => handlePageChange(item.id)}
-                >
-                  <Icon className="h-4 w-4" />
-                  {sidebarOpen && <span className="ml-2">{item.label}</span>}
-                </Button>
-              );
-            })}
+          <nav className="p-4 space-y-4">
+            {menuGroups.map((group) => (
+              <div key={group.id} className="space-y-2">
+                {/* Título do grupo (apenas quando sidebar está aberta) */}
+                {group.title && sidebarOpen && (
+                  <div className="px-2 py-1">
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      {group.title}
+                    </h3>
+                  </div>
+                )}
+                
+                {/* Itens do grupo */}
+                <div className="space-y-1">
+                  {group.items.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <Button
+                        key={item.id}
+                        variant={currentPage === item.id ? "default" : "ghost"}
+                        className={cn(
+                          "w-full justify-start",
+                          currentPage === item.id && "bg-ifms-green hover:bg-ifms-green-dark",
+                          !sidebarOpen && "px-2"
+                        )}
+                        onClick={() => handlePageChange(item.id)}
+                      >
+                        <Icon className="h-4 w-4" />
+                        {sidebarOpen && <span className="ml-2">{item.label}</span>}
+                      </Button>
+                    );
+                  })}
+                </div>
+                
+                {/* Separador entre grupos (exceto para o último grupo) */}
+                {group.id !== menuGroups[menuGroups.length - 1].id && sidebarOpen && (
+                  <div className="border-t border-border/50 my-2" />
+                )}
+              </div>
+            ))}
           </nav>
         </aside>
 

@@ -25,6 +25,7 @@ import { PerguntasPage } from "@/pages/dashboard/PerguntasPage";
 import { DocumentosPage } from "@/pages/dashboard/DocumentosPage";
 import { DocumentosConfiguracoesPage } from "@/pages/dashboard/DocumentosConfiguracoesPage";
 import PasswordResetConfigPage from "@/pages/dashboard/PasswordResetConfigPage";
+import { ImportarDadosGeraisPage } from "@/pages/dashboard/ImportarDadosGeraisPage";
 
 const queryClient = new QueryClient();
 
@@ -102,6 +103,7 @@ const App = () => (
               {/* Settings */}
               <Route path="documentos" element={<DocumentosPage />} />
               <Route path="documentos/configuracoes" element={<DocumentosConfiguracoesPage />} />
+              <Route path="importar-dados-gerais" element={<ImportarDadosGeraisPage />} />
               <Route path="password-reset-config" element={<PasswordResetConfigPage />} />
             </Route>
             <Route path="*" element={<NotFound />} />
