@@ -50,7 +50,7 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
                     available_projects = [p for p in available_projects if p.id not in existing_project_ids]
                     
                     # Selecionar até 3 projetos aleatórios
-                    projects_to_assign = random.sample(available_projects, min(3, len(available_projects)))
+                    projects_to_assign = random.sample(available_projects, min(3, len(available_projects)) - current_assessments)
                     
                     # Criar as avaliações
                     for project in projects_to_assign:
