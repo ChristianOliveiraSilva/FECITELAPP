@@ -44,7 +44,8 @@ const columns = [
     filterOptions: [
       { value: "estadual", label: "Estadual" },
       { value: "municipal", label: "Municipal" },
-      { value: "federal", label: "Federal" }
+      { value: "federal", label: "Federal" },
+      { value: "particular", label: "Particular" }
     ]
   },
   { 

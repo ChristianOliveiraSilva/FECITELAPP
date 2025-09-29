@@ -37,7 +37,6 @@ def save_uploaded_file(file: UploadFile) -> str:
 async def get_events(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
-    year: Optional[int] = Query(None, description="Filter by event year"),
     app_primary_color: Optional[str] = Query(None, description="Filter by primary color"),
     app_font_color: Optional[str] = Query(None, description="Filter by font color"),
     db: Session = Depends(get_db)
@@ -45,9 +44,6 @@ async def get_events(
     try:
         # Construir filtros dinâmicos
         filters = [Event.deleted_at == None]
-        
-        if year is not None:
-            filters.append(Event.year == year)
         
         if app_primary_color:
             filters.append(Event.app_primary_color.ilike(f"%{app_primary_color}%"))

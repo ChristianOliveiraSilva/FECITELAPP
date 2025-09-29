@@ -66,8 +66,16 @@ export const ImportarDadosGeraisPage = () => {
       const formData = new FormData();
       formData.append('file', selectedFile);
 
-      const response = await fetch('/api/v3/general/import', {
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {};
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v3/general/import/`, {
         method: 'POST',
+        headers: headers,
         body: formData,
       });
 
@@ -228,6 +236,7 @@ export const ImportarDadosGeraisPage = () => {
                 <li>Selecione o arquivo Excel preparado</li>
                 <li>Clique em "Carregar Dados Importados"</li>
                 <li>Aguarde o processamento e confirmação da importação</li>
+                <li>Todos os projetos importados serão associados ao ano atual</li>
               </ul>
             </div>
           </div>

@@ -12,6 +12,7 @@ interface CardsData {
   trabalhos_avaliados: number;
   avaliadores_ativos: number;
   progresso_geral: number;
+  progresso_geral_inicial: number;
   status_avaliacoes: StatusAvaliacoes;
 }
 

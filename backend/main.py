@@ -1,9 +1,9 @@
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from app.routers import users, evaluators, students, schools, categories, projects, awards, assessments, questions, responses, documents, cards, events, password_reset_configs
+from app.routers.crud import users, evaluators, students, schools, categories, projects, awards, assessments, questions, responses, events
 from app.routers.mobile import auth, assessments as mobile_assessments, questions as mobile_questions, responses as mobile_responses, events as mobile_events
-from app.routers import web_auth
+from app.routers import web_auth, documents, cards, password_reset_configs, import_general
 from app.database import engine, Base
 from app.utils.auth import get_current_user
 from pathlib import Path
@@ -68,6 +68,9 @@ app.include_router(cards.router, prefix="/api/v3/cards", tags=["cards"], depende
 
 # Rotas de documentos (autenticação obrigatória)
 app.include_router(documents.router, prefix="/api/v3/docs", tags=["documents"], dependencies=[Depends(get_current_user)])
+
+# Rotas de importação (autenticação obrigatória)
+app.include_router(import_general.router, prefix="/api/v3/general", tags=["import"], dependencies=[Depends(get_current_user)])
 
 uploads_dir = Path("uploads")
 uploads_dir.mkdir(exist_ok=True)

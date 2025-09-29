@@ -1,7 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime
-from app.enums.school_type import SchoolType
 
 class SchoolBase(BaseModel):
     name: str

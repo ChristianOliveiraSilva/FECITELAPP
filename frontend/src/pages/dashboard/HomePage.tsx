@@ -16,6 +16,7 @@ const HomePage = () => {
     trabalhos_para_avaliar: 0,
     trabalhos_avaliados: 0,
     avaliadores_ativos: 0,
+    progresso_geral_inicial: 0,
     progresso_geral: 0,
     status_avaliacoes: {
       faltam_1_avaliacao: 0,
@@ -172,35 +173,67 @@ const HomePage = () => {
         <Card>
           <CardHeader>
             <CardTitle className="text-lg font-semibold text-ifms-green-dark">
-              Resumo do Progresso das Avaliações dos Projetos
+              Progresso das Avaliações dos Projetos
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Progresso Geral</span>
-                <span className="text-sm font-medium">
-                  {dashboardData.progresso_geral}%
-                </span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div 
-                  className="bg-ifms-green h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${dashboardData.progresso_geral}%` }}
-                ></div>
-              </div>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="text-muted-foreground">Avaliados:</span>
-                  <span className="ml-2 font-medium text-green-600">{dashboardData.trabalhos_avaliados}</span>
+            <div className="space-y-6">
+              {/* Progresso Geral Inicial - Projetos que começaram a ser avaliados */}
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <span className="text-sm font-medium text-gray-700">Projetos em Avaliação</span>
+                    <p className="text-xs text-muted-foreground">Projetos que já começaram a ser avaliados</p>
+                  </div>
+                  <span className="text-lg font-bold text-blue-600">
+                    {dashboardData.progresso_geral_inicial}%
+                  </span>
                 </div>
-                <div>
-                  <span className="text-muted-foreground">Pendentes:</span>
-                  <span className="ml-2 font-medium text-orange-600">{dashboardData.trabalhos_para_avaliar}</span>
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div 
+                    className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-500 ease-out"
+                    style={{ width: `${dashboardData.progresso_geral_inicial}%` }}
+                  ></div>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {dashboardData.trabalhos_avaliados} de {dashboardData.total_projetos} projetos
                 </div>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground"><small>Este progresso não considera a finalização das 3 avaliações do projeto, mas sim se ele foi avaliado pelo menos uma vez</small></span>
+
+              {/* Progresso Geral - Projetos que terminaram */}
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <span className="text-sm font-medium text-gray-700">Projetos Concluídos</span>
+                    <p className="text-xs text-muted-foreground">Projetos com todas as 3 avaliações finalizadas</p>
+                  </div>
+                  <span className="text-lg font-bold text-green-600">
+                    {dashboardData.progresso_geral}%
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div 
+                    className="bg-gradient-to-r from-green-500 to-green-600 h-3 rounded-full transition-all duration-500 ease-out"
+                    style={{ width: `${dashboardData.progresso_geral}%` }}
+                  ></div>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {Math.round((dashboardData.progresso_geral / 100) * dashboardData.total_projetos)} de {dashboardData.total_projetos} projetos
+                </div>
+              </div>
+
+              {/* Resumo estatístico */}
+              <div className="pt-4 border-t border-gray-200">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-muted-foreground">Em avaliação:</span>
+                    <span className="font-medium text-blue-600">{dashboardData.trabalhos_avaliados}</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-muted-foreground">Pendentes:</span>
+                    <span className="font-medium text-orange-600">{dashboardData.trabalhos_para_avaliar}</span>
+                  </div>
+                </div>
               </div>
             </div>
           </CardContent>

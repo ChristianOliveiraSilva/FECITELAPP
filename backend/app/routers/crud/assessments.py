@@ -25,24 +25,25 @@ async def get_assessments(
     limit: int = Query(100, ge=1, le=1000),
     evaluator_id: Optional[int] = Query(None, description="Filter by evaluator ID"),
     project_id: Optional[int] = Query(None, description="Filter by project ID"),
+    year: Optional[int] = Query(None, description="Filter by year (defaults to current year)"),
     db: Session = Depends(get_db)
 ):
     try:
-        # Construir filtros dinâmicos
-        filters = [Assessment.deleted_at == None]
-        
-        if evaluator_id:
-            filters.append(Assessment.evaluator_id == evaluator_id)
-        
-        if project_id:
-            filters.append(Assessment.project_id == project_id)
-        
-        query = db.query(Assessment).filter(and_(*filters)).options(
+        filter_year = year if year is not None else datetime.now().year
+
+        query = db.query(Assessment).options(
             joinedload(Assessment.evaluator),
             joinedload(Assessment.project),
             joinedload(Assessment.responses)
-        )
+        ).filter(Assessment.deleted_at == None)
         
+        if evaluator_id:
+            query = query.filter(Assessment.evaluator_id == evaluator_id)
+        
+        if project_id:
+            query = query.filter(Assessment.project_id == project_id)
+        
+        query = query.join(Project).filter(Project.year == filter_year)
         assessments = query.offset(skip).limit(limit).all()
         
         assessment_data = []

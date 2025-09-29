@@ -12,4 +12,5 @@ class CardsResponse(BaseModel):
     trabalhos_avaliados: int
     avaliadores_ativos: int
     progresso_geral: int
+    progresso_geral_inicial: int
     status_avaliacoes: StatusAvaliacoes 

@@ -70,15 +70,19 @@ async def get_cards_data(db: Session = Depends(get_db)):
         faltam_3_avaliacoes = projetos_sem_avaliacao
         
         progresso_geral = 0
+        progresso_geral_inicial = 0
         if total_projetos > 0:
-            progresso_geral = round((projetos_avaliados / total_projetos) * 100)
-        
+            progresso_geral_inicial = round((projetos_avaliados / total_projetos) * 100)
+            soma_projetos_nao_finalizados = faltam_1_avaliacao + faltam_2_avaliacoes + faltam_3_avaliacoes
+            progresso_geral = round(((total_projetos - soma_projetos_nao_finalizados) / total_projetos) * 100)
+
         return CardsResponse(
             total_projetos=total_projetos,
             trabalhos_para_avaliar=projetos_sem_avaliacao,
             trabalhos_avaliados=projetos_avaliados,
             avaliadores_ativos=avaliadores_ativos,
             progresso_geral=progresso_geral,
+            progresso_geral_inicial=progresso_geral_inicial,
             status_avaliacoes={
                 "faltam_1_avaliacao": faltam_1_avaliacao,
                 "faltam_2_avaliacoes": faltam_2_avaliacoes,
