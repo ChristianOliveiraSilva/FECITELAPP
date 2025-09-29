@@ -9,7 +9,7 @@ class School(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(255), nullable=False)
-    type = Column(String(20), nullable=False, default=SchoolType.ESTADUAL.value)
+    type = Column(String(20), nullable=True, default=SchoolType.ESTADUAL.value)
     city = Column(String(255), nullable=True)
     state = Column(String(10), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
