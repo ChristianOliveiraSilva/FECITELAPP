@@ -43,7 +43,7 @@ async def get_schools(
         if state:
             filters.append(School.state.ilike(f"%{state}%"))
         
-        query = db.query(School).filter(and_(*filters)).options(joinedload(School.students))
+        query = db.query(School).filter(and_(*filters)).options(joinedload(School.students), joinedload(School.supervisors))
         
         schools = query.offset(skip).limit(limit).all()
         
@@ -58,7 +58,8 @@ async def get_schools(
                 "created_at": school.created_at,
                 "updated_at": school.updated_at,
                 "deleted_at": school.deleted_at,
-                "students": []
+                "students": [],
+                "supervisors": []
             }
             
             school_dict["students"] = [
@@ -68,6 +69,16 @@ async def get_schools(
                     "school_grade": student.school_grade,
                     "created_at": student.created_at
                 } for student in school.students
+            ]
+            
+            school_dict["supervisors"] = [
+                {
+                    "id": supervisor.id,
+                    "name": supervisor.name,
+                    "email": supervisor.email,
+                    "year": supervisor.year,
+                    "created_at": supervisor.created_at
+                } for supervisor in school.supervisors
             ]
             
             school_data.append(school_dict)
@@ -89,7 +100,7 @@ async def get_school(
     db: Session = Depends(get_db)
 ):
     try:
-        query = db.query(School).filter(School.deleted_at == None).options(joinedload(School.students))
+        query = db.query(School).filter(School.deleted_at == None).options(joinedload(School.students), joinedload(School.supervisors))
 
         school = query.filter(School.id == school_id).first()
 
@@ -108,7 +119,8 @@ async def get_school(
             "created_at": school.created_at,
             "updated_at": school.updated_at,
             "deleted_at": school.deleted_at,
-            "students": []
+            "students": [],
+            "supervisors": []
         }
         
         school_dict["students"] = [
@@ -118,6 +130,16 @@ async def get_school(
                 "school_grade": student.school_grade,
                 "created_at": student.created_at
             } for student in school.students
+        ]
+        
+        school_dict["supervisors"] = [
+            {
+                "id": supervisor.id,
+                "name": supervisor.name,
+                "email": supervisor.email,
+                "year": supervisor.year,
+                "created_at": supervisor.created_at
+            } for supervisor in school.supervisors
         ]
     
         return SchoolDetailResponse(
@@ -156,7 +178,8 @@ async def create_school(school_data: SchoolCreate, db: Session = Depends(get_db)
             "created_at": school.created_at,
             "updated_at": school.updated_at,
             "deleted_at": school.deleted_at,
-            "students": []
+            "students": [],
+            "supervisors": []
         }
         
         school_dict["students"] = [
@@ -166,6 +189,16 @@ async def create_school(school_data: SchoolCreate, db: Session = Depends(get_db)
                 "school_grade": student.school_grade,
                 "created_at": student.created_at
             } for student in school.students
+        ]
+        
+        school_dict["supervisors"] = [
+            {
+                "id": supervisor.id,
+                "name": supervisor.name,
+                "email": supervisor.email,
+                "year": supervisor.year,
+                "created_at": supervisor.created_at
+            } for supervisor in school.supervisors
         ]
 
         return SchoolDetailResponse(
@@ -211,7 +244,8 @@ async def update_school(
             "created_at": school.created_at,
             "updated_at": school.updated_at,
             "deleted_at": school.deleted_at,
-            "students": []
+            "students": [],
+            "supervisors": []
         }
         
         school_dict["students"] = [
@@ -221,6 +255,16 @@ async def update_school(
                 "school_grade": student.school_grade,
                 "created_at": student.created_at
             } for student in school.students
+        ]
+        
+        school_dict["supervisors"] = [
+            {
+                "id": supervisor.id,
+                "name": supervisor.name,
+                "email": supervisor.email,
+                "year": supervisor.year,
+                "created_at": supervisor.created_at
+            } for supervisor in school.supervisors
         ]
         
         return SchoolDetailResponse(

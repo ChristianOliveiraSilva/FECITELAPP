@@ -3,6 +3,7 @@ from app.models.user import User
 from app.models.evaluator import Evaluator
 from app.models.school import School
 from app.models.student import Student
+from app.models.supervisor import Supervisor
 from app.models.category import Category
 from app.models.project import Project
 from app.models.assessment import Assessment
@@ -85,6 +86,30 @@ class TestSeeder:
         self.db.commit()
         print(f"👨‍🎓 Criados {len(students)} estudantes")
         
+        # Criar orientadores
+        supervisors = []
+        nomes_orientadores = [
+            "Orientador 1",
+            "Orientador 2",
+            "Orientador 3",
+            "Orientador 4",
+            "Orientador 5"
+        ]
+
+        for i in range(5):
+            school = schools[i % len(schools)] if schools else None
+            supervisor = Supervisor(
+                name=nomes_orientadores[i],
+                email=fake.unique.email(),
+                school_id=school.id if school else None,
+                year=current_year
+            )
+            self.db.add(supervisor)
+            supervisors.append(supervisor)
+
+        self.db.commit()
+        print(f"👨‍🏫 Criados {len(supervisors)} orientadores")
+        
         # Pega só as 5 categorias principais (usando == None)
         categories = self.db.query(Category).filter(Category.main_category_id == None).limit(5).all()
         projects = []
@@ -120,9 +145,14 @@ class TestSeeder:
             project_students = random.sample(students, random.randint(1, min(3, len(students))))
             for student in project_students:
                 project.students.append(student)
+            
+            # Associar orientadores aos projetos
+            project_supervisors = random.sample(supervisors, random.randint(1, min(2, len(supervisors))))
+            for supervisor in project_supervisors:
+                project.supervisors.append(supervisor)
         
         self.db.commit()
-        print("✅ Estudantes associados aos projetos")
+        print("✅ Estudantes e orientadores associados aos projetos")
         
         evaluator_project_count = {}
         

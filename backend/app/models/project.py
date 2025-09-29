@@ -20,6 +20,7 @@ class Project(Base):
     
     category = relationship("Category", back_populates="projects")
     students = relationship("Student", secondary="student_projects", back_populates="projects")
+    supervisors = relationship("Supervisor", secondary="supervisor_projects", back_populates="projects")
     assessments = relationship("Assessment", back_populates="project")
     
     @property

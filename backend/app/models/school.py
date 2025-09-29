@@ -17,3 +17,4 @@ class School(Base):
     deleted_at = Column(DateTime(timezone=True), nullable=True)
     
     students = relationship("Student", back_populates="school")
+    supervisors = relationship("Supervisor", back_populates="school")

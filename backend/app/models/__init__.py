@@ -1,6 +1,7 @@
 from .user import User
 from .evaluator import Evaluator
 from .student import Student
+from .supervisor import Supervisor
 from .school import School
 from .category import Category
 from .project import Project
@@ -12,13 +13,14 @@ from .event import Event
 from .password_reset import PasswordReset
 from .password_reset_config import PasswordResetConfig
 from .document import Document
-from .relationships import evaluator_categories, student_projects, award_question
+from .relationships import evaluator_categories, student_projects, supervisor_projects, award_question
 from app.database import Base
 
 __all__ = [
     "User",
     "Evaluator", 
     "Student",
+    "Supervisor",
     "School",
     "Category",
     "Project",
@@ -32,6 +34,7 @@ __all__ = [
     "Document",
     "Base",
     "evaluator_categories",
-    "student_projects", 
+    "student_projects",
+    "supervisor_projects", 
     "award_question"
 ] 

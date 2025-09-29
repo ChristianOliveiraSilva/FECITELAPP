@@ -17,6 +17,7 @@ import {
   FileText,
   Calendar,
   Settings,
+  ClipboardList,
   Upload
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -40,6 +41,7 @@ const menuGroups = [
       { id: "perguntas", label: "Perguntas", icon: HelpCircle, path: "/dashboard/perguntas" },
       { id: "avaliadores", label: "Avaliadores", icon: UserCheck, path: "/dashboard/avaliadores" },
       { id: "estudantes", label: "Estudantes", icon: GraduationCap, path: "/dashboard/estudantes" },
+      { id: "orientadores", label: "Orientadores", icon: ClipboardList, path: "/dashboard/orientadores" },
       { id: "escolas", label: "Escolas", icon: School, path: "/dashboard/escolas" },
       { id: "eventos", label: "Eventos", icon: Calendar, path: "/dashboard/eventos" },
       { id: "usuarios", label: "Usuários", icon: Users, path: "/dashboard/usuarios" },

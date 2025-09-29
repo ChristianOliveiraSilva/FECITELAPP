@@ -17,6 +17,7 @@ import { AreasPage } from "@/pages/dashboard/AreasPage";
 import { ProjetosPage } from "@/pages/dashboard/ProjetosPage";
 import { AvaliadoresPage } from "@/pages/dashboard/AvaliadoresPage";
 import { EstudantesPage } from "@/pages/dashboard/EstudantesPage";
+import { OrientadoresPage } from "@/pages/dashboard/OrientadoresPage";
 import { EscolasPage } from "@/pages/dashboard/EscolasPage";
 import { EventosPage } from "@/pages/dashboard/EventosPage";
 import { UsuariosPage } from "@/pages/dashboard/UsuariosPage";
@@ -74,6 +75,11 @@ const App = () => (
               <Route path="estudantes/create" element={<EstudantesPage view="create" />} />
               <Route path="estudantes/:id" element={<EstudantesPage view="detail" />} />
               <Route path="estudantes/:id/edit" element={<EstudantesPage view="edit" />} />
+              
+              <Route path="orientadores" element={<OrientadoresPage view="list" />} />
+              <Route path="orientadores/create" element={<OrientadoresPage view="create" />} />
+              <Route path="orientadores/:id" element={<OrientadoresPage view="detail" />} />
+              <Route path="orientadores/:id/edit" element={<OrientadoresPage view="edit" />} />
               
               <Route path="escolas" element={<EscolasPage view="list" />} />
               <Route path="escolas/create" element={<EscolasPage view="create" />} />

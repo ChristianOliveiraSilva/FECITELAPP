@@ -84,6 +84,13 @@ export const DataTable = ({
   const [currentPage, setCurrentPage] = useState(externalCurrentPage || 1);
   const [currentPageSize, setCurrentPageSize] = useState(pageSize);
   
+  // Sincronizar estado interno com página externa quando ela mudar
+  useEffect(() => {
+    if (externalCurrentPage && externalCurrentPage !== currentPage) {
+      setCurrentPage(externalCurrentPage);
+    }
+  }, [externalCurrentPage, currentPage]);
+  
   // Estado para filtros por coluna
   const [columnFilters, setColumnFilters] = useState<Record<string, string>>({});
   const [showFilters, setShowFilters] = useState(false);
@@ -108,19 +115,30 @@ export const DataTable = ({
         return matchesColumnFilters;
       });
 
-  const sortedData = enableApiFiltering 
-    ? filteredData 
-    : (sortColumn
-        ? [...filteredData].sort((a, b) => {
-            const aVal = a[sortColumn];
-            const bVal = b[sortColumn];
-            
-            if (sortDirection === "asc") {
-              return aVal > bVal ? 1 : -1;
-            }
-            return aVal < bVal ? 1 : -1;
-          })
-        : filteredData);
+  // Função de ordenação reutilizável
+  const sortData = (data: Record<string, React.ReactNode>[]) => {
+    if (!sortColumn) return data;
+    
+    return [...data].sort((a, b) => {
+      const aVal = a[sortColumn];
+      const bVal = b[sortColumn];
+      
+      // Tratar valores nulos/undefined
+      if (aVal === null || aVal === undefined) return 1;
+      if (bVal === null || bVal === undefined) return -1;
+      
+      // Converter para string para comparação consistente
+      const aStr = String(aVal).toLowerCase();
+      const bStr = String(bVal).toLowerCase();
+      
+      if (sortDirection === "asc") {
+        return aStr.localeCompare(bStr);
+      }
+      return bStr.localeCompare(aStr);
+    });
+  };
+
+  const sortedData = sortData(filteredData);
 
   // Effect para chamar a API quando filtros mudarem (apenas se enableApiFiltering estiver ativo)
   useEffect(() => {
@@ -193,32 +211,74 @@ export const DataTable = ({
     return isSelected;
   };
 
+  // Usar página externa se disponível
+  const displayCurrentPage = externalCurrentPage || currentPage;
+  
   const totalPages = enableApiFiltering 
     ? Math.ceil(totalItems / currentPageSize)
     : Math.ceil(sortedData.length / currentPageSize);
-  const startIndex = enableApiFiltering ? 0 : (currentPage - 1) * currentPageSize;
-  const endIndex = enableApiFiltering ? sortedData.length : startIndex + currentPageSize;
+  
+  // Calcular índices corretamente para ambos os modos
+  const startIndex = enableApiFiltering 
+    ? (displayCurrentPage - 1) * currentPageSize 
+    : (displayCurrentPage - 1) * currentPageSize;
+  const endIndex = enableApiFiltering 
+    ? Math.min(startIndex + currentPageSize, totalItems)
+    : Math.min(startIndex + currentPageSize, sortedData.length);
+  
   const paginatedData = enableApiFiltering 
     ? sortedData 
     : sortedData.slice(startIndex, endIndex);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
+    // Se estiver usando filtros via API, chamar a função de callback
+    if (enableApiFiltering && onFiltersChange) {
+      onFiltersChange(columnFilters, sortColumn, sortDirection, page, currentPageSize);
+    }
   };
 
   const handlePageSizeChange = (newPageSize: string) => {
     const size = parseInt(newPageSize);
     setCurrentPageSize(size);
     setCurrentPage(1);
+    // Se estiver usando filtros via API, chamar a função de callback
+    if (enableApiFiltering && onFiltersChange) {
+      onFiltersChange(columnFilters, sortColumn, sortDirection, 1, size);
+    }
   };
 
-  const goToFirstPage = () => setCurrentPage(1);
-  const goToPreviousPage = () => setCurrentPage(Math.max(1, currentPage - 1));
-  const goToNextPage = () => setCurrentPage(Math.min(totalPages, currentPage + 1));
-  const goToLastPage = () => setCurrentPage(totalPages);
-
-  // Usar página externa se disponível
-  const displayCurrentPage = externalCurrentPage || currentPage;
+  const goToFirstPage = () => {
+    const page = 1;
+    setCurrentPage(page);
+    if (enableApiFiltering && onFiltersChange) {
+      onFiltersChange(columnFilters, sortColumn, sortDirection, page, currentPageSize);
+    }
+  };
+  
+  const goToPreviousPage = () => {
+    const page = Math.max(1, currentPage - 1);
+    setCurrentPage(page);
+    if (enableApiFiltering && onFiltersChange) {
+      onFiltersChange(columnFilters, sortColumn, sortDirection, page, currentPageSize);
+    }
+  };
+  
+  const goToNextPage = () => {
+    const page = Math.min(totalPages, currentPage + 1);
+    setCurrentPage(page);
+    if (enableApiFiltering && onFiltersChange) {
+      onFiltersChange(columnFilters, sortColumn, sortDirection, page, currentPageSize);
+    }
+  };
+  
+  const goToLastPage = () => {
+    const page = totalPages;
+    setCurrentPage(page);
+    if (enableApiFiltering && onFiltersChange) {
+      onFiltersChange(columnFilters, sortColumn, sortDirection, page, currentPageSize);
+    }
+  };
 
   const handleImport = () => {
     if (onImport) {

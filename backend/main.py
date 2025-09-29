@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from app.routers.crud import users, evaluators, students, schools, categories, projects, awards, assessments, questions, responses, events
+from app.routers.crud import users, evaluators, students, supervisors, schools, categories, projects, awards, assessments, questions, responses, events
 from app.routers.mobile import auth, assessments as mobile_assessments, questions as mobile_questions, responses as mobile_responses, events as mobile_events
 from app.routers import web_auth, documents, cards, password_reset_configs, import_general
 from app.database import engine, Base
@@ -44,6 +44,8 @@ app.include_router(users.router, prefix="/api/v3/users", tags=["users"], depende
 app.include_router(evaluators.router, prefix="/api/v3/evaluators", tags=["evaluators"], dependencies=[Depends(get_current_user)])
 # Rotas de estudantes (autenticação obrigatória)
 app.include_router(students.router, prefix="/api/v3/students", tags=["students"], dependencies=[Depends(get_current_user)])
+# Rotas de orientadores (autenticação obrigatória)
+app.include_router(supervisors.router, prefix="/api/v3/supervisors", tags=["supervisors"], dependencies=[Depends(get_current_user)])
 # Rotas de escolas (autenticação obrigatória)
 app.include_router(schools.router, prefix="/api/v3/schools", tags=["schools"], dependencies=[Depends(get_current_user)])
 # Rotas de categorias (autenticação obrigatória)

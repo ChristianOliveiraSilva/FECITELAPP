@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.project import Project
 from app.models.student import Student
+from app.models.supervisor import Supervisor
 from app.models.category import Category
 from app.models.school import School
 from datetime import datetime
@@ -87,10 +88,12 @@ async def import_general_data(
             # Get initial counts
             initial_project_count = db.query(Project).count()
             initial_student_count = db.query(Student).count()
+            initial_supervisor_count = db.query(Supervisor).count()
             
             # Process projects
             created_projects = 0
             created_students = 0
+            created_supervisors = 0
             
             for project_data in projects:
                 # Find or create category
@@ -153,10 +156,31 @@ async def import_general_data(
                     db.refresh(student)
                     new_project.students.append(student)
                     created_students += 1
+                
+                # Create supervisors
+                for orientador in project_data['ORIENTADOR']:
+                    name = orientador[0] if len(orientador) > 0 else ""
+                    email = orientador[1] if len(orientador) > 1 else ""
+                    
+                    if not name:
+                        continue
+                    
+                    supervisor = Supervisor(
+                        name=name,
+                        email=email,
+                        year=datetime.now().year,
+                        school_id=school.id,
+                    )
+                    db.add(supervisor)
+                    db.commit()
+                    db.refresh(supervisor)
+                    new_project.supervisors.append(supervisor)
+                    created_supervisors += 1
             
             # Get final counts
             final_project_count = db.query(Project).count()
             final_student_count = db.query(Student).count()
+            final_supervisor_count = db.query(Supervisor).count()
             
             return {
                 "message": "Data imported successfully",
@@ -164,10 +188,13 @@ async def import_general_data(
                     "file_name": file.filename,
                     "projects_created": created_projects,
                     "students_created": created_students,
+                    "supervisors_created": created_supervisors,
                     "total_projects_before": initial_project_count,
                     "total_projects_after": final_project_count,
                     "total_students_before": initial_student_count,
-                    "total_students_after": final_student_count
+                    "total_students_after": final_student_count,
+                    "total_supervisors_before": initial_supervisor_count,
+                    "total_supervisors_after": final_supervisor_count
                 }
             }
             

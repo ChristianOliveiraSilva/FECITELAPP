@@ -2,6 +2,7 @@ from app.models.assessment import Assessment
 from app.models.project import Project
 from app.models.response import Response
 from app.models.student import Student
+from app.models.supervisor import Supervisor
 from app.models.category import Category
 from app.models.school import School
 from app.database import get_db, SessionLocal
@@ -86,8 +87,10 @@ if __name__ == "__main__":
         
         project_count = db.query(Project).count()
         student_count = db.query(Student).count()
+        supervisor_count = db.query(Supervisor).count()
         print(f"Total de projetos ANTES DE RODAR OS INSERTs: {project_count}")
         print(f"Total de estudantes ANTES DE RODAR OS INSERTs: {student_count}")
+        print(f"Total de orientadores ANTES DE RODAR OS INSERTs: {supervisor_count}")
 
         # criando projetos
         for project_data in projects:
@@ -143,10 +146,29 @@ if __name__ == "__main__":
                 db.commit()
                 new_project.students.append(student)
 
+            # Criando orientadores
+            for orientador in project_data['ORIENTADOR']:
+                name = orientador[0]
+                email = orientador[1]
+                if not name:
+                    break
+
+                supervisor = Supervisor(
+                    name=name,
+                    email=email,
+                    year=datetime.now().year,
+                    school_id=school.id,
+                )
+                db.add(supervisor)
+                db.commit()
+                new_project.supervisors.append(supervisor)
+
         project_count = db.query(Project).count()
         student_count = db.query(Student).count()
+        supervisor_count = db.query(Supervisor).count()
         print(f"Total de projetos DEPOIS DE RODAR OS INSERTs: {project_count}")
         print(f"Total de estudantes DEPOIS DE RODAR OS INSERTs: {student_count}")
+        print(f"Total de orientadores DEPOIS DE RODAR OS INSERTs: {supervisor_count}")
         
         # Fechar a sessão
         db.close()

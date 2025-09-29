@@ -45,6 +45,12 @@ export const useApiCrudWithFilters = <T extends Record<string, unknown>>({
         ...params
       };
 
+      // Adicionar parâmetros de ordenação se existirem
+      if (sortColumn) {
+        queryParams.sort_by = sortColumn;
+        queryParams.sort_order = sortDirection;
+      }
+
       // Remove filtros vazios
       Object.keys(queryParams).forEach(key => {
         if (queryParams[key] === '' || queryParams[key] === null || queryParams[key] === undefined) {
@@ -60,9 +66,18 @@ export const useApiCrudWithFilters = <T extends Record<string, unknown>>({
         if (currentPage === 1 && Object.keys(filters).length === 0) {
           setOriginalData(response.data);
         }
-        // Para APIs que retornam total, você pode extrair de response.meta ou similar
-        // Por enquanto, vamos usar o tamanho dos dados retornados
-        setTotalItems(response.data.length);
+        // Tentar extrair total de response.meta ou usar fallback
+        if (response.meta && typeof response.meta.total === 'number') {
+          setTotalItems(response.meta.total);
+        } else if (response.total && typeof response.total === 'number') {
+          setTotalItems(response.total);
+        } else {
+          // Fallback: se não há mais páginas, usar o total atual
+          setTotalItems(response.data.length < pageSize ? 
+            (currentPage - 1) * pageSize + response.data.length : 
+            currentPage * pageSize + 1
+          );
+        }
       } else {
         setError(response.message);
       }

@@ -73,6 +73,7 @@ async def get_projects(
             .options(
                 joinedload(Project.category),
                 joinedload(Project.students),
+                joinedload(Project.supervisors),
                 joinedload(Project.assessments)
             )
         )
@@ -95,6 +96,7 @@ async def get_projects(
                 "deleted_at": project.deleted_at,
                 "category": None,
                 "students": [],
+                "supervisors": [],
                 "assessments": []
             }
             
@@ -112,6 +114,16 @@ async def get_projects(
                     "year": student.year,
                     "school_id": student.school_id
                 } for student in project.students
+            ]
+            
+            project_dict["supervisors"] = [
+                {
+                    "id": supervisor.id,
+                    "name": supervisor.name,
+                    "email": supervisor.email,
+                    "year": supervisor.year,
+                    "school_id": supervisor.school_id
+                } for supervisor in project.supervisors
             ]
             
             project_dict["assessments"] = [
@@ -144,6 +156,7 @@ async def get_project(
         query = db.query(Project).filter(Project.deleted_at == None).options(
             joinedload(Project.category),
             joinedload(Project.students),
+            joinedload(Project.supervisors),
             joinedload(Project.assessments)
         )
         
@@ -169,6 +182,7 @@ async def get_project(
             "deleted_at": project.deleted_at,
             "category": None,
             "students": [],
+            "supervisors": [],
             "assessments": []
         }
         
@@ -186,6 +200,16 @@ async def get_project(
                 "year": student.year,
                 "school_id": student.school_id
             } for student in project.students
+        ]
+        
+        project_dict["supervisors"] = [
+            {
+                "id": supervisor.id,
+                "name": supervisor.name,
+                "email": supervisor.email,
+                "year": supervisor.year,
+                "school_id": supervisor.school_id
+            } for supervisor in project.supervisors
         ]
         
         project_dict["assessments"] = [
@@ -260,6 +284,7 @@ async def create_project(
             "deleted_at": project.deleted_at,
             "category": None,
             "students": [],
+            "supervisors": [],
             "assessments": []
         }
         
@@ -340,6 +365,7 @@ async def update_project(
             "deleted_at": project.deleted_at,
             "category": None,
             "students": [],
+            "supervisors": [],
             "assessments": []
         }
         

@@ -21,3 +21,10 @@ award_question = Table(
     Column("award_id", Integer, ForeignKey("awards.id"), primary_key=True),
     Column("question_id", Integer, ForeignKey("questions.id"), primary_key=True)
 )
+
+supervisor_projects = Table(
+    "supervisor_projects",
+    Base.metadata,
+    Column("supervisor_id", Integer, ForeignKey("supervisors.id"), primary_key=True),
+    Column("project_id", Integer, ForeignKey("projects.id"), primary_key=True)
+)
