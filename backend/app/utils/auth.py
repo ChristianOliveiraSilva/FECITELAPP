@@ -47,6 +47,6 @@ def get_current_evaluator(user: User = Depends(verify_token), db: Session = Depe
     if not evaluator:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="User is not an evaluator"
+            detail="Usuário não é um avaliador"
         )
     return evaluator 

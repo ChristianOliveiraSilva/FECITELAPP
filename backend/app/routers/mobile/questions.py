@@ -16,18 +16,10 @@ router = APIRouter()
 @router.get("/questions/{assessment_id}", response_model=QuestionResponse)
 async def get_questions_by_assessment(
     assessment_id: int,
-    current_user: User = Depends(get_current_evaluator),
+    evaluator: Evaluator = Depends(get_current_evaluator),
     db: Session = Depends(get_db)
 ):
     try:
-        evaluator = db.query(Evaluator).filter(Evaluator.user_id == current_user.id).first()
-        
-        if not evaluator:
-            return QuestionResponse(
-                status=False,
-                message="Usuário não é um avaliador"
-            )
-        
         assessment = db.query(Assessment).filter(Assessment.id == assessment_id).first()
         
         if not assessment:
