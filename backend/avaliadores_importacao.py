@@ -156,10 +156,6 @@ if __name__ == "__main__":
                 if subarea_text:
                     subareas.append(subarea_text)
             
-            experiencia_anterior = clean_string(row.get('Já atuou como avaliador(a) em edições anteriores da FECITEL ou em outros eventos científicos?', ''))
-            dias_disponiveis = clean_string(row.get('Dias em que poderá atuar na avaliação dos trabalhos', ''))
-            observacoes = clean_string(row.get('Utilize o espaço a seguir para fazer alguma observação, caso julgue necessário, quanto a sua área de atuação ou alguma necessidade específica que seja relevante para sua atuação como avaliador', ''))
-            
             # Validar campos obrigatórios
             if not email or not nome_completo:
                 print(f"  ❌ Pula linha {idx + 1}: Email ou nome em branco")
@@ -183,8 +179,19 @@ if __name__ == "__main__":
                 # Buscar categorias baseadas na área de formação
                 found_categories = find_categories_by_text(area_formacao, db)
                 
+                # Buscar categorias baseadas nas subáreas também
+                subareas_list = parse_subareas(subareas)
+                for subarea in subareas_list:
+                    subarea_categories = find_categories_by_text(subarea, db)
+                    found_categories.extend(subarea_categories)
+                
+                # Remover duplicatas
+                found_categories = list(set(found_categories))
+                
                 if not found_categories:
                     print(f"    ⚠️  Nenhuma categoria encontrada para: {area_formacao}")
+                    if subareas_list:
+                        print(f"    Subáreas processadas: {', '.join(subareas_list)}")
                     continue
                 
                 # Verificar quais categorias já estão associadas
@@ -229,10 +236,19 @@ if __name__ == "__main__":
                     year=datetime.now().year
                 )
                 db.add(new_evaluator)
-                db.flush()  # Para obter o ID do avaliador
+                db.flush()
                 
-                # Buscar e associar categorias baseadas na área de formação
+                # Buscar categorias baseadas na área de formação
                 found_categories = find_categories_by_text(area_formacao, db)
+                
+                # Buscar categorias baseadas nas subáreas também
+                subareas_list = parse_subareas(subareas)
+                for subarea in subareas_list:
+                    subarea_categories = find_categories_by_text(subarea, db)
+                    found_categories.extend(subarea_categories)
+                
+                # Remover duplicatas
+                found_categories = list(set(found_categories))
                 
                 if found_categories:
                     # Associar categorias ao avaliador
@@ -246,11 +262,8 @@ if __name__ == "__main__":
                     db.commit()
                     print(f"  ✅ Criado: {nome_completo} ({email}) - PIN: {unique_pin}")
                     print(f"    ⚠️  Nenhuma categoria encontrada para: {area_formacao}")
-                
-                # Processar subáreas
-                subareas_list = parse_subareas(subareas)
-                if subareas_list:
-                    print(f"    Subáreas: {', '.join(subareas_list[:3])}{'...' if len(subareas_list) > 3 else ''}")
+                    if subareas_list:
+                        print(f"    Subáreas processadas: {', '.join(subareas_list)}")
                 
             except Exception as e:
                 db.rollback()

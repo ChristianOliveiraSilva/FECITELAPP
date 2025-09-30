@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port 80",
-    "build": "vite build",
+    "build": "vite build; cp /var/www/fecitel/.htaccess dist/",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview"

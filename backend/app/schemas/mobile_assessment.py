@@ -13,7 +13,7 @@ class ProjectInfo(BaseModel):
     description: Optional[str]
     year: int
     category_id: int
-    file: str
+    file: Optional[str]
     projectType: int
     external_id: Optional[str]
     school_grade: Optional[Union[str, int]]
