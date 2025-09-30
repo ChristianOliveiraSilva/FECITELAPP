@@ -13,11 +13,22 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _pinController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  final _pinFocusNode = FocusNode();
   MobileScannerController? _scannerController;
+
+  @override
+  void initState() {
+    super.initState();
+    // Define o foco no campo PIN após o widget ser construído
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _pinFocusNode.requestFocus();
+    });
+  }
 
   @override
   void dispose() {
     _pinController.dispose();
+    _pinFocusNode.dispose();
     _scannerController?.dispose();
     super.dispose();
   }
@@ -145,6 +156,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 // Campo de entrada para PIN
                 TextFormField(
                   controller: _pinController,
+                  focusNode: _pinFocusNode,
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(
                     labelText: 'PIN',
