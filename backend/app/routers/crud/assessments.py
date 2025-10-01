@@ -5,6 +5,7 @@ from app.database import get_db
 from app.models.assessment import Assessment
 from app.models.evaluator import Evaluator
 from app.models.project import Project
+from app.models.response import Response
 from app.schemas.assessment import (
     AssessmentCreate, AssessmentUpdate, AssessmentListResponse, AssessmentDetailResponse
 )
@@ -71,11 +72,16 @@ async def get_assessments(
         
         # Filtro por presença de respostas
         if has_response is not None:
-            from app.models.response import Response
             if has_response:
-                query = query.join(Response, Assessment.id == Response.assessment_id).distinct()
+                query = query.join(Response, and_(
+                    Assessment.id == Response.assessment_id,
+                    Response.deleted_at == None
+                )).distinct()
             else:
-                query = query.outerjoin(Response, Assessment.id == Response.assessment_id).filter(Response.id == None)
+                query = query.outerjoin(Response, and_(
+                    Assessment.id == Response.assessment_id,
+                    Response.deleted_at == None
+                )).filter(Response.id == None)
         
         assessments = query.offset(skip).limit(limit).all()
         
@@ -416,9 +422,7 @@ async def delete_assessment(assessment_id: int, db: Session = Depends(get_db)):
                 detail="Avaliação não encontrada"
             )
         
-        from datetime import datetime
-        assessment.deleted_at = datetime.utcnow()
-        
+        db.delete(assessment)
         db.commit()
         
         return {

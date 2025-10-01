@@ -16,6 +16,7 @@ interface ItemDetailProps {
     label: string;
     type?: 'text' | 'date' | 'number' | 'boolean' | 'array' | 'object' | 'image';
     format?: (value: unknown) => string;
+    attributeType?: string;
   }>;
   onEdit?: () => void;
   onDelete?: () => void;
@@ -79,7 +80,7 @@ export const ItemDetail = ({
         if (Array.isArray(value)) {
           if (value.length === 0) return "Nenhum";
 
-          if (value.length > 0 && typeof value[0] === 'object' && value[0] !== null && 'name' in value[0]) {
+          if (typeof value[0] === 'object' && value[0] !== null && 'name' in value[0]) {
             return value.map((item: { name: string }) => item.name).join(', ');
           }
 
@@ -141,8 +142,17 @@ export const ItemDetail = ({
       );
     }
 
-    // Se os itens do array são objetos com propriedade 'name'
-    if (typeof value[0] === 'object' && value[0] !== null && 'name' in value[0]) {
+    // Função para obter o valor do campo especificado
+    const getFieldValue = (item: any, attributePath: string) => {
+      if (!attributePath) return item.name || item.title || JSON.stringify(item);
+      
+      return attributePath.split('.').reduce((obj, key) => {
+        return obj && obj[key] !== undefined ? obj[key] : null;
+      }, item);
+    };
+
+    // Se os itens do array são objetos
+    if (typeof value[0] === 'object' && value[0] !== null) {
       return (
         <Card key={field.key}>
           <CardHeader>
@@ -150,19 +160,22 @@ export const ItemDetail = ({
             <CardDescription>{value.length} {value.length === 1 ? 'item' : 'itens'}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {value.map((item: { name: string }, index: number) => (
-              <div key={index}>
-                <div className="flex items-center justify-between py-2">
-                  <span className="font-medium text-sm text-muted-foreground">
-                    {index + 1}.
-                  </span>
-                  <div className="text-right">
-                    <span className="text-sm">{item.name}</span>
+            {value.map((item: any, index: number) => {
+              const displayValue = getFieldValue(item, field.attributeType || 'name');
+              return (
+                <div key={index}>
+                  <div className="flex items-center justify-between py-2">
+                    <span className="font-medium text-sm text-muted-foreground">
+                      {index + 1}.
+                    </span>
+                    <div className="text-right">
+                      <span className="text-sm">{displayValue || 'N/A'}</span>
+                    </div>
                   </div>
+                  {index < value.length - 1 && <Separator />}
                 </div>
-                {index < value.length - 1 && <Separator />}
-              </div>
-            ))}
+              );
+            })}
           </CardContent>
         </Card>
       );

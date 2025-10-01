@@ -33,6 +33,15 @@ interface Projeto extends Record<string, unknown> {
     id: number;
     evaluator_id: number;
     created_at: string;
+    evaluator?: {
+      id: number;
+      PIN: string;
+      user?: {
+        id: number;
+        name: string;
+        email: string;
+      };
+    };
   }>;
 }
 
@@ -150,7 +159,8 @@ const detailFields = [
   { key: "project_type", label: "Tipo de Projeto", type: "text" as const },
   { key: "external_id", label: "External ID", type: "text" as const },
   { key: "file", label: "File", type: "text" as const },
-  { key: "assessments", label: "Avaliações", type: "array" as const }
+  { key: "assessments", label: "Avaliações", type: "array" as const, attributeType: 'evaluator.user.name' },
+  { key: "students", label: "Estudantes", type: "array" as const },
 ];
 
 const handleGerarParticipacao = async (selectedItems: Record<string, unknown>[]) => {
@@ -288,6 +298,7 @@ const transformCurrentItem = (item: Projeto): Record<string, unknown> => ({
   category_name: item.category?.name || "-",
   project_type: item.projectType == 1 ? "Tecnológico" : "Científico",
   assessments: item.assessments || [],
+  students: item.students || [],
   created_at: item.created_at,
   updated_at: item.updated_at
 });

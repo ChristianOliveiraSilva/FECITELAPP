@@ -5,6 +5,8 @@ from app.database import get_db
 from app.models.project import Project
 from app.models.category import Category
 from app.models.assessment import Assessment
+from app.models.evaluator import Evaluator
+from app.models.user import User
 from app.schemas.project import (
     ProjectListResponse, ProjectDetailResponse
 )
@@ -76,7 +78,7 @@ async def get_projects(
                 joinedload(Project.category),
                 joinedload(Project.students),
                 joinedload(Project.supervisors),
-                joinedload(Project.assessments)
+                joinedload(Project.assessments).joinedload(Assessment.evaluator).joinedload(Evaluator.user)
             )
         )
         
@@ -88,11 +90,14 @@ async def get_projects(
                 )
                 .filter(Assessment.deleted_at == None)
                 .group_by(Assessment.project_id)
-                .having(func.count(Assessment.id) == assessments_count)
                 .subquery()
             )
-            
-            query = query.join(subquery, Project.id == subquery.c.project_id)
+
+            query = (
+                query
+                .outerjoin(subquery, Project.id == subquery.c.project_id)
+                .filter(func.coalesce(subquery.c.count, 0) == assessments_count)
+            )
         
         projects = query.offset(skip).limit(limit).all()
         
@@ -146,7 +151,16 @@ async def get_projects(
                 {
                     "id": assessment.id,
                     "evaluator_id": assessment.evaluator_id,
-                    "created_at": assessment.created_at
+                    "created_at": assessment.created_at,
+                    "evaluator": {
+                        "id": assessment.evaluator.id,
+                        "PIN": assessment.evaluator.PIN,
+                        "user": {
+                            "id": assessment.evaluator.user.id,
+                            "name": assessment.evaluator.user.name,
+                            "email": assessment.evaluator.user.email
+                        } if assessment.evaluator.user else None
+                    } if assessment.evaluator else None
                 } for assessment in project.assessments
             ]
             
@@ -173,7 +187,7 @@ async def get_project(
             joinedload(Project.category),
             joinedload(Project.students),
             joinedload(Project.supervisors),
-            joinedload(Project.assessments)
+            joinedload(Project.assessments).joinedload(Assessment.evaluator).joinedload(Evaluator.user)
         )
         
         project = query.filter(Project.id == project_id).first()
@@ -232,7 +246,16 @@ async def get_project(
             {
                 "id": assessment.id,
                 "evaluator_id": assessment.evaluator_id,
-                "created_at": assessment.created_at
+                "created_at": assessment.created_at,
+                "evaluator": {
+                    "id": assessment.evaluator.id,
+                    "PIN": assessment.evaluator.PIN,
+                    "user": {
+                        "id": assessment.evaluator.user.id,
+                        "name": assessment.evaluator.user.name,
+                        "email": assessment.evaluator.user.email
+                    } if assessment.evaluator.user else None
+                } if assessment.evaluator else None
             } for assessment in project.assessments
         ]
         

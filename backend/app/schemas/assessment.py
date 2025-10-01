@@ -25,6 +25,8 @@ class AssessmentWithRelations(AssessmentResponse):
     evaluator: Optional[dict] = None
     project: Optional[dict] = None
     responses: List[dict] = []
+    has_response: bool = False
+    note: float = 0.0
 
 class AssessmentListResponse(BaseModel):
     status: bool
