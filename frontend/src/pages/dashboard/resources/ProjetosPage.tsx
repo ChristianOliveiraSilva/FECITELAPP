@@ -55,7 +55,7 @@ const columns = [
     key: "category_name", 
     label: "Categoria", 
     sortable: true,
-    filterable: true,
+    filterable: false,
     filterType: 'text' as const
   },
   { 
@@ -65,22 +65,15 @@ const columns = [
     filterable: true,
     filterType: 'select' as const,
     filterOptions: [
-      { value: "1", label: "Científico" },
-      { value: "2", label: "Tecnológico" }
+      { value: "1", label: "Tecnológico" },
+      { value: "2", label: "Científico" }
     ]
   },
   { 
     key: "year", 
     label: "Ano", 
     sortable: true,
-    filterable: true,
-    filterType: 'number' as const
-  },
-  { 
-    key: "students_count", 
-    label: "Nº de Estudantes", 
-    sortable: false,
-    filterable: true,
+    filterable: false,
     filterType: 'number' as const
   },
   { 
@@ -120,7 +113,7 @@ const formFields = [
     type: "select" as const,
     required: true,
     placeholder: "Selecione a categoria",
-    options: [] // Será preenchido dinamicamente
+    optionsEndpoint: "/categories/"
   },
   {
     name: "projectType",
@@ -129,8 +122,8 @@ const formFields = [
     required: true,
     placeholder: "Selecione o tipo",
     options: [
-      { value: "1", label: "Científico" },
-      { value: "2", label: "Tecnológico" }
+      { value: "1", label: "Tecnológico" },
+      { value: "2", label: "Científico" }
     ]
   },
   {
@@ -157,7 +150,6 @@ const detailFields = [
   { key: "project_type", label: "Tipo de Projeto", type: "text" as const },
   { key: "external_id", label: "External ID", type: "text" as const },
   { key: "file", label: "File", type: "text" as const },
-  { key: "students", label: "Estudantes", type: "array" as const },
   { key: "assessments", label: "Avaliações", type: "array" as const }
 ];
 
@@ -278,8 +270,7 @@ const transformData = (item: Projeto): Record<string, ReactNode> => ({
   external_id: item.external_id,
   file: item.file,
   category_name: item.category?.name || "-",
-  project_type: item.projectType === 1 ? "Científico" : "Tecnológico",
-  students_count: item.students?.length || 0,
+  project_type: item.projectType == 1 ? "Tecnológico" : "Científico",
   assessments_count: item.assessments?.length || 0,
   created_at: item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : "-",
   updated_at: item.updated_at
@@ -295,8 +286,7 @@ const transformCurrentItem = (item: Projeto): Record<string, unknown> => ({
   external_id: item.external_id || "-",
   file: item.file || "-",
   category_name: item.category?.name || "-",
-  project_type: item.projectType === 1 ? "Científico" : "Tecnológico",
-  students: item.students || [],
+  project_type: item.projectType == 1 ? "Tecnológico" : "Científico",
   assessments: item.assessments || [],
   created_at: item.created_at,
   updated_at: item.updated_at

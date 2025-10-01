@@ -64,7 +64,6 @@ export const CrudForm = ({
   }, [initialData, form]);
 
   useEffect(() => {
-    // Carregar opções de endpoints dinâmicos
     fields.forEach(async (field) => {
       if (field.optionsEndpoint && !field.options) {
         setLoadingOptions(prev => ({ ...prev, [field.name]: true }));
@@ -201,7 +200,14 @@ export const CrudForm = ({
             name={field.name}
             rules={{ required: field.required && "Este campo é obrigatório" }}
             render={({ field: formField }) => {
-              const currentValues = Array.isArray(formField.value) ? formField.value : [];
+              const currentValues = Array.isArray(formField.value) 
+                ? formField.value.map(v => {
+                    if (typeof v === 'object' && v !== null && 'id' in v) {
+                      return String(v.id);
+                    }
+                    return String(v);
+                  }) 
+                : [];
               
               return (
                 <FormItem>
@@ -252,10 +258,10 @@ export const CrudForm = ({
                         const option = multiSelectOptions.find(opt => opt.value === value);
                         return (
                           <span
-                            key={value}
+                            key={String(value)}
                             className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-primary text-primary-foreground"
                           >
-                            {option?.label || value}
+                            {option?.label || String(value)}
                             <button
                               type="button"
                               onClick={() => {

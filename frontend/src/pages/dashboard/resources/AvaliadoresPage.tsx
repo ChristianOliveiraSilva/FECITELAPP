@@ -7,6 +7,7 @@ interface Avaliador extends Record<string, unknown> {
   id?: number;
   PIN: string;
   user_id: number;
+  year: number;
   created_at?: string;
   updated_at?: string;
   user?: {
@@ -40,14 +41,14 @@ const columns = [
     filterType: 'text' as const 
   },
   { 
-    key: "user_name", 
+    key: "name", 
     label: "Nome", 
     sortable: true, 
     filterable: true, 
     filterType: 'text' as const 
   },
   { 
-    key: "user_email", 
+    key: "email", 
     label: "Email", 
     sortable: true, 
     filterable: true, 
@@ -78,7 +79,7 @@ const formFields = [
     type: "select" as const,
     required: true,
     placeholder: "Selecione o usuário",
-    options: [] // Será preenchido dinamicamente
+    optionsEndpoint: "/users/"
   },
   {
     name: "year",
@@ -93,7 +94,7 @@ const formFields = [
     type: "multiselect" as const,
     required: false,
     placeholder: "Selecione as categorias",
-    options: [] // Será preenchido dinamicamente
+    optionsEndpoint: "/categories/"
   },
   {
     name: "assessments",
@@ -101,14 +102,15 @@ const formFields = [
     type: "multiselect" as const,
     required: false,
     placeholder: "Selecione as avaliações",
-    options: [] // Será preenchido dinamicamente
+    optionsEndpoint: "/assessments/",
+    optionsEndpointAttribute: 'id',
   }
 ];
 
 const detailFields = [
   { key: "PIN", label: "PIN", type: "text" as const },
-  { key: "user_name", label: "Nome", type: "text" as const },
-  { key: "user_email", label: "Email", type: "text" as const },
+  { key: "name", label: "Nome", type: "text" as const },
+  { key: "email", label: "Email", type: "text" as const },
   { key: "year", label: "Ano", type: "number" as const },
   { key: "categories", label: "Categorias", type: "array" as const },
   { key: "assessments", label: "Avaliações", type: "array" as const }
@@ -174,9 +176,9 @@ const transformData = (item: Avaliador): Record<string, ReactNode> => ({
   id: item.id,
   PIN: item.PIN,
   user_id: item.user_id,
-  user_name: item.user?.name || "-",
-  user_email: item.user?.email || "-",
-  year: item.assessments?.[0]?.project?.year || "-",
+  name: item.user?.name || "-",
+  email: item.user?.email || "-",
+  year: item.year || "-",
   created_at: item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : "-",
   updated_at: item.updated_at
 });
@@ -185,11 +187,11 @@ const transformCurrentItem = (item: Avaliador): Record<string, unknown> => ({
   id: item.id,
   PIN: item.PIN,
   user_id: item.user_id,
-  user_name: item.user?.name || "-",
-  user_email: item.user?.email || "-",
+  name: item.user?.name || "-",
+  email: item.user?.email || "-",
   year: item.assessments?.[0]?.project?.year || null,
-  categories: item.categories || [],
-  assessments: item.assessments || [],
+  categories: item.categories ? item.categories.map(cat => String(cat.id)) : [],
+  assessments: item.assessments ? item.assessments.map(ass => String(ass.id)) : [],
   created_at: item.created_at,
   updated_at: item.updated_at
 });
@@ -214,7 +216,7 @@ export const AvaliadoresPage = ({ view }: AvaliadoresPageProps) => {
       transformCurrentItem={transformCurrentItem}
       selectable={true}
       actionButtons={createActionButtons}
-      deleteConfirmMessage={(item) => `Tem certeza que deseja excluir o avaliador "${item.user?.name}"? Esta ação não pode ser desfeita.`}
+      deleteConfirmMessage={(item) => `Tem certeza que deseja excluir o avaliador "${item.name}"? Esta ação não pode ser desfeita.`}
       basePath="/dashboard/avaliadores"
     />
   );

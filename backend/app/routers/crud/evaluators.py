@@ -25,6 +25,8 @@ async def get_evaluators(
     year: Optional[int] = Query(None, description="Filter by year (defaults to current year)"),
     user_id: Optional[int] = Query(None, description="Filter by user ID"),
     PIN: Optional[str] = Query(None, description="Filter by PIN"),
+    name: Optional[str] = Query(None, description="Filter by user name"),
+    email: Optional[str] = Query(None, description="Filter by user email"),
     db: Session = Depends(get_db)
 ):
     try:
@@ -42,7 +44,15 @@ async def get_evaluators(
         if PIN:
             filters.append(Evaluator.PIN.ilike(f"%{PIN}%"))
         
-        query = db.query(Evaluator).filter(and_(*filters)).options(
+        query = db.query(Evaluator).join(User).filter(and_(*filters))
+        
+        if name:
+            query = query.filter(User.name.ilike(f"%{name}%"))
+        
+        if email:
+            query = query.filter(User.email.ilike(f"%{email}%"))
+        
+        query = query.options(
             joinedload(Evaluator.user),
             joinedload(Evaluator.assessments),
             joinedload(Evaluator.categories)
