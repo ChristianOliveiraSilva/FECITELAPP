@@ -16,7 +16,7 @@ import sys
 def generate_unique_pin(db):
     """Gera um PIN único de 4 dígitos para o avaliador"""
     while True:
-        pin = ''.join(random.choices(string.digits, k=4))
+        pin = str(random.randint(1000, 9999))
         existing = db.query(Evaluator).filter(Evaluator.PIN == pin).first()
         if not existing:
             return pin
