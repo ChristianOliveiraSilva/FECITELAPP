@@ -4,9 +4,9 @@ from datetime import datetime
 
 class SchoolBase(BaseModel):
     name: str
-    type: str
-    city: str
-    state: str
+    type: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
 
 class SchoolCreate(SchoolBase):
     pass
@@ -19,9 +19,9 @@ class SchoolUpdate(BaseModel):
 
 class SchoolResponse(SchoolBase):
     id: int
-    type: str
-    city: str
-    state: str
+    type: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
     created_at: datetime
     updated_at: Optional[datetime]
     deleted_at: Optional[datetime]
