@@ -41,21 +41,21 @@ const columns = [
     key: "main_category_name", 
     label: "Categoria Principal", 
     sortable: true, 
-    filterable: true, 
+    filterable: false, 
     filterType: 'text' as const 
   },
   { 
     key: "projects_count", 
     label: "Projetos", 
     sortable: false, 
-    filterable: true, 
+    filterable: false, 
     filterType: 'number' as const 
   },
   { 
     key: "sub_categories_count", 
     label: "Sub-categorias", 
     sortable: false, 
-    filterable: true, 
+    filterable: false, 
     filterType: 'number' as const 
   }
 ];
@@ -74,7 +74,7 @@ const formFields = [
     type: "select" as const,
     required: false,
     placeholder: "Selecione a categoria pai",
-    options: []
+    optionsEndpoint: "/categories/"
   }
 ];
 

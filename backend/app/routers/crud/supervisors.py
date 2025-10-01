@@ -25,7 +25,7 @@ async def get_supervisors(
     year: Optional[int] = Query(None, description="Filter by year (defaults to current year)"),
     name: Optional[str] = Query(None, description="Filter by supervisor name"),
     email: Optional[str] = Query(None, description="Filter by supervisor email"),
-    school_id: Optional[int] = Query(None, description="Filter by school ID"),
+    school_name: Optional[str] = Query(None, description="Filter by school name"),
     db: Session = Depends(get_db)
 ):
     try:
@@ -43,10 +43,13 @@ async def get_supervisors(
         if email:
             filters.append(Supervisor.email.ilike(f"%{email}%"))
         
-        if school_id:
-            filters.append(Supervisor.school_id == school_id)
+        query = db.query(Supervisor)
         
-        query = db.query(Supervisor).filter(and_(*filters)).options(
+        if school_name:
+            query = query.join(School, Supervisor.school_id == School.id)
+            filters.append(School.name.ilike(f"%{school_name}%"))
+        
+        query = query.filter(and_(*filters)).options(
             joinedload(Supervisor.school),
             joinedload(Supervisor.projects)
         )

@@ -23,6 +23,12 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
                 message="Nenhum usuário encontrado com o PIN fornecido"
             )
         
+        if not user.active:
+            return LoginResponse(
+                status=False,
+                message="Usuário inativo. Entre em contato com o administrador."
+            )
+        
         # Verificar se o avaliador tem pelo menos 3 avaliações
         evaluator = db.query(Evaluator).filter(Evaluator.user_id == user.id).first()
         if evaluator:

@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { X, Save, Plus, RefreshCw } from "lucide-react";
+import { apiService } from "@/lib/api";
 
 interface GeneratePinResponse {
   status: boolean;
@@ -19,13 +20,15 @@ interface GeneratePinResponse {
 interface Field {
   name: string;
   label: string;
-  type: "text" | "email" | "textarea" | "select" | "multiselect" | "number" | "file" | "color";
+  type: "text" | "email" | "password" | "textarea" | "select" | "multiselect" | "number" | "file" | "color";
   required?: boolean;
   options?: { value: string; label: string }[];
   placeholder?: string;
   accept?: string;
   generateButton?: boolean;
   generateEndpoint?: string;
+  optionsEndpoint?: string;
+  optionsEndpointAttribute?: string;
 }
 
 interface CrudFormProps {
@@ -51,12 +54,37 @@ export const CrudForm = ({
     defaultValues: initialData
   });
   const [generating, setGenerating] = useState<string | null>(null);
+  const [dynamicOptions, setDynamicOptions] = useState<Record<string, { value: string; label: string }[]>>({});
+  const [loadingOptions, setLoadingOptions] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (initialData && Object.keys(initialData).length > 0) {
       form.reset(initialData);
     }
   }, [initialData, form]);
+
+  useEffect(() => {
+    // Carregar opções de endpoints dinâmicos
+    fields.forEach(async (field) => {
+      if (field.optionsEndpoint && !field.options) {
+        setLoadingOptions(prev => ({ ...prev, [field.name]: true }));
+        try {
+          const response = await apiService.get<Record<string, unknown>>(field.optionsEndpoint, { limit: 1000 });
+          if (response.status && response.data) {
+            const options = response.data.map((item: Record<string, unknown>) => ({
+              value: String(item.id),
+              label: field.optionsEndpointAttribute ? item[field.optionsEndpointAttribute] as string : item.name as string
+            }));
+            setDynamicOptions(prev => ({ ...prev, [field.name]: options }));
+          }
+        } catch (error) {
+          console.error(`Erro ao carregar opções de ${field.name}:`, error);
+        } finally {
+          setLoadingOptions(prev => ({ ...prev, [field.name]: false }));
+        }
+      }
+    });
+  }, [fields]);
 
   const handleSubmit = (data: Record<string, unknown>) => {
     onSubmit(data);
@@ -120,7 +148,10 @@ export const CrudForm = ({
           />
         );
 
-      case "select":
+      case "select": {
+        const selectOptions = field.options || dynamicOptions[field.name] || [];
+        const isLoadingSelectOptions = loadingOptions[field.name];
+        
         return (
           <FormField
             key={field.name}
@@ -130,14 +161,22 @@ export const CrudForm = ({
             render={({ field: formField }) => (
               <FormItem>
                 <FormLabel>{field.label}</FormLabel>
-                <Select onValueChange={formField.onChange} defaultValue={String(formField.value || '')}>
+                <Select 
+                  onValueChange={formField.onChange} 
+                  defaultValue={String(formField.value || '')}
+                  disabled={isLoadingSelectOptions}
+                >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder={field.placeholder || "Selecione uma opção"} />
+                      <SelectValue placeholder={
+                        isLoadingSelectOptions 
+                          ? "Carregando opções..." 
+                          : field.placeholder || "Selecione uma opção"
+                      } />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {field.options?.map((option) => (
+                    {selectOptions.map((option) => (
                       <SelectItem key={option.value} value={option.value}>
                         {option.label}
                       </SelectItem>
@@ -149,8 +188,12 @@ export const CrudForm = ({
             )}
           />
         );
+      }
 
-      case "multiselect":
+      case "multiselect": {
+        const multiSelectOptions = field.options || dynamicOptions[field.name] || [];
+        const isLoadingMultiSelectOptions = loadingOptions[field.name];
+        
         return (
           <FormField
             key={field.name}
@@ -172,13 +215,18 @@ export const CrudForm = ({
                           formField.onChange([...currentValues, value]);
                         }
                       }}
+                      disabled={isLoadingMultiSelectOptions}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder={field.placeholder || "Selecione as opções"} />
+                        <SelectValue placeholder={
+                          isLoadingMultiSelectOptions 
+                            ? "Carregando opções..." 
+                            : field.placeholder || "Selecione as opções"
+                        } />
                       </SelectTrigger>
                       <SelectContent>
-                        {field.options && field.options.length > 0 ? (
-                          field.options.map((option) => {
+                        {multiSelectOptions.length > 0 ? (
+                          multiSelectOptions.map((option) => {
                             const isSelected = currentValues.includes(option.value);
                             return (
                               <SelectItem 
@@ -198,10 +246,10 @@ export const CrudForm = ({
                       </SelectContent>
                     </Select>
                   </FormControl>
-                  {currentValues.length > 0 && field.options && field.options.length > 0 && (
+                  {currentValues.length > 0 && multiSelectOptions.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-2">
                       {currentValues.map((value: string) => {
-                        const option = field.options.find(opt => opt.value === value);
+                        const option = multiSelectOptions.find(opt => opt.value === value);
                         return (
                           <span
                             key={value}
@@ -229,6 +277,7 @@ export const CrudForm = ({
             }}
           />
         );
+      }
 
       case "file":
         return (
@@ -269,6 +318,30 @@ export const CrudForm = ({
                 <FormControl>
                   <Input
                     type="color"
+                    placeholder={field.placeholder}
+                    {...formField}
+                    value={String(formField.value || '')}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        );
+
+      case "password":
+        return (
+          <FormField
+            key={field.name}
+            control={form.control}
+            name={field.name}
+            rules={{ required: field.required && !isEditing && "Este campo é obrigatório" }}
+            render={({ field: formField }) => (
+              <FormItem>
+                <FormLabel>{field.label}</FormLabel>
+                <FormControl>
+                  <Input
+                    type="password"
                     placeholder={field.placeholder}
                     {...formField}
                     value={String(formField.value || '')}

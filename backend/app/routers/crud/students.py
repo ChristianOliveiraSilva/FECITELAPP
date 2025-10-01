@@ -27,7 +27,7 @@ async def get_students(
     name: Optional[str] = Query(None, description="Filter by student name"),
     email: Optional[str] = Query(None, description="Filter by student email"),
     school_grade: Optional[str] = Query(None, description="Filter by school grade"),
-    school_id: Optional[int] = Query(None, description="Filter by school ID"),
+    school_name: Optional[str] = Query(None, description="Filter by school name"),
     db: Session = Depends(get_db)
 ):
     try:
@@ -56,10 +56,13 @@ async def get_students(
             if school_grade_value is not None:
                 filters.append(Student.school_grade == school_grade_value)
         
-        if school_id:
-            filters.append(Student.school_id == school_id)
+        query = db.query(Student)
         
-        query = db.query(Student).filter(and_(*filters)).options(
+        if school_name:
+            query = query.join(School, Student.school_id == School.id)
+            filters.append(School.name.ilike(f"%{school_name}%"))
+        
+        query = query.filter(and_(*filters)).options(
             joinedload(Student.school),
             joinedload(Student.projects)
         )

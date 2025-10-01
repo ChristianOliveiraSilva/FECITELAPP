@@ -25,21 +25,21 @@ const columns = [
     key: "name", 
     label: "Nome da Premiação", 
     sortable: true, 
-    filterable: true, 
+    filterable: false, 
     filterType: 'text' as const 
   },
   { 
     key: "description", 
     label: "Descrição", 
     sortable: true, 
-    filterable: true, 
+    filterable: false, 
     filterType: 'text' as const 
   },
   { 
     key: "school_grade", 
     label: "Série", 
     sortable: true, 
-    filterable: true, 
+    filterable: false, 
     filterType: 'select' as const,
     filterOptions: [
       { value: "1", label: "1º ano" },
@@ -51,14 +51,14 @@ const columns = [
     key: "total_positions", 
     label: "Total de Posições", 
     sortable: true, 
-    filterable: true, 
+    filterable: false, 
     filterType: 'number' as const 
   },
   { 
     key: "use_school_grades", 
     label: "Usa Séries", 
     sortable: true, 
-    filterable: true, 
+    filterable: false, 
     filterType: 'select' as const,
     filterOptions: [
       { value: "true", label: "Sim" },
@@ -69,7 +69,7 @@ const columns = [
     key: "use_categories", 
     label: "Usa Categorias", 
     sortable: true, 
-    filterable: true, 
+    filterable: false, 
     filterType: 'select' as const,
     filterOptions: [
       { value: "true", label: "Sim" },
@@ -80,14 +80,14 @@ const columns = [
     key: "questions_count", 
     label: "Perguntas", 
     sortable: false, 
-    filterable: true, 
+    filterable: false, 
     filterType: 'number' as const 
   },
   { 
     key: "created_at", 
     label: "Criado em", 
     sortable: true, 
-    filterable: true, 
+    filterable: false, 
     filterType: 'date' as const 
   }
 ];

@@ -44,29 +44,11 @@ const columns = [
     ]
   },
   { 
-    key: "email_verified", 
-    label: "Email Verificado", 
-    sortable: true, 
-    filterable: true, 
-    filterType: 'select' as const,
-    filterOptions: [
-      { value: "true", label: "Sim" },
-      { value: "false", label: "Não" }
-    ]
-  },
-  { 
     key: "evaluator_pin", 
     label: "PIN Avaliador", 
     sortable: false, 
     filterable: true, 
-    filterType: 'text' as const 
-  },
-  { 
-    key: "created_at", 
-    label: "Criado em", 
-    sortable: true, 
-    filterable: true, 
-    filterType: 'date' as const 
+    filterType: 'text' as const
   }
 ];
 
@@ -95,18 +77,21 @@ const formFields = [
       { value: "true", label: "Sim" },
       { value: "false", label: "Não" }
     ]
+  },
+  {
+    name: "password",
+    label: "Senha",
+    type: "password" as const,
+    required: true,
+    placeholder: "Digite a senha"
   }
 ];
 
 const detailFields = [
-  { key: "id", label: "ID", type: "number" as const },
   { key: "name", label: "Nome", type: "text" as const },
   { key: "email", label: "Email", type: "text" as const },
   { key: "active", label: "Ativo", type: "boolean" as const },
-  { key: "email_verified", label: "Email Verificado", type: "boolean" as const },
-  { key: "evaluator_pin", label: "PIN Avaliador", type: "text" as const },
-  { key: "created_at", label: "Criado em", type: "date" as const },
-  { key: "updated_at", label: "Atualizado em", type: "date" as const }
+  { key: "evaluator_pin", label: "PIN Avaliador", type: "text" as const }
 ];
 
 const transformData = (item: Usuario): Record<string, ReactNode> => ({
@@ -114,12 +99,7 @@ const transformData = (item: Usuario): Record<string, ReactNode> => ({
   name: item.name,
   email: item.email,
   active: item.active ? "Sim" : "Não",
-  email_verified: item.email_verified_at ? "Sim" : "Não",
-  email_verified_at: item.email_verified_at,
-  remember_token: item.remember_token,
-  evaluator_pin: item.evaluator?.PIN || "-",
-  created_at: item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : "-",
-  updated_at: item.updated_at
+  evaluator_pin: item.evaluator?.PIN || "-"
 });
 
 const transformCurrentItem = (item: Usuario): Record<string, unknown> => ({
@@ -127,10 +107,7 @@ const transformCurrentItem = (item: Usuario): Record<string, unknown> => ({
   name: item.name,
   email: item.email,
   active: item.active,
-  email_verified: !!item.email_verified_at,
-  evaluator_pin: item.evaluator?.PIN || "-",
-  created_at: item.created_at,
-  updated_at: item.updated_at
+  evaluator_pin: item.evaluator?.PIN || "-"
 });
 
 interface UsuariosPageProps {

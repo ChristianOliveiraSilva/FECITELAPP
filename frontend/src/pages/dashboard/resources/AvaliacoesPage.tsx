@@ -7,6 +7,8 @@ interface Avaliacao extends Record<string, unknown> {
   project_id: number;
   created_at?: string;
   updated_at?: string;
+  has_response?: boolean;
+  note?: number;
   evaluator?: {
     id: number;
     PIN: string;
@@ -32,7 +34,7 @@ interface Avaliacao extends Record<string, unknown> {
 
 const columns = [
   { 
-    key: "evaluator_name", 
+    key: "pin", 
     label: "Avaliador", 
     sortable: true, 
     filterable: true, 
@@ -49,7 +51,7 @@ const columns = [
     key: "project_year", 
     label: "Ano", 
     sortable: true, 
-    filterable: true, 
+    filterable: false, 
     filterType: 'number' as const 
   },
   { 
@@ -67,7 +69,7 @@ const columns = [
     key: "note", 
     label: "Nota", 
     sortable: true, 
-    filterable: true, 
+    filterable: false, 
     filterType: 'number' as const 
   }
 ];
@@ -79,7 +81,8 @@ const formFields = [
     type: "select" as const,
     required: true,
     placeholder: "Selecione o avaliador",
-    options: []
+    optionsEndpoint: "/evaluators/",
+    optionsEndpointAttribute: 'PIN',
   },
   {
     name: "project_id",
@@ -87,12 +90,13 @@ const formFields = [
     type: "select" as const,
     required: true,
     placeholder: "Selecione o projeto",
-    options: []
+    optionsEndpoint: "/projects/",
+    optionsEndpointAttribute: 'title',
   }
 ];
 
 const detailFields = [
-  { key: "evaluator_name", label: "Avaliador", type: "text" as const },
+  { key: "pin", label: "Avaliador", type: "text" as const },
   { key: "project_title", label: "Projeto", type: "text" as const },
   { key: "project_year", label: "Ano", type: "number" as const },
   { key: "has_response", label: "Respondido", type: "boolean" as const },
@@ -104,12 +108,11 @@ const transformData = (item: Avaliacao): Record<string, ReactNode> => ({
   id: item.id,
   evaluator_id: item.evaluator_id,
   project_id: item.project_id,
-  evaluator_name: item.evaluator?.PIN || `Avaliador ${item.evaluator_id}`,
+  pin: item.evaluator?.PIN,
   project_title: item.project?.title || `Projeto ${item.project_id}`,
   project_year: item.project?.year || "-",
-  has_response: item.responses && item.responses.length > 0 ? "Sim" : "Não",
-  note: item.responses && item.responses.length > 0 ? 
-    (item.responses.reduce((sum, r) => sum + (r.score || 0), 0) / item.responses.length).toFixed(2) : "0.00",
+  has_response: item.has_response ? "Sim" : "Não",
+  note: item.note?.toFixed(2) || "0.00",
   created_at: item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : "-",
   updated_at: item.updated_at
 });
@@ -118,12 +121,11 @@ const transformCurrentItem = (item: Avaliacao): Record<string, unknown> => ({
   id: item.id,
   evaluator_id: item.evaluator_id,
   project_id: item.project_id,
-  evaluator_name: item.evaluator?.PIN || `Avaliador ${item.evaluator_id}`,
+  pin: item.evaluator?.PIN,
   project_title: item.project?.title || `Projeto ${item.project_id}`,
   project_year: item.project?.year || "-",
-  has_response: item.responses && item.responses.length > 0,
-  note: item.responses && item.responses.length > 0 ? 
-    (item.responses.reduce((sum, r) => sum + (r.score || 0), 0) / item.responses.length).toFixed(2) : "0.00",
+  has_response: item.has_response || false,
+  note: item.note?.toFixed(2) || "0.00",
   responses: item.responses || [],
   created_at: item.created_at,
   updated_at: item.updated_at

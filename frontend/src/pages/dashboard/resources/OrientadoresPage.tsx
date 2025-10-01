@@ -66,7 +66,7 @@ const formFields = [
     type: "select" as const,
     required: true,
     placeholder: "Selecione a escola",
-    options: []
+    optionsEndpoint: "/schools/"
   }
 ];
 

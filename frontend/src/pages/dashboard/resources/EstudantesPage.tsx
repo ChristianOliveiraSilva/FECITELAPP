@@ -39,21 +39,20 @@ const columns = [
   },
   { 
     key: "school_grade", 
-    label: "Grade Escolar", 
+    label: "Grau Escolar", 
     sortable: true, 
     filterable: true, 
     filterType: 'select' as const,
     filterOptions: [
-      { value: "1", label: "1º ano" },
-      { value: "2", label: "2º ano" },
-      { value: "3", label: "3º ano" }
+      { value: "Ensino Fundamental", label: "Ensino Fundamental" },
+      { value: "Ensino Médio", label: "Ensino Médio" }
     ]
   },
   { 
     key: "year", 
     label: "Ano", 
     sortable: true, 
-    filterable: true, 
+    filterable: false, 
     filterType: 'number' as const 
   },
   { 
@@ -82,14 +81,13 @@ const formFields = [
   },
   {
     name: "school_grade",
-    label: "Grade Escolar",
+    label: "Grau Escolar",
     type: "select" as const,
     required: true,
-    placeholder: "Selecione a série",
+    placeholder: "Selecione o grau escolar",
     options: [
-      { value: "1", label: "1º ano" },
-      { value: "2", label: "2º ano" },
-      { value: "3", label: "3º ano" }
+      { value: "Ensino Fundamental", label: "Ensino Fundamental" },
+      { value: "Ensino Médio", label: "Ensino Médio" }
     ]
   },
   {
@@ -105,14 +103,14 @@ const formFields = [
     type: "select" as const,
     required: true,
     placeholder: "Selecione a escola",
-    options: []
+    optionsEndpoint: "/schools/"
   }
 ];
 
 const detailFields = [
   { key: "name", label: "Nome", type: "text" as const },
   { key: "email", label: "Email", type: "text" as const },
-  { key: "school_grade", label: "Grade Escolar", type: "text" as const },
+  { key: "school_grade", label: "Grau Escolar", type: "text" as const },
   { key: "year", label: "Ano", type: "number" as const },
   { key: "school_name", label: "Escola", type: "text" as const },
   { key: "projects", label: "Projetos", type: "array" as const }
@@ -122,7 +120,7 @@ const transformData = (item: Estudante): Record<string, ReactNode> => ({
   id: item.id,
   name: item.name,
   email: item.email,
-  school_grade: item.school_grade === 1 ? "1º ano" : item.school_grade === 2 ? "2º ano" : "3º ano",
+  school_grade: item.school_grade,
   year: item.year,
   school_id: item.school_id,
   school_name: item.school?.name || "-",
@@ -134,7 +132,7 @@ const transformCurrentItem = (item: Estudante): Record<string, unknown> => ({
   id: item.id,
   name: item.name,
   email: item.email,
-  school_grade: item.school_grade === 1 ? "1º ano" : item.school_grade === 2 ? "2º ano" : "3º ano",
+  school_grade: item.school_grade === 1 ? "Ensino Fundamental" : "Ensino Médio",
   year: item.year,
   school_name: item.school?.name || "-",
   projects_count: item.projects?.length || 0,

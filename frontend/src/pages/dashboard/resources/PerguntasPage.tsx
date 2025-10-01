@@ -53,21 +53,21 @@ const columns = [
     key: "number_alternatives", 
     label: "Nº Alternativas", 
     sortable: true, 
-    filterable: true, 
+    filterable: false, 
     filterType: 'number' as const 
   },
   { 
     key: "year", 
     label: "Ano", 
     sortable: true, 
-    filterable: true, 
+    filterable: false, 
     filterType: 'number' as const 
   },
   { 
     key: "responses_count", 
     label: "Nº de Respostas", 
     sortable: false, 
-    filterable: true, 
+    filterable: false, 
     filterType: 'number' as const 
   }
 ];

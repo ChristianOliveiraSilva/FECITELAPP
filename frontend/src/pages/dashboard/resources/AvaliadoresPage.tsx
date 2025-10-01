@@ -57,7 +57,7 @@ const columns = [
     key: "year", 
     label: "Ano", 
     sortable: true, 
-    filterable: true, 
+    filterable: false, 
     filterType: 'number' as const 
   }
 ];
