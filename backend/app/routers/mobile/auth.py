@@ -29,7 +29,7 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
                 message="Usuário inativo. Entre em contato com o administrador."
             )
         
-        # Verificar se o avaliador tem pelo menos 3 avaliações
+        # Verificar se o avaliador tem pelo menos 4 avaliações
         evaluator = db.query(Evaluator).filter(Evaluator.user_id == user.id).first()
         if evaluator:
             current_assessments = db.query(Assessment).filter(
@@ -37,8 +37,8 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
                 Assessment.deleted_at.is_(None)
             ).count()
             
-            # Se o avaliador tem menos de 3 avaliações, criar 3 novas
-            if current_assessments < 3:
+            # Se o avaliador tem menos de 4 avaliações, criar 4 novas
+            if current_assessments < 4:
                 # Buscar projetos disponíveis do mesmo ano do avaliador
                 available_projects = db.query(Project).filter(
                     Project.year == evaluator.year,
@@ -46,7 +46,7 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
                 ).all()
                 
                 if available_projects:
-                    # Selecionar 3 projetos aleatórios que ainda não foram atribuídos ao avaliador
+                    # Selecionar 4 projetos aleatórios que ainda não foram atribuídos ao avaliador
                     existing_project_ids = db.query(Assessment.project_id).filter(
                         Assessment.evaluator_id == evaluator.id,
                         Assessment.deleted_at.is_(None)
@@ -55,8 +55,8 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
                     
                     available_projects = [p for p in available_projects if p.id not in existing_project_ids]
                     
-                    # Selecionar até 3 projetos aleatórios
-                    projects_to_assign = random.sample(available_projects, min(3, len(available_projects)) - current_assessments)
+                    # Selecionar até 4 projetos aleatórios
+                    projects_to_assign = random.sample(available_projects, min(4, len(available_projects)) - current_assessments)
                     
                     # Criar as avaliações
                     for project in projects_to_assign:
