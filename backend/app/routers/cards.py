@@ -10,6 +10,7 @@ from app.schemas.cards import CardsResponse
 
 router = APIRouter()
 
+@router.get("", response_model=CardsResponse)
 @router.get("/", response_model=CardsResponse)
 async def get_cards_data(db: Session = Depends(get_db)):
     try:
