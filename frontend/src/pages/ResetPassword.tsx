@@ -177,4 +177,4 @@ const ResetPassword = () => {
   );
 };
 
-export default ResetPassword; 
+export { ResetPassword }; 
