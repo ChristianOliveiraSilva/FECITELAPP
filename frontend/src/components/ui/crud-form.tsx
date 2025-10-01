@@ -158,68 +158,76 @@ export const CrudForm = ({
             control={form.control}
             name={field.name}
             rules={{ required: field.required && "Este campo é obrigatório" }}
-            render={({ field: formField }) => (
-              <FormItem>
-                <FormLabel>{field.label}</FormLabel>
-                <FormControl>
-                  <Select
-                    onValueChange={(value) => {
-                      const currentValues = Array.isArray(formField.value) ? formField.value : [];
-                      if (currentValues.includes(value)) {
-                        formField.onChange(currentValues.filter(v => v !== value));
-                      } else {
-                        formField.onChange([...currentValues, value]);
-                      }
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={field.placeholder || "Selecione as opções"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {field.options?.map((option) => {
-                        const isSelected = Array.isArray(formField.value) && formField.value.includes(option.value);
-                        return (
-                          <SelectItem 
-                            key={option.value} 
-                            value={option.value}
-                            className={isSelected ? "bg-accent" : ""}
-                          >
-                            {option.label}
+            render={({ field: formField }) => {
+              const currentValues = Array.isArray(formField.value) ? formField.value : [];
+              
+              return (
+                <FormItem>
+                  <FormLabel>{field.label}</FormLabel>
+                  <FormControl>
+                    <Select
+                      onValueChange={(value) => {
+                        if (currentValues.includes(value)) {
+                          formField.onChange(currentValues.filter(v => v !== value));
+                        } else {
+                          formField.onChange([...currentValues, value]);
+                        }
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={field.placeholder || "Selecione as opções"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {field.options && field.options.length > 0 ? (
+                          field.options.map((option) => {
+                            const isSelected = currentValues.includes(option.value);
+                            return (
+                              <SelectItem 
+                                key={option.value} 
+                                value={option.value}
+                                className={isSelected ? "bg-accent" : ""}
+                              >
+                                {option.label}
+                              </SelectItem>
+                            );
+                          })
+                        ) : (
+                          <SelectItem value="no-options" disabled>
+                            Nenhuma opção disponível
                           </SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  {currentValues.length > 0 && field.options && field.options.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {currentValues.map((value: string) => {
+                        const option = field.options.find(opt => opt.value === value);
+                        return (
+                          <span
+                            key={value}
+                            className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-primary text-primary-foreground"
+                          >
+                            {option?.label || value}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newValues = currentValues.filter((v: string) => v !== value);
+                                formField.onChange(newValues);
+                              }}
+                              className="ml-1 text-primary-foreground hover:text-primary-foreground/70"
+                            >
+                              ×
+                            </button>
+                          </span>
                         );
                       })}
-                    </SelectContent>
-                  </Select>
-                </FormControl>
-                {Array.isArray(formField.value) && formField.value.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {formField.value.map((value) => {
-                      const option = field.options?.find(opt => opt.value === value);
-                      return (
-                        <span
-                          key={value}
-                          className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-primary text-primary-foreground"
-                        >
-                          {option?.label || value}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const currentValues = Array.isArray(formField.value) ? formField.value : [];
-                              const newValues = currentValues.filter((v: string) => v !== value);
-                              formField.onChange(newValues);
-                            }}
-                            className="ml-1 text-primary-foreground hover:text-primary-foreground/70"
-                          >
-                            ×
-                          </button>
-                        </span>
-                      );
-                    })}
-                  </div>
-                )}
-                <FormMessage />
-              </FormItem>
-            )}
+                    </div>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              );
+            }}
           />
         );
 
