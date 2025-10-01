@@ -63,7 +63,6 @@ class ApiService {
   ): Promise<ApiResponse<T[]>> {
     const searchParams = new URLSearchParams();
     
-    // Adicionar todos os parâmetros de filtro
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined && value !== null && value !== '') {
         searchParams.append(key, value.toString());
@@ -82,7 +81,7 @@ class ApiService {
   }
 
   async getById<T>(endpoint: string, id: string | number): Promise<ApiResponse<T>> {
-    return this.request<T>(`${endpoint}/${id}`);
+    return this.request<T>(`${endpoint}${id}`); // Removido o / da URL temporariamente
   }
 
   async create<T>(endpoint: string, data: Record<string, unknown>): Promise<ApiResponse<T>> {
@@ -134,14 +133,14 @@ class ApiService {
   async update<T>(endpoint: string, id: string | number, data: Record<string, unknown>): Promise<ApiResponse<T>> {
     const year = this.getYear();
 
-    return this.request<T>(`${endpoint}/${id}`, {
+    return this.request<T>(`${endpoint}${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     });
   }
 
   async updateWithFormData<T>(endpoint: string, id: string | number, formData: FormData): Promise<ApiResponse<T>> {
-    const url = `${API_BASE_URL}${endpoint}/${id}`;
+    const url = `${API_BASE_URL}${endpoint}${id}`;
     
     const headers: Record<string, string> = {};
     
@@ -175,7 +174,7 @@ class ApiService {
   }
 
   async delete(endpoint: string, id: string | number): Promise<ApiResponse<Record<string, unknown>>> {
-    return this.request(`${endpoint}/${id}`, {
+    return this.request(`${endpoint}${id}`, {
       method: 'DELETE',
     });
   }
