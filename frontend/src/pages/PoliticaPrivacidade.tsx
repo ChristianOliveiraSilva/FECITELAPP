@@ -257,4 +257,4 @@ const PoliticaPrivacidade = () => {
   );
 };
 
-export default PoliticaPrivacidade;
+export { PoliticaPrivacidade };

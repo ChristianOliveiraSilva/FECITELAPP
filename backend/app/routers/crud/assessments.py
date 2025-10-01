@@ -26,6 +26,9 @@ async def get_assessments(
     evaluator_id: Optional[int] = Query(None, description="Filter by evaluator ID"),
     project_id: Optional[int] = Query(None, description="Filter by project ID"),
     year: Optional[int] = Query(None, description="Filter by year (defaults to current year)"),
+    has_response: Optional[bool] = Query(None, description="Filter by assessments with/without responses"),
+    pin: Optional[str] = Query(None, description="Filter by evaluator PIN"),
+    project_title: Optional[str] = Query(None, description="Filter by project title"),
     db: Session = Depends(get_db)
 ):
     try:
@@ -37,13 +40,43 @@ async def get_assessments(
             joinedload(Assessment.responses)
         ).filter(Assessment.deleted_at == None)
         
+        # Flags para controlar joins
+        joined_evaluator = False
+        joined_project = False
+        
         if evaluator_id:
             query = query.filter(Assessment.evaluator_id == evaluator_id)
         
         if project_id:
             query = query.filter(Assessment.project_id == project_id)
         
-        query = query.join(Project).filter(Project.year == filter_year)
+        # Filtro por PIN do avaliador
+        if pin:
+            query = query.join(Evaluator, Assessment.evaluator_id == Evaluator.id)
+            joined_evaluator = True
+            query = query.filter(Evaluator.PIN.ilike(f"%{pin}%"))
+        
+        # Filtro por título do projeto
+        if project_title:
+            if not joined_project:
+                query = query.join(Project, Assessment.project_id == Project.id)
+                joined_project = True
+            query = query.filter(Project.title.ilike(f"%{project_title}%"))
+        
+        # Filtro por ano do projeto (sempre aplicado)
+        if not joined_project:
+            query = query.join(Project, Assessment.project_id == Project.id)
+            joined_project = True
+        query = query.filter(Project.year == filter_year)
+        
+        # Filtro por presença de respostas
+        if has_response is not None:
+            from app.models.response import Response
+            if has_response:
+                query = query.join(Response, Assessment.id == Response.assessment_id).distinct()
+            else:
+                query = query.outerjoin(Response, Assessment.id == Response.assessment_id).filter(Response.id == None)
+        
         assessments = query.offset(skip).limit(limit).all()
         
         assessment_data = []
@@ -83,6 +116,10 @@ async def get_assessments(
                     "score": response.score
                 } for response in assessment.responses
             ]
+            
+            # Adicionar propriedades calculadas do modelo
+            assessment_dict["has_response"] = assessment.has_response
+            assessment_dict["note"] = assessment.note
             
             assessment_data.append(assessment_dict)
         
@@ -152,6 +189,10 @@ async def get_assessment(
                 "score": response.score
             } for response in assessment.responses
         ]
+        
+        # Adicionar propriedades calculadas do modelo
+        assessment_dict["has_response"] = assessment.has_response
+        assessment_dict["note"] = assessment.note
         
         return AssessmentDetailResponse(
             status=True,
@@ -239,6 +280,10 @@ async def create_assessment(assessment_data: AssessmentCreate, db: Session = Dep
                 "score": response.score
             } for response in assessment.responses
         ]
+        
+        # Adicionar propriedades calculadas do modelo
+        assessment_dict["has_response"] = assessment.has_response
+        assessment_dict["note"] = assessment.note
         
         return AssessmentDetailResponse(
             status=True,
@@ -341,6 +386,10 @@ async def update_assessment(
                 "score": response.score
             } for response in assessment.responses
         ]
+        
+        # Adicionar propriedades calculadas do modelo
+        assessment_dict["has_response"] = assessment.has_response
+        assessment_dict["note"] = assessment.note
         
         return AssessmentDetailResponse(
             status=True,

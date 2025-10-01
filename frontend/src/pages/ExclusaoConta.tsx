@@ -260,4 +260,4 @@ const ExclusaoConta = () => {
   );
 };
 
-export default ExclusaoConta;
+export { ExclusaoConta };

@@ -26,7 +26,6 @@ interface CrudListPageProps {
   loading?: boolean;
   error?: string;
   baseEndpoint?: string;
-  // Props para filtros via API
   onFiltersChange?: (filters: Record<string, string>, sortColumn: string | null, sortDirection: 'asc' | 'desc', page: number, pageSize: number) => void;
   totalItems?: number;
   currentPage?: number;

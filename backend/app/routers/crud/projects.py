@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File, Form, Request
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session, joinedload
 from app.database import get_db
 from app.models.project import Project
 from app.models.category import Category
+from app.models.assessment import Assessment
 from app.schemas.project import (
     ProjectListResponse, ProjectDetailResponse
 )
@@ -15,7 +16,7 @@ import csv
 import io
 import pandas as pd
 import tempfile
-from sqlalchemy import and_
+from sqlalchemy import and_, func
 
 router = APIRouter()
 
@@ -39,8 +40,9 @@ async def get_projects(
     title: Optional[str] = Query(None, description="Filter by project title"),
     description: Optional[str] = Query(None, description="Filter by project description"),
     category_id: Optional[int] = Query(None, description="Filter by category ID"),
-    projectType: Optional[int] = Query(None, description="Filter by project type"),
+    project_type: Optional[int] = Query(None, description="Filter by project type (1=Tecnológico, 2=Científico)"),
     external_id: Optional[str] = Query(None, description="Filter by external ID"),
+    assessments_count: Optional[int] = Query(None, description="Filter by number of assessments"),
     db: Session = Depends(get_db)
 ):
     try:
@@ -61,8 +63,8 @@ async def get_projects(
         if category_id:
             filters.append(Project.category_id == category_id)
         
-        if projectType is not None:
-            filters.append(Project.projectType == projectType)
+        if project_type is not None:
+            filters.append(Project.projectType == project_type)
         
         if external_id:
             filters.append(Project.external_id.ilike(f"%{external_id}%"))
@@ -77,6 +79,20 @@ async def get_projects(
                 joinedload(Project.assessments)
             )
         )
+        
+        if assessments_count is not None:
+            subquery = (
+                db.query(
+                    Assessment.project_id,
+                    func.count(Assessment.id).label('count')
+                )
+                .filter(Assessment.deleted_at == None)
+                .group_by(Assessment.project_id)
+                .having(func.count(Assessment.id) == assessments_count)
+                .subquery()
+            )
+            
+            query = query.join(subquery, Project.id == subquery.c.project_id)
         
         projects = query.offset(skip).limit(limit).all()
         
@@ -305,16 +321,28 @@ async def create_project(
 @router.put("/{project_id}", response_model=ProjectDetailResponse)
 async def update_project(
     project_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
     title: Optional[str] = Form(None),
     description: Optional[str] = Form(None),
     year: Optional[int] = Form(None),
     category_id: Optional[int] = Form(None),
     projectType: Optional[int] = Form(None),
     external_id: Optional[str] = Form(None),
-    file: Optional[UploadFile] = File(None),
-    db: Session = Depends(get_db)
+    file: Optional[UploadFile] = File(None)
 ):
     try:
+        content_type = request.headers.get("content-type", "")
+        
+        if "application/json" in content_type:
+            body = await request.json()
+            title = body.get("title")
+            description = body.get("description")
+            year = body.get("year")
+            category_id = body.get("category_id")
+            projectType = body.get("projectType")
+            external_id = body.get("external_id")
+        
         project = db.query(Project).filter(Project.id == project_id).first()
         
         if not project:

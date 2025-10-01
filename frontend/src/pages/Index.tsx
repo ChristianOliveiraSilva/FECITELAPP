@@ -48,4 +48,4 @@ const Index = () => {
   return <LoginForm onLogin={handleLogin} isLoading={false} />;
 };
 
-export default Index;
+export { Index };

@@ -6,16 +6,29 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { X, Save, Plus } from "lucide-react";
+import { X, Save, Plus, RefreshCw } from "lucide-react";
+import { apiService } from "@/lib/api";
+
+interface GeneratePinResponse {
+  status: boolean;
+  message: string;
+  data: {
+    PIN: string;
+  };
+}
 
 interface Field {
   name: string;
   label: string;
-  type: "text" | "email" | "textarea" | "select" | "number" | "file" | "color";
+  type: "text" | "email" | "password" | "textarea" | "select" | "multiselect" | "number" | "file" | "color";
   required?: boolean;
   options?: { value: string; label: string }[];
   placeholder?: string;
   accept?: string;
+  generateButton?: boolean;
+  generateEndpoint?: string;
+  optionsEndpoint?: string;
+  optionsEndpointAttribute?: string;
 }
 
 interface CrudFormProps {
@@ -40,15 +53,104 @@ export const CrudForm = ({
   const form = useForm({
     defaultValues: initialData
   });
+  const [generating, setGenerating] = useState<string | null>(null);
+  const [dynamicOptions, setDynamicOptions] = useState<Record<string, { value: string; label: string }[]>>({});
+  const [loadingOptions, setLoadingOptions] = useState<Record<string, boolean>>({});
+  const [optionsLoaded, setOptionsLoaded] = useState(false);
 
+  // Carregar opções dos endpoints primeiro
   useEffect(() => {
-    if (initialData && Object.keys(initialData).length > 0) {
+    const loadOptions = async () => {
+      const fieldsWithEndpoints = fields.filter(f => f.optionsEndpoint && !f.options);
+      
+      if (fieldsWithEndpoints.length === 0) {
+        setOptionsLoaded(true);
+        return;
+      }
+
+      for (const field of fieldsWithEndpoints) {
+        setLoadingOptions(prev => ({ ...prev, [field.name]: true }));
+        try {
+          const response = await apiService.get<Record<string, unknown>>(field.optionsEndpoint, { limit: 1000 });
+          if (response.status && response.data) {
+            const options = response.data.map((item: Record<string, unknown>) => ({
+              value: String(item.id),
+              label: field.optionsEndpointAttribute ? item[field.optionsEndpointAttribute] as string : item.name as string
+            }));
+            setDynamicOptions(prev => ({ ...prev, [field.name]: options }));
+          }
+        } catch (error) {
+          console.error(`Erro ao carregar opções de ${field.name}:`, error);
+        } finally {
+          setLoadingOptions(prev => ({ ...prev, [field.name]: false }));
+        }
+      }
+      
+      setOptionsLoaded(true);
+    };
+    
+    loadOptions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Reset do formulário após as opções serem carregadas
+  useEffect(() => {
+    if (optionsLoaded && initialData && Object.keys(initialData).length > 0) {
       form.reset(initialData);
     }
-  }, [initialData, form]);
+  }, [initialData, optionsLoaded, form]);
 
   const handleSubmit = (data: Record<string, unknown>) => {
-    onSubmit(data);
+    const normalizedData = { ...data };
+    
+    fields.forEach(field => {
+      if (field.type === "multiselect" && normalizedData[field.name]) {
+        const value = normalizedData[field.name];
+        if (Array.isArray(value)) {
+          normalizedData[field.name] = value.map(v => {
+            if (typeof v === 'object' && v !== null && 'id' in v) {
+              return String(v.id);
+            }
+            return String(v);
+          });
+        }
+      }
+    });
+    
+    onSubmit(normalizedData);
+  };
+
+  const generateValue = async (endpoint: string, fieldName: string) => {
+    setGenerating(fieldName);
+    try {
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL}${endpoint}`, {
+        method: 'GET',
+        headers,
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao gerar PIN');
+      }
+
+      const data: GeneratePinResponse = await response.json();
+      if (data.status && data.data?.PIN) {
+        form.setValue(fieldName, data.data.PIN);
+      }
+    } catch (error) {
+      console.error('Erro ao gerar valor:', error);
+      alert('Erro ao gerar PIN. Tente novamente.');
+    } finally {
+      setGenerating(null);
+    }
   };
 
   const renderField = (field: Field) => {
@@ -76,7 +178,10 @@ export const CrudForm = ({
           />
         );
 
-      case "select":
+      case "select": {
+        const selectOptions = field.options || dynamicOptions[field.name] || [];
+        const isLoadingSelectOptions = loadingOptions[field.name];
+        
         return (
           <FormField
             key={field.name}
@@ -86,14 +191,22 @@ export const CrudForm = ({
             render={({ field: formField }) => (
               <FormItem>
                 <FormLabel>{field.label}</FormLabel>
-                <Select onValueChange={formField.onChange} defaultValue={String(formField.value || '')}>
+                <Select 
+                  onValueChange={formField.onChange} 
+                  value={String(formField.value || '')}
+                  disabled={isLoadingSelectOptions}
+                >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder={field.placeholder || "Selecione uma opção"} />
+                      <SelectValue placeholder={
+                        isLoadingSelectOptions 
+                          ? "Carregando opções..." 
+                          : field.placeholder || "Selecione uma opção"
+                      } />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {field.options?.map((option) => (
+                    {selectOptions.map((option) => (
                       <SelectItem key={option.value} value={option.value}>
                         {option.label}
                       </SelectItem>
@@ -105,6 +218,103 @@ export const CrudForm = ({
             )}
           />
         );
+      }
+
+      case "multiselect": {
+        const multiSelectOptions = field.options || dynamicOptions[field.name] || [];
+        const isLoadingMultiSelectOptions = loadingOptions[field.name];
+        
+        return (
+          <FormField
+            key={field.name}
+            control={form.control}
+            name={field.name}
+            rules={{ required: field.required && "Este campo é obrigatório" }}
+            render={({ field: formField }) => {
+              const currentValues = Array.isArray(formField.value) 
+                ? formField.value.map(v => {
+                    if (typeof v === 'object' && v !== null && 'id' in v) {
+                      return String(v.id);
+                    }
+                    return String(v);
+                  }) 
+                : [];
+              
+              return (
+                <FormItem>
+                  <FormLabel>{field.label}</FormLabel>
+                  <FormControl>
+                    <Select
+                      onValueChange={(value) => {
+                        if (currentValues.includes(value)) {
+                          formField.onChange(currentValues.filter(v => v !== value));
+                        } else {
+                          formField.onChange([...currentValues, value]);
+                        }
+                      }}
+                      disabled={isLoadingMultiSelectOptions}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={
+                          isLoadingMultiSelectOptions 
+                            ? "Carregando opções..." 
+                            : field.placeholder || "Selecione as opções"
+                        } />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {multiSelectOptions.length > 0 ? (
+                          multiSelectOptions.map((option) => {
+                            const isSelected = currentValues.includes(option.value);
+                            return (
+                              <SelectItem 
+                                key={option.value} 
+                                value={option.value}
+                                className={isSelected ? "bg-accent" : ""}
+                              >
+                                {option.label}
+                              </SelectItem>
+                            );
+                          })
+                        ) : (
+                          <SelectItem value="no-options" disabled>
+                            Nenhuma opção disponível
+                          </SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  {currentValues.length > 0 && multiSelectOptions.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {currentValues.map((value: string) => {
+                        const option = multiSelectOptions.find(opt => opt.value === value);
+                        return (
+                          <span
+                            key={String(value)}
+                            className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-primary text-primary-foreground"
+                          >
+                            {option?.label || String(value)}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newValues = currentValues.filter((v: string) => v !== value);
+                                formField.onChange(newValues);
+                              }}
+                              className="ml-1 text-primary-foreground hover:text-primary-foreground/70"
+                            >
+                              ×
+                            </button>
+                          </span>
+                        );
+                      })}
+                    </div>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              );
+            }}
+          />
+        );
+      }
 
       case "file":
         return (
@@ -112,7 +322,7 @@ export const CrudForm = ({
             key={field.name}
             control={form.control}
             name={field.name}
-            rules={{ required: field.required && "Este campo é obrigatório" }}
+            rules={{ required: field.required && !isEditing && "Este campo é obrigatório" }}
             render={({ field: formField }) => (
               <FormItem>
                 <FormLabel>{field.label}</FormLabel>
@@ -156,6 +366,30 @@ export const CrudForm = ({
           />
         );
 
+      case "password":
+        return (
+          <FormField
+            key={field.name}
+            control={form.control}
+            name={field.name}
+            rules={{ required: field.required && !isEditing && "Este campo é obrigatório" }}
+            render={({ field: formField }) => (
+              <FormItem>
+                <FormLabel>{field.label}</FormLabel>
+                <FormControl>
+                  <Input
+                    type="password"
+                    placeholder={field.placeholder}
+                    {...formField}
+                    value={String(formField.value || '')}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        );
+
       default:
         return (
           <FormField
@@ -167,12 +401,28 @@ export const CrudForm = ({
               <FormItem>
                 <FormLabel>{field.label}</FormLabel>
                 <FormControl>
-                  <Input
-                    type={field.type}
-                    placeholder={field.placeholder}
-                    {...formField}
-                    value={String(formField.value || '')}
-                  />
+                  <div className="flex gap-2">
+                    <Input
+                      type={field.type}
+                      placeholder={field.placeholder}
+                      {...formField}
+                      value={String(formField.value || '')}
+                      className="flex-1"
+                    />
+                    {field.generateButton && field.generateEndpoint && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => generateValue(field.generateEndpoint!, field.name)}
+                        className="px-3"
+                        title="Gerar PIN"
+                        disabled={generating === field.name}
+                      >
+                        <RefreshCw className={`h-4 w-4 ${generating === field.name ? 'animate-spin' : ''}`} />
+                      </Button>
+                    )}
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>

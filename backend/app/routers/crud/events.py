@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File, Form, Request
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from app.database import get_db
@@ -17,6 +17,7 @@ from datetime import datetime
 import os
 import tempfile
 from sqlalchemy import and_
+import json
 
 router = APIRouter()
 
@@ -190,13 +191,22 @@ async def create_event(
 @router.put("/{event_id}", response_model=EventDetailResponse)
 async def update_event(
     event_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
     year: Optional[int] = Form(None),
     app_primary_color: Optional[str] = Form(None),
     app_font_color: Optional[str] = Form(None),
-    logo: Optional[UploadFile] = File(None),
-    db: Session = Depends(get_db)
+    logo: Optional[UploadFile] = File(None)
 ):
     try:
+        content_type = request.headers.get("content-type", "")
+        
+        if "application/json" in content_type:
+            body = await request.json()
+            year = body.get("year")
+            app_primary_color = body.get("app_primary_color")
+            app_font_color = body.get("app_font_color")
+
         event = db.query(Event).filter(Event.id == event_id, Event.deleted_at == None).first()
         
         if not event:

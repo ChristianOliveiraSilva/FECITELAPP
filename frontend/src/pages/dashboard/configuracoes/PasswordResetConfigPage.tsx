@@ -173,4 +173,4 @@ const PasswordResetConfigPage: React.FC = () => {
   );
 };
 
-export default PasswordResetConfigPage;
+export { PasswordResetConfigPage };

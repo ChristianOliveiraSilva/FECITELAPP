@@ -7,13 +7,20 @@ class EvaluatorBase(BaseModel):
     PIN: str
     year: int
 
-class EvaluatorCreate(EvaluatorBase):
-    pass
+class EvaluatorCreate(BaseModel):
+    user_id: int
+    PIN: Optional[str] = None
+    year: Optional[int] = None
+    assessments: Optional[List[str]] = []
+    categories: Optional[List[str]] = []
 
 class EvaluatorUpdate(BaseModel):
     user_id: Optional[int] = None
     PIN: Optional[str] = None
     year: Optional[int] = None
+    assessments: Optional[List[str]] = None
+    categories: Optional[List[str]] = None
+
 class EvaluatorResponse(EvaluatorBase):
     id: int
     year: int
@@ -37,4 +44,9 @@ class EvaluatorListResponse(BaseModel):
 class EvaluatorDetailResponse(BaseModel):
     status: bool
     message: str
-    data: EvaluatorWithRelations 
+    data: EvaluatorWithRelations
+
+class PinGenerateResponse(BaseModel):
+    status: bool
+    message: str
+    data: dict 

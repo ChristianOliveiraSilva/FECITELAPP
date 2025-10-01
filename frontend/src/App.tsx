@@ -5,28 +5,33 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import Index from "./pages/Index";
-import ResetPassword from "./pages/ResetPassword";
-import NotFound from "./pages/NotFound";
-import PoliticaPrivacidade from "./pages/PoliticaPrivacidade";
-import ExclusaoConta from "./pages/ExclusaoConta";
+
+import { Index } from "./pages/Index";
+import { ResetPassword } from "./pages/ResetPassword";
+import { NotFound } from "./pages/NotFound";
+import { PoliticaPrivacidade } from "./pages/PoliticaPrivacidade";
+import { ExclusaoConta } from "./pages/ExclusaoConta";
+
 import { DashboardWrapper } from "@/components/layout/DashboardWrapper";
-import HomePage from "@/pages/dashboard/HomePage";
-import { AvaliacoesPage } from "@/pages/dashboard/AvaliacoesPage";
-import { AreasPage } from "@/pages/dashboard/AreasPage";
-import { ProjetosPage } from "@/pages/dashboard/ProjetosPage";
-import { AvaliadoresPage } from "@/pages/dashboard/AvaliadoresPage";
-import { EstudantesPage } from "@/pages/dashboard/EstudantesPage";
-import { OrientadoresPage } from "@/pages/dashboard/OrientadoresPage";
-import { EscolasPage } from "@/pages/dashboard/EscolasPage";
-import { EventosPage } from "@/pages/dashboard/EventosPage";
-import { UsuariosPage } from "@/pages/dashboard/UsuariosPage";
-import { PremiacoesPage } from "@/pages/dashboard/PremiacoesPage";
-import { PerguntasPage } from "@/pages/dashboard/PerguntasPage";
-import { DocumentosPage } from "@/pages/dashboard/DocumentosPage";
-import { DocumentosConfiguracoesPage } from "@/pages/dashboard/DocumentosConfiguracoesPage";
-import PasswordResetConfigPage from "@/pages/dashboard/PasswordResetConfigPage";
-import { ImportarDadosGeraisPage } from "@/pages/dashboard/ImportarDadosGeraisPage";
+
+import { HomePage } from "@/pages/dashboard/HomePage";
+
+import { AvaliacoesPage } from "@/pages/dashboard/resources/AvaliacoesPage";
+import { AreasPage } from "@/pages/dashboard/resources/AreasPage";
+import { ProjetosPage } from "@/pages/dashboard/resources/ProjetosPage";
+import { AvaliadoresPage } from "@/pages/dashboard/resources/AvaliadoresPage";
+import { EstudantesPage } from "@/pages/dashboard/resources/EstudantesPage";
+import { OrientadoresPage } from "@/pages/dashboard/resources/OrientadoresPage";
+import { EscolasPage } from "@/pages/dashboard/resources/EscolasPage";
+import { EventosPage } from "@/pages/dashboard/resources/EventosPage";
+import { UsuariosPage } from "@/pages/dashboard/resources/UsuariosPage";
+import { PremiacoesPage } from "@/pages/dashboard/resources/PremiacoesPage";
+import { PerguntasPage } from "@/pages/dashboard/resources/PerguntasPage";
+
+import { DocumentosPage } from "@/pages/dashboard/configuracoes/DocumentosPage";
+import { DocumentosConfiguracoesPage } from "@/pages/dashboard/configuracoes/DocumentosConfiguracoesPage";
+import { PasswordResetConfigPage } from "@/pages/dashboard/configuracoes/PasswordResetConfigPage";
+import { ImportarDadosGeraisPage } from "@/pages/dashboard/configuracoes/ImportarDadosGeraisPage";
 
 const queryClient = new QueryClient();
 

@@ -14,7 +14,7 @@ interface ItemDetailProps {
   fields: Array<{
     key: string;
     label: string;
-    type?: 'text' | 'date' | 'number' | 'boolean' | 'array' | 'object';
+    type?: 'text' | 'date' | 'number' | 'boolean' | 'array' | 'object' | 'image';
     format?: (value: unknown) => string;
   }>;
   onEdit?: () => void;
@@ -76,9 +76,24 @@ export const ItemDetail = ({
       case 'boolean':
         return value ? "Sim" : "Não";
       case 'array':
-        return Array.isArray(value) ? value.length : 0;
+        if (Array.isArray(value)) {
+          if (value.length === 0) return "Nenhum";
+
+          if (value.length > 0 && typeof value[0] === 'object' && value[0] !== null && 'name' in value[0]) {
+            return value.map((item: { name: string }) => item.name).join(', ');
+          }
+
+          if (typeof value[0] === 'string') {
+            return value.join(', ');
+          }
+          
+          return value.length;
+        }
+        return 0;
       case 'object':
         return typeof value === 'object' ? JSON.stringify(value) : value;
+      case 'image':
+        return value ? <img src={`${import.meta.env.VITE_API_URL}${value as string}`} alt="Imagem" className="w-8 h-8 object-contain" /> : "-";
       default:
         return String(value);
     }
@@ -107,6 +122,92 @@ export const ItemDetail = ({
       </div>
     );
   }
+
+  // Separa campos normais de campos do tipo array
+  const regularFields = fields.filter(field => field.type !== 'array');
+  const arrayFields = fields.filter(field => field.type === 'array');
+
+  const renderArrayCard = (field: ItemDetailProps['fields'][0]) => {
+    const value = data[field.key];
+    
+    if (!Array.isArray(value) || value.length === 0) {
+      return (
+        <Card key={field.key}>
+          <CardHeader>
+            <CardTitle>{field.label}</CardTitle>
+            <CardDescription>Nenhum item encontrado</CardDescription>
+          </CardHeader>
+        </Card>
+      );
+    }
+
+    // Se os itens do array são objetos com propriedade 'name'
+    if (typeof value[0] === 'object' && value[0] !== null && 'name' in value[0]) {
+      return (
+        <Card key={field.key}>
+          <CardHeader>
+            <CardTitle>{field.label}</CardTitle>
+            <CardDescription>{value.length} {value.length === 1 ? 'item' : 'itens'}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {value.map((item: { name: string }, index: number) => (
+              <div key={index}>
+                <div className="flex items-center justify-between py-2">
+                  <span className="font-medium text-sm text-muted-foreground">
+                    {index + 1}.
+                  </span>
+                  <div className="text-right">
+                    <span className="text-sm">{item.name}</span>
+                  </div>
+                </div>
+                {index < value.length - 1 && <Separator />}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      );
+    }
+
+    // Se os itens são strings
+    if (typeof value[0] === 'string') {
+      return (
+        <Card key={field.key}>
+          <CardHeader>
+            <CardTitle>{field.label}</CardTitle>
+            <CardDescription>{value.length} {value.length === 1 ? 'item' : 'itens'}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {value.map((item: string, index: number) => (
+              <div key={index}>
+                <div className="flex items-center justify-between py-2">
+                  <span className="font-medium text-sm text-muted-foreground">
+                    {index + 1}.
+                  </span>
+                  <div className="text-right">
+                    <span className="text-sm">{item}</span>
+                  </div>
+                </div>
+                {index < value.length - 1 && <Separator />}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      );
+    }
+
+    // Fallback para outros tipos de arrays
+    return (
+      <Card key={field.key}>
+        <CardHeader>
+          <CardTitle>{field.label}</CardTitle>
+          <CardDescription>{value.length} {value.length === 1 ? 'item' : 'itens'}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm">{JSON.stringify(value)}</p>
+        </CardContent>
+      </Card>
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -139,14 +240,14 @@ export const ItemDetail = ({
         </div>
       </div>
 
-      {/* Content */}
+      {/* Content - Card Principal */}
       <Card>
         <CardHeader>
           <CardTitle>Detalhes</CardTitle>
           <CardDescription>Informações completas do item</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {fields.map((field, index) => {
+          {regularFields.map((field, index) => {
             const value = data[field.key];
             const formattedValue = formatValue(value, field);
             
@@ -157,19 +258,18 @@ export const ItemDetail = ({
                     {field.label}
                   </span>
                   <div className="text-right">
-                    {field.type === 'array' ? (
-                      <Badge variant="secondary">{formattedValue as React.ReactNode}</Badge>
-                    ) : (
-                      <span className="text-sm">{formattedValue as React.ReactNode}</span>
-                    )}
+                    <span className="text-sm">{formattedValue as React.ReactNode}</span>
                   </div>
                 </div>
-                {index < fields.length - 1 && <Separator />}
+                {index < regularFields.length - 1 && <Separator />}
               </div>
             );
           })}
         </CardContent>
       </Card>
+
+      {/* Cards de Arrays */}
+      {arrayFields.map(field => renderArrayCard(field))}
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>

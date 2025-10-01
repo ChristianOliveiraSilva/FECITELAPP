@@ -4,35 +4,74 @@ import { apiService, ApiResponse } from "@/lib/api";
 interface UseApiCrudProps<T> {
   endpoint: string;
   initialData?: T[];
-  customCreateEndpoint?: string;
-  customUpdateEndpoint?: string;
-  useFormData?: boolean;
+}
+
+interface FilterParams {
+  skip?: number;
+  limit?: number;
+  [key: string]: any;
 }
 
 export const useApiCrud = <T extends Record<string, unknown>>({ 
   endpoint, 
-  initialData = [],
-  customCreateEndpoint,
-  customUpdateEndpoint,
-  useFormData = false
+  initialData = []
 }: UseApiCrudProps<T>) => {
   const [data, setData] = useState<T[]>(initialData);
   const [originalData, setOriginalData] = useState<T[]>(initialData);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [totalItems, setTotalItems] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(15);
+  const [filters, setFilters] = useState<Record<string, string>>({});
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (params?: FilterParams) => {
     setLoading(true);
     setError(null);
     
     try {
-      const response = await apiService.get<T>(endpoint, {
-        limit: 1000,
+      const queryParams = {
+        skip: ((currentPage - 1) * pageSize),
+        limit: pageSize,
+        ...filters,
+        ...params
+      };
+
+      // Adicionar parâmetros de ordenação se existirem
+      if (sortColumn) {
+        queryParams.sort_by = sortColumn;
+        queryParams.sort_order = sortDirection;
+      }
+
+      // Remove filtros vazios
+      Object.keys(queryParams).forEach(key => {
+        if (queryParams[key] === '' || queryParams[key] === null || queryParams[key] === undefined) {
+          delete queryParams[key];
+        }
       });
+
+      const response = await apiService.get<T>(endpoint, queryParams);
       
       if (response.status) {
         setData(response.data);
-        setOriginalData(response.data);
+        // Se for a primeira carga, também salva como dados originais
+        if (currentPage === 1 && Object.keys(filters).length === 0) {
+          setOriginalData(response.data);
+        }
+        // Tentar extrair total de response.meta ou usar fallback
+        if (response.meta && typeof response.meta.total === 'number') {
+          setTotalItems(response.meta.total);
+        } else if (response.total && typeof response.total === 'number') {
+          setTotalItems(response.total);
+        } else {
+          // Fallback: se não há mais páginas, usar o total atual
+          setTotalItems(response.data.length < pageSize ? 
+            (currentPage - 1) * pageSize + response.data.length : 
+            currentPage * pageSize + 1
+          );
+        }
       } else {
         setError(response.message);
       }
@@ -41,11 +80,26 @@ export const useApiCrud = <T extends Record<string, unknown>>({
     } finally {
       setLoading(false);
     }
-  }, [endpoint]);
+  }, [endpoint, currentPage, pageSize, filters]);
 
+  // Effect para recarregar dados quando filtros, página ou tamanho da página mudarem
   useEffect(() => {
     loadData();
-  }, [endpoint, loadData]);
+  }, [loadData]);
+
+  const handleFiltersChange = useCallback((
+    newFilters: Record<string, string>, 
+    newSortColumn: string | null, 
+    newSortDirection: 'asc' | 'desc', 
+    newPage: number, 
+    newPageSize: number
+  ) => {
+    setFilters(newFilters);
+    setSortColumn(newSortColumn);
+    setSortDirection(newSortDirection);
+    setCurrentPage(newPage);
+    setPageSize(newPageSize);
+  }, []);
 
   const addItem = async (newItem: T) => {
     setLoading(true);
@@ -54,7 +108,9 @@ export const useApiCrud = <T extends Record<string, unknown>>({
     try {
       let response;
       
-      if (useFormData && customCreateEndpoint) {
+      const hasFile = Object.values(newItem).some(value => value instanceof File);
+      
+      if (hasFile) {
         const formData = new FormData();
         Object.entries(newItem).forEach(([key, value]) => {
           if (value instanceof File) {
@@ -63,8 +119,7 @@ export const useApiCrud = <T extends Record<string, unknown>>({
             formData.append(key, String(value));
           }
         });
-        
-        response = await apiService.createWithFormData<T>(customCreateEndpoint, formData);
+        response = await apiService.createWithFormData<T>(endpoint, formData);
       } else {
         response = await apiService.create<T>(endpoint, newItem);
       }
@@ -82,7 +137,6 @@ export const useApiCrud = <T extends Record<string, unknown>>({
   };
 
   const updateItem = async (id: string | number, updatedItem: T) => {
-    
     setLoading(true);
     setError(null);
     
@@ -91,7 +145,7 @@ export const useApiCrud = <T extends Record<string, unknown>>({
       
       const hasFile = Object.values(updatedItem).some(value => value instanceof File);
       
-      if (useFormData && hasFile && customUpdateEndpoint) {
+      if (hasFile) {
         const formData = new FormData();
         Object.entries(updatedItem).forEach(([key, value]) => {
           if (value instanceof File) {
@@ -100,8 +154,7 @@ export const useApiCrud = <T extends Record<string, unknown>>({
             formData.append(key, String(value));
           }
         });
-        
-        response = await apiService.updateWithFormData<T>(customUpdateEndpoint, id, formData);
+        response = await apiService.updateWithFormData<T>(endpoint, id, formData);
       } else {
         response = await apiService.update<T>(endpoint, id, updatedItem);
       }
@@ -119,7 +172,6 @@ export const useApiCrud = <T extends Record<string, unknown>>({
   };
 
   const deleteItem = async (id: string | number) => {
-    
     setLoading(true);
     setError(null);
     
@@ -146,10 +198,17 @@ export const useApiCrud = <T extends Record<string, unknown>>({
     data,
     loading,
     error,
+    totalItems,
+    currentPage,
+    pageSize,
+    filters,
+    sortColumn,
+    sortDirection,
     addItem,
     updateItem,
     deleteItem,
     getOriginalItem,
     refreshData: loadData,
+    handleFiltersChange,
   };
-}; 
+};
