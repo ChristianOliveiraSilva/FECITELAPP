@@ -39,7 +39,7 @@ const columns = [
   },
   { 
     key: "school_grade", 
-    label: "Série", 
+    label: "Grade Escolar", 
     sortable: true, 
     filterable: true, 
     filterType: 'select' as const,
@@ -62,27 +62,13 @@ const columns = [
     sortable: true, 
     filterable: true, 
     filterType: 'text' as const 
-  },
-  { 
-    key: "projects_count", 
-    label: "Projetos", 
-    sortable: false, 
-    filterable: true, 
-    filterType: 'number' as const 
-  },
-  { 
-    key: "created_at", 
-    label: "Criado em", 
-    sortable: true, 
-    filterable: true, 
-    filterType: 'date' as const 
   }
 ];
 
 const formFields = [
   {
     name: "name",
-    label: "Nome do Estudante",
+    label: "Nome",
     type: "text" as const,
     required: true,
     placeholder: "Digite o nome do estudante"
@@ -96,7 +82,7 @@ const formFields = [
   },
   {
     name: "school_grade",
-    label: "Série",
+    label: "Grade Escolar",
     type: "select" as const,
     required: true,
     placeholder: "Selecione a série",
@@ -124,15 +110,12 @@ const formFields = [
 ];
 
 const detailFields = [
-  { key: "id", label: "ID", type: "number" as const },
   { key: "name", label: "Nome", type: "text" as const },
   { key: "email", label: "Email", type: "text" as const },
-  { key: "school_grade", label: "Série", type: "text" as const },
+  { key: "school_grade", label: "Grade Escolar", type: "text" as const },
   { key: "year", label: "Ano", type: "number" as const },
   { key: "school_name", label: "Escola", type: "text" as const },
-  { key: "projects_count", label: "Projetos", type: "array" as const },
-  { key: "created_at", label: "Criado em", type: "date" as const },
-  { key: "updated_at", label: "Atualizado em", type: "date" as const }
+  { key: "projects", label: "Projetos", type: "array" as const }
 ];
 
 const transformData = (item: Estudante): Record<string, ReactNode> => ({
@@ -143,7 +126,6 @@ const transformData = (item: Estudante): Record<string, ReactNode> => ({
   year: item.year,
   school_id: item.school_id,
   school_name: item.school?.name || "-",
-  projects_count: item.projects?.length || 0,
   created_at: item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : "-",
   updated_at: item.updated_at
 });
@@ -178,7 +160,6 @@ export const EstudantesPage = ({ view }: EstudantesPageProps) => {
       detailFields={detailFields}
       transformData={transformData}
       transformCurrentItem={transformCurrentItem}
-      useFilters={true}
       deleteConfirmMessage={(item) => `Tem certeza que deseja excluir o estudante "${item.name}"? Esta ação não pode ser desfeita.`}
       basePath="/dashboard/estudantes"
     />

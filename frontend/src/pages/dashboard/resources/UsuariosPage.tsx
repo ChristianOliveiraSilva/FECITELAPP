@@ -151,7 +151,6 @@ export const UsuariosPage = ({ view }: UsuariosPageProps) => {
       detailFields={detailFields}
       transformData={transformData}
       transformCurrentItem={transformCurrentItem}
-      useFilters={true}
       deleteConfirmMessage={(item) => `Tem certeza que deseja excluir o usuário "${item.name}"? Esta ação não pode ser desfeita.`}
       basePath="/dashboard/usuarios"
     />

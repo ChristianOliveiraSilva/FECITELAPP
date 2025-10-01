@@ -51,7 +51,7 @@ const columns = [
   },
   { 
     key: "number_alternatives", 
-    label: "Alternativas", 
+    label: "Nº Alternativas", 
     sortable: true, 
     filterable: true, 
     filterType: 'number' as const 
@@ -65,24 +65,10 @@ const columns = [
   },
   { 
     key: "responses_count", 
-    label: "Respostas", 
+    label: "Nº de Respostas", 
     sortable: false, 
     filterable: true, 
     filterType: 'number' as const 
-  },
-  { 
-    key: "awards_count", 
-    label: "Premiações", 
-    sortable: false, 
-    filterable: true, 
-    filterType: 'number' as const 
-  },
-  { 
-    key: "created_at", 
-    label: "Criado em", 
-    sortable: true, 
-    filterable: true, 
-    filterType: 'date' as const 
   }
 ];
 
@@ -114,7 +100,7 @@ const formFields = [
   },
   {
     name: "number_alternatives",
-    label: "Número de Alternativas",
+    label: "Nº Alternativas",
     type: "number" as const,
     required: true,
     placeholder: "Digite o número de alternativas"
@@ -129,16 +115,13 @@ const formFields = [
 ];
 
 const detailFields = [
-  { key: "id", label: "ID", type: "number" as const },
   { key: "scientific_text", label: "Texto Científico", type: "text" as const },
   { key: "technological_text", label: "Texto Tecnológico", type: "text" as const },
   { key: "type", label: "Tipo", type: "text" as const },
-  { key: "number_alternatives", label: "Número de Alternativas", type: "number" as const },
+  { key: "number_alternatives", label: "Nº Alternativas", type: "number" as const },
   { key: "year", label: "Ano", type: "number" as const },
-  { key: "responses_count", label: "Respostas", type: "array" as const },
-  { key: "awards_count", label: "Premiações", type: "array" as const },
-  { key: "created_at", label: "Criado em", type: "date" as const },
-  { key: "updated_at", label: "Atualizado em", type: "date" as const }
+  { key: "responses_count", label: "Nº de Respostas", type: "array" as const },
+  { key: "responses", label: "Respostas", type: "array" as const }
 ];
 
 const transformData = (item: Pergunta): Record<string, ReactNode> => ({
@@ -149,7 +132,6 @@ const transformData = (item: Pergunta): Record<string, ReactNode> => ({
   number_alternatives: item.number_alternatives,
   year: item.year,
   responses_count: item.responses?.length || 0,
-  awards_count: item.awards?.length || 0,
   created_at: item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : "-",
   updated_at: item.updated_at
 });
@@ -162,7 +144,7 @@ const transformCurrentItem = (item: Pergunta): Record<string, unknown> => ({
   number_alternatives: item.number_alternatives,
   year: item.year,
   responses_count: item.responses?.length || 0,
-  awards_count: item.awards?.length || 0,
+  responses: item.responses || [],
   created_at: item.created_at,
   updated_at: item.updated_at
 });
@@ -185,7 +167,6 @@ export const PerguntasPage = ({ view }: PerguntasPageProps) => {
       detailFields={detailFields}
       transformData={transformData}
       transformCurrentItem={transformCurrentItem}
-      useFilters={true}
       deleteConfirmMessage={() => `Tem certeza que deseja excluir esta pergunta? Esta ação não pode ser desfeita.`}
       basePath="/dashboard/perguntas"
     />

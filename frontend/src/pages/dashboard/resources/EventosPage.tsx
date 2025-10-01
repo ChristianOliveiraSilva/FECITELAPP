@@ -16,7 +16,7 @@ const columns = [
     key: "year", 
     label: "Ano", 
     sortable: true, 
-    filterable: true, 
+    filterable: false, 
     filterType: 'number' as const 
   },
   { 
@@ -27,7 +27,7 @@ const columns = [
   },
   { 
     key: "app_font_color", 
-    label: "Cor da Fonte", 
+    label: "Cor Fonte", 
     sortable: false, 
     filterable: false 
   },
@@ -36,20 +36,13 @@ const columns = [
     label: "Logo", 
     sortable: false, 
     filterable: false 
-  },
-  { 
-    key: "created_at", 
-    label: "Criado em", 
-    sortable: true, 
-    filterable: true, 
-    filterType: 'date' as const 
   }
 ];
 
 const formFields = [
   {
     name: "year",
-    label: "Ano do Evento",
+    label: "Ano",
     type: "number" as const,
     required: true,
     placeholder: "Digite o ano do evento"
@@ -63,7 +56,7 @@ const formFields = [
   },
   {
     name: "app_font_color",
-    label: "Cor da Fonte",
+    label: "Cor Fonte",
     type: "color" as const,
     required: true,
     placeholder: "Selecione a cor da fonte"
@@ -78,13 +71,10 @@ const formFields = [
 ];
 
 const detailFields = [
-  { key: "id", label: "ID", type: "number" as const },
   { key: "year", label: "Ano", type: "number" as const },
   { key: "app_primary_color", label: "Cor Primária", type: "text" as const },
-  { key: "app_font_color", label: "Cor da Fonte", type: "text" as const },
-  { key: "app_logo_url", label: "Logo", type: "text" as const },
-  { key: "created_at", label: "Criado em", type: "date" as const },
-  { key: "updated_at", label: "Atualizado em", type: "date" as const }
+  { key: "app_font_color", label: "Cor Fonte", type: "text" as const },
+  { key: "app_logo_url", label: "Logo", type: "image" as const }
 ];
 
 const transformData = (item: Evento): Record<string, ReactNode> => ({
@@ -110,7 +100,7 @@ const transformData = (item: Evento): Record<string, ReactNode> => ({
   ),
   app_logo_url: item.app_logo_url ? (
     <img 
-      src={item.app_logo_url as string} 
+      src={`${import.meta.env.VITE_API_URL}${item.app_logo_url as string}`} 
       alt="Logo" 
       className="w-8 h-8 object-contain"
     />
@@ -128,23 +118,6 @@ const transformCurrentItem = (item: Evento): Record<string, unknown> => ({
   created_at: item.created_at,
   updated_at: item.updated_at
 });
-
-const handleCustomSubmit = async (
-  formData: Record<string, unknown>,
-  view: 'create' | 'edit',
-  params: any
-) => {
-  const formDataToSend = new FormData();
-  formDataToSend.append('year', String(formData.year));
-  formDataToSend.append('app_primary_color', String(formData.app_primary_color));
-  formDataToSend.append('app_font_color', String(formData.app_font_color));
-  if (formData.logo && formData.logo instanceof File) {
-    formDataToSend.append('logo', formData.logo);
-  }
-  
-  // Esta lógica será tratada pelo DefaultPage após o retorno
-  return Promise.resolve();
-};
 
 interface EventosPageProps {
   view: 'list' | 'detail' | 'create' | 'edit';
@@ -164,7 +137,6 @@ export const EventosPage = ({ view }: EventosPageProps) => {
       detailFields={detailFields}
       transformData={transformData}
       transformCurrentItem={transformCurrentItem}
-      useFilters={true}
       deleteConfirmMessage={(item) => `Tem certeza que deseja excluir o evento do ano "${item.year}"? Esta ação não pode ser desfeita.`}
       basePath="/dashboard/eventos"
     />

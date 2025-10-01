@@ -37,39 +37,18 @@ const columns = [
     filterType: 'text' as const 
   },
   { 
-    key: "year", 
-    label: "Ano", 
-    sortable: true, 
-    filterable: true, 
-    filterType: 'number' as const 
-  },
-  { 
     key: "school_name", 
     label: "Escola", 
     sortable: true, 
     filterable: true, 
     filterType: 'text' as const 
-  },
-  { 
-    key: "projects_count", 
-    label: "Projetos", 
-    sortable: false, 
-    filterable: true, 
-    filterType: 'number' as const 
-  },
-  { 
-    key: "created_at", 
-    label: "Criado em", 
-    sortable: true, 
-    filterable: true, 
-    filterType: 'date' as const 
   }
 ];
 
 const formFields = [
   {
     name: "name",
-    label: "Nome do Orientador",
+    label: "Nome",
     type: "text" as const,
     required: true,
     placeholder: "Digite o nome do orientador"
@@ -82,13 +61,6 @@ const formFields = [
     placeholder: "Digite o email do orientador"
   },
   {
-    name: "year",
-    label: "Ano",
-    type: "number" as const,
-    required: true,
-    placeholder: "Digite o ano"
-  },
-  {
     name: "school_id",
     label: "Escola",
     type: "select" as const,
@@ -99,14 +71,10 @@ const formFields = [
 ];
 
 const detailFields = [
-  { key: "id", label: "ID", type: "number" as const },
   { key: "name", label: "Nome", type: "text" as const },
   { key: "email", label: "Email", type: "text" as const },
-  { key: "year", label: "Ano", type: "number" as const },
   { key: "school_name", label: "Escola", type: "text" as const },
-  { key: "projects_count", label: "Projetos", type: "array" as const },
-  { key: "created_at", label: "Criado em", type: "date" as const },
-  { key: "updated_at", label: "Atualizado em", type: "date" as const }
+  { key: "projects", label: "Projetos", type: "array" as const }
 ];
 
 const transformData = (item: Orientador): Record<string, ReactNode> => ({
@@ -116,7 +84,6 @@ const transformData = (item: Orientador): Record<string, ReactNode> => ({
   year: item.year,
   school_id: item.school_id,
   school_name: item.school?.name || "-",
-  projects_count: item.projects?.length || 0,
   created_at: item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : "-",
   updated_at: item.updated_at
 });
@@ -127,7 +94,7 @@ const transformCurrentItem = (item: Orientador): Record<string, unknown> => ({
   email: item.email || "-",
   year: item.year,
   school_name: item.school?.name || "-",
-  projects_count: item.projects?.length || 0,
+  projects: item.projects || [],
   created_at: item.created_at,
   updated_at: item.updated_at
 });
@@ -150,7 +117,6 @@ export const OrientadoresPage = ({ view }: OrientadoresPageProps) => {
       detailFields={detailFields}
       transformData={transformData}
       transformCurrentItem={transformCurrentItem}
-      useFilters={true}
       deleteConfirmMessage={(item) => `Tem certeza que deseja excluir o orientador "${item.name}"? Esta ação não pode ser desfeita.`}
       basePath="/dashboard/orientadores"
     />

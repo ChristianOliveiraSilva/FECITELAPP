@@ -1,5 +1,4 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useApiCrudWithFilters } from "@/hooks/use-api-crud-with-filters";
 import { useApiCrud } from "@/hooks/use-api-crud";
 import { apiService } from "@/lib/api";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -32,7 +31,7 @@ interface FormField {
 interface DetailField {
   key: string;
   label: string;
-  type: 'text' | 'number' | 'date' | 'boolean' | 'array';
+  type: 'text' | 'number' | 'date' | 'boolean' | 'array' | 'image';
 }
 
 interface DefaultPageProps<T extends Record<string, unknown>> {
@@ -56,7 +55,6 @@ interface DefaultPageProps<T extends Record<string, unknown>> {
   transformCurrentItem: (item: T) => Record<string, unknown>;
   
   // Customizações opcionais
-  useFilters?: boolean;
   selectable?: boolean;
   actionButtons?: (selectedItems: Record<string, unknown>[]) => ReactNode;
   deleteConfirmMessage?: (item: T) => string;
@@ -76,7 +74,6 @@ export function DefaultPage<T extends Record<string, unknown>>({
   detailFields,
   transformData,
   transformCurrentItem,
-  useFilters = true,
   selectable = false,
   actionButtons,
   deleteConfirmMessage,
@@ -90,11 +87,6 @@ export function DefaultPage<T extends Record<string, unknown>>({
   const [itemError, setItemError] = useState<string | null>(null);
   const [itemToDelete, setItemToDelete] = useState<T | null>(null);
 
-  // Use conditional hook based on useFilters prop
-  const crudWithFilters = useApiCrudWithFilters<T>({ endpoint });
-  const crudWithoutFilters = useApiCrud<T>({ endpoint });
-  const crudHook = useFilters ? crudWithFilters : crudWithoutFilters;
-
   const {
     data,
     loading,
@@ -102,11 +94,10 @@ export function DefaultPage<T extends Record<string, unknown>>({
     addItem,
     updateItem,
     deleteItem,
-  } = crudHook;
-
-  const totalItems = 'totalItems' in crudHook ? crudHook.totalItems : undefined;
-  const currentPage = 'currentPage' in crudHook ? crudHook.currentPage : undefined;
-  const handleFiltersChange = 'handleFiltersChange' in crudHook ? crudHook.handleFiltersChange : undefined;
+    totalItems,
+    currentPage,
+    handleFiltersChange,
+  } = useApiCrud<T>({ endpoint });
 
   const fetchItem = useCallback(async (id: number) => {
     setLoadingItem(true);
@@ -231,7 +222,7 @@ export function DefaultPage<T extends Record<string, unknown>>({
         onFiltersChange={handleFiltersChange}
         totalItems={totalItems}
         currentPage={currentPage}
-        enableApiFiltering={useFilters}
+        enableApiFiltering={true}
       />
 
       <AlertDialog open={!!itemToDelete} onOpenChange={() => setItemToDelete(null)}>

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File, Form, Request
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session, joinedload
 from app.database import get_db
@@ -305,16 +305,28 @@ async def create_project(
 @router.put("/{project_id}", response_model=ProjectDetailResponse)
 async def update_project(
     project_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
     title: Optional[str] = Form(None),
     description: Optional[str] = Form(None),
     year: Optional[int] = Form(None),
     category_id: Optional[int] = Form(None),
     projectType: Optional[int] = Form(None),
     external_id: Optional[str] = Form(None),
-    file: Optional[UploadFile] = File(None),
-    db: Session = Depends(get_db)
+    file: Optional[UploadFile] = File(None)
 ):
     try:
+        content_type = request.headers.get("content-type", "")
+        
+        if "application/json" in content_type:
+            body = await request.json()
+            title = body.get("title")
+            description = body.get("description")
+            year = body.get("year")
+            category_id = body.get("category_id")
+            projectType = body.get("projectType")
+            external_id = body.get("external_id")
+        
         project = db.query(Project).filter(Project.id == project_id).first()
         
         if not project:

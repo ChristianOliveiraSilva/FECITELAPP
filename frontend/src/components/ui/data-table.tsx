@@ -445,15 +445,17 @@ export const DataTable = ({
             )}
             
             {/* Botão para mostrar/ocultar filtros */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center gap-2"
-            >
-              <Filter className="h-4 w-4" />
-              <span className="hidden sm:inline">Filtros</span>
-            </Button>
+            {columns.filter(col => !!col.filterable).length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowFilters(!showFilters)}
+                className="flex items-center gap-2"
+              >
+                <Filter className="h-4 w-4" />
+                <span className="hidden sm:inline">Filtros</span>
+              </Button>
+            )}
             
             {/* Kebab menu para ações em lote */}
             {(baseEndpoint || onImport || onDownloadTemplate || onExportCsv) && (
@@ -505,14 +507,16 @@ export const DataTable = ({
               </Button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-              {columns.map((column) => (
-                <div key={column.key} className="space-y-2">
-                  <label className="text-xs font-medium text-muted-foreground">
-                    {column.label}
-                  </label>
-                  {renderColumnFilter(column)}
-                </div>
-              ))}
+              {columns
+                .filter((column) => !!column.filterable)
+                .map((column) => (
+                  <div key={column.key} className="space-y-2">
+                    <label className="text-xs font-medium text-muted-foreground">
+                      {column.label}
+                    </label>
+                    {renderColumnFilter(column)}
+                  </div>
+                ))}
             </div>
           </div>
         )}

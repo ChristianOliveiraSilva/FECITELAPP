@@ -14,7 +14,7 @@ interface ItemDetailProps {
   fields: Array<{
     key: string;
     label: string;
-    type?: 'text' | 'date' | 'number' | 'boolean' | 'array' | 'object';
+    type?: 'text' | 'date' | 'number' | 'boolean' | 'array' | 'object' | 'image';
     format?: (value: unknown) => string;
   }>;
   onEdit?: () => void;
@@ -92,6 +92,8 @@ export const ItemDetail = ({
         return 0;
       case 'object':
         return typeof value === 'object' ? JSON.stringify(value) : value;
+      case 'image':
+        return value ? <img src={`${import.meta.env.VITE_API_URL}${value as string}`} alt="Imagem" className="w-8 h-8 object-contain" /> : "-";
       default:
         return String(value);
     }

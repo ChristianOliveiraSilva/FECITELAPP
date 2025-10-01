@@ -207,7 +207,6 @@ export const PremiacoesPage = ({ view }: PremiacoesPageProps) => {
       detailFields={detailFields}
       transformData={transformData}
       transformCurrentItem={transformCurrentItem}
-      useFilters={false}
       deleteConfirmMessage={(item) => `Tem certeza que deseja excluir a premiação "${item.name}"? Esta ação não pode ser desfeita.`}
       basePath="/dashboard/premiacoes"
     />

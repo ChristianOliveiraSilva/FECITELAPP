@@ -212,7 +212,6 @@ export const AvaliadoresPage = ({ view }: AvaliadoresPageProps) => {
       detailFields={detailFields}
       transformData={transformData}
       transformCurrentItem={transformCurrentItem}
-      useFilters={true}
       selectable={true}
       actionButtons={createActionButtons}
       deleteConfirmMessage={(item) => `Tem certeza que deseja excluir o avaliador "${item.user?.name}"? Esta ação não pode ser desfeita.`}

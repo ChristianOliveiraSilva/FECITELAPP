@@ -137,7 +137,6 @@ export const EscolasPage = ({ view }: EscolasPageProps) => {
       detailFields={detailFields}
       transformData={transformData}
       transformCurrentItem={transformCurrentItem}
-      useFilters={true}
       deleteConfirmMessage={(item) => `Tem certeza que deseja excluir a escola "${item.name}"? Esta ação não pode ser desfeita.`}
       basePath="/dashboard/escolas"
     />

@@ -70,7 +70,7 @@ class ApiService {
     });
 
     const year = this.getYear();
-    if (year) {
+    if (year && !params.year) {
       searchParams.append('year', year);
     }
 
@@ -86,7 +86,7 @@ class ApiService {
 
   async create<T>(endpoint: string, data: Record<string, unknown>): Promise<ApiResponse<T>> {
     const year = this.getYear();
-    if (year) {
+    if (year && !data.year) {
       data.year = year;
     }
 
@@ -107,7 +107,7 @@ class ApiService {
     }
 
     const year = this.getYear();
-    if (year) {
+    if (year && !formData.has('year')) {
       formData.append('year', year);
     }
     
@@ -150,7 +150,7 @@ class ApiService {
     }
 
     const year = this.getYear();
-    if (year) {
+    if (year && !formData.has('year')) {
       formData.append('year', year);
     }
     

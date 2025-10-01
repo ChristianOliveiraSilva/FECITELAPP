@@ -52,25 +52,11 @@ const columns = [
     filterType: 'number' as const 
   },
   { 
-    key: "evaluators_count", 
-    label: "Avaliadores", 
-    sortable: false, 
-    filterable: true, 
-    filterType: 'number' as const 
-  },
-  { 
     key: "sub_categories_count", 
     label: "Sub-categorias", 
     sortable: false, 
     filterable: true, 
     filterType: 'number' as const 
-  },
-  { 
-    key: "created_at", 
-    label: "Criado em", 
-    sortable: true, 
-    filterable: true, 
-    filterType: 'date' as const 
   }
 ];
 
@@ -84,23 +70,20 @@ const formFields = [
   },
   {
     name: "main_category_id",
-    label: "Categoria Principal",
+    label: "Categoria Pai",
     type: "select" as const,
     required: false,
-    placeholder: "Selecione a categoria principal",
+    placeholder: "Selecione a categoria pai",
     options: []
   }
 ];
 
 const detailFields = [
-  { key: "id", label: "ID", type: "number" as const },
   { key: "name", label: "Nome da Área", type: "text" as const },
   { key: "main_category_name", label: "Categoria Principal", type: "text" as const },
-  { key: "projects_count", label: "Projetos", type: "array" as const },
-  { key: "evaluators_count", label: "Avaliadores", type: "array" as const },
-  { key: "sub_categories_count", label: "Sub-categorias", type: "array" as const },
-  { key: "created_at", label: "Criado em", type: "date" as const },
-  { key: "updated_at", label: "Atualizado em", type: "date" as const }
+  { key: "projects_count", label: "Nº de Projetos", type: "array" as const },
+  { key: "sub_categories_count", label: "Nº de Sub-categorias", type: "array" as const },
+  { key: "sub_categories", label: "Sub-categorias", type: "array" as const }
 ];
 
 const transformData = (item: Area): Record<string, ReactNode> => ({
@@ -108,7 +91,6 @@ const transformData = (item: Area): Record<string, ReactNode> => ({
   name: item.name,
   main_category_name: item.main_category?.name || "-",
   projects_count: item.projects?.length || 0,
-  evaluators_count: item.evaluators?.length || 0,
   sub_categories_count: item.sub_categories?.length || 0,
   created_at: item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : "-",
   updated_at: item.updated_at
@@ -117,10 +99,11 @@ const transformData = (item: Area): Record<string, ReactNode> => ({
 const transformCurrentItem = (item: Area): Record<string, unknown> => ({
   id: item.id,
   name: item.name,
+  main_category_id: item.main_category_id,
   main_category_name: item.main_category?.name || "-",
   projects_count: item.projects?.length || 0,
-  evaluators_count: item.evaluators?.length || 0,
   sub_categories_count: item.sub_categories?.length || 0,
+  sub_categories: item.sub_categories || [],
   created_at: item.created_at,
   updated_at: item.updated_at
 });
@@ -143,7 +126,6 @@ export const AreasPage = ({ view }: AreasPageProps) => {
       detailFields={detailFields}
       transformData={transformData}
       transformCurrentItem={transformCurrentItem}
-      useFilters={true}
       deleteConfirmMessage={(item) => `Tem certeza que deseja excluir a área "${item.name}"? Esta ação não pode ser desfeita.`}
       basePath="/dashboard/areas"
     />

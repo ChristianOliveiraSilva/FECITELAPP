@@ -78,31 +78,24 @@ const columns = [
   },
   { 
     key: "students_count", 
-    label: "Estudantes", 
+    label: "Nº de Estudantes", 
     sortable: false,
     filterable: true,
     filterType: 'number' as const
   },
   { 
     key: "assessments_count", 
-    label: "Avaliações", 
+    label: "Nº de Avaliações", 
     sortable: false,
     filterable: true,
     filterType: 'number' as const
-  },
-  { 
-    key: "created_at", 
-    label: "Criado em", 
-    sortable: true,
-    filterable: true,
-    filterType: 'date' as const
   }
 ];
 
 const formFields = [
   {
     name: "title",
-    label: "Título do Projeto",
+    label: "Título",
     type: "text" as const,
     required: true,
     placeholder: "Digite o título do projeto"
@@ -142,14 +135,14 @@ const formFields = [
   },
   {
     name: "external_id",
-    label: "ID Externo",
+    label: "External ID",
     type: "text" as const,
     required: false,
     placeholder: "Digite o ID externo"
   },
   {
     name: "file",
-    label: "Arquivo",
+    label: "File",
     type: "file" as const,
     required: true,
     accept: ".pdf,.doc,.docx"
@@ -157,18 +150,15 @@ const formFields = [
 ];
 
 const detailFields = [
-  { key: "id", label: "ID", type: "number" as const },
   { key: "title", label: "Título", type: "text" as const },
   { key: "description", label: "Descrição", type: "text" as const },
-  { key: "external_id", label: "ID Externo", type: "text" as const },
-  { key: "category_name", label: "Categoria", type: "text" as const },
-  { key: "project_type", label: "Tipo", type: "text" as const },
   { key: "year", label: "Ano", type: "number" as const },
-  { key: "students_count", label: "Estudantes", type: "array" as const },
-  { key: "assessments_count", label: "Avaliações", type: "array" as const },
-  { key: "file", label: "Arquivo", type: "text" as const },
-  { key: "created_at", label: "Criado em", type: "date" as const },
-  { key: "updated_at", label: "Atualizado em", type: "date" as const }
+  { key: "category_name", label: "Categoria", type: "text" as const },
+  { key: "project_type", label: "Tipo de Projeto", type: "text" as const },
+  { key: "external_id", label: "External ID", type: "text" as const },
+  { key: "file", label: "File", type: "text" as const },
+  { key: "students", label: "Estudantes", type: "array" as const },
+  { key: "assessments", label: "Avaliações", type: "array" as const }
 ];
 
 const handleGerarParticipacao = async (selectedItems: Record<string, unknown>[]) => {
@@ -299,13 +289,15 @@ const transformCurrentItem = (item: Projeto): Record<string, unknown> => ({
   id: item.id,
   title: item.title,
   description: item.description || "-",
+  year: item.year,
+  category_id: item.category_id,
+  projectType: item.projectType,
   external_id: item.external_id || "-",
+  file: item.file || "-",
   category_name: item.category?.name || "-",
   project_type: item.projectType === 1 ? "Científico" : "Tecnológico",
-  year: item.year,
-  students_count: item.students?.length || 0,
-  assessments_count: item.assessments?.length || 0,
-  file: item.file || "-",
+  students: item.students || [],
+  assessments: item.assessments || [],
   created_at: item.created_at,
   updated_at: item.updated_at
 });
@@ -328,7 +320,6 @@ export const ProjetosPage = ({ view }: ProjetosPageProps) => {
       detailFields={detailFields}
       transformData={transformData}
       transformCurrentItem={transformCurrentItem}
-      useFilters={true}
       selectable={true}
       actionButtons={createActionButtons}
       deleteConfirmMessage={(item) => `Tem certeza que deseja excluir o projeto "${item.title}"? Esta ação não pode ser desfeita.`}
