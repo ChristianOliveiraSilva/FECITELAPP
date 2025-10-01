@@ -20,7 +20,7 @@ interface Escola extends Record<string, unknown> {
 const columns = [
   { 
     key: "name", 
-    label: "Nome da Escola", 
+    label: "Nome", 
     sortable: true, 
     filterable: true, 
     filterType: 'text' as const 
@@ -51,34 +51,20 @@ const columns = [
     sortable: true, 
     filterable: true, 
     filterType: 'text' as const 
-  },
-  { 
-    key: "students_count", 
-    label: "Estudantes", 
-    sortable: false, 
-    filterable: true, 
-    filterType: 'number' as const 
-  },
-  { 
-    key: "created_at", 
-    label: "Criado em", 
-    sortable: true, 
-    filterable: true, 
-    filterType: 'date' as const 
   }
 ];
 
 const formFields = [
   {
     name: "name",
-    label: "Nome da Escola",
+    label: "Nome",
     type: "text" as const,
     required: true,
     placeholder: "Digite o nome da escola"
   },
   {
     name: "type",
-    label: "Tipo de Escola",
+    label: "Tipo",
     type: "select" as const,
     required: true,
     placeholder: "Selecione o tipo de escola",
@@ -105,14 +91,11 @@ const formFields = [
 ];
 
 const detailFields = [
-  { key: "id", label: "ID", type: "number" as const },
-  { key: "name", label: "Nome da Escola", type: "text" as const },
+  { key: "name", label: "Nome", type: "text" as const },
   { key: "type", label: "Tipo", type: "text" as const },
   { key: "city", label: "Cidade", type: "text" as const },
   { key: "state", label: "Estado", type: "text" as const },
-  { key: "students_count", label: "Estudantes", type: "array" as const },
-  { key: "created_at", label: "Criado em", type: "date" as const },
-  { key: "updated_at", label: "Atualizado em", type: "date" as const }
+  { key: "students", label: "Estudantes", type: "array" as const }
 ];
 
 const transformData = (item: Escola): Record<string, ReactNode> => ({
@@ -121,7 +104,6 @@ const transformData = (item: Escola): Record<string, ReactNode> => ({
   type: item.type || "-",
   city: item.city || "-",
   state: item.state || "-",
-  students_count: item.students?.length || 0,
   created_at: item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : "-",
   updated_at: item.updated_at
 });
@@ -132,7 +114,7 @@ const transformCurrentItem = (item: Escola): Record<string, unknown> => ({
   type: item.type || "-",
   city: item.city || "-",
   state: item.state || "-",
-  students_count: item.students?.length || 0,
+  students: item.students || [],
   created_at: item.created_at,
   updated_at: item.updated_at
 });
