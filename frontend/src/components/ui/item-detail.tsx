@@ -76,7 +76,20 @@ export const ItemDetail = ({
       case 'boolean':
         return value ? "Sim" : "Não";
       case 'array':
-        return Array.isArray(value) ? value.length : 0;
+        if (Array.isArray(value)) {
+          if (value.length === 0) return "Nenhum";
+
+          if (value.length > 0 && typeof value[0] === 'object' && value[0] !== null && 'name' in value[0]) {
+            return value.map((item: any) => item.name).join(', ');
+          }
+
+          if (typeof value[0] === 'string') {
+            return value.join(', ');
+          }
+          
+          return value.length;
+        }
+        return 0;
       case 'object':
         return typeof value === 'object' ? JSON.stringify(value) : value;
       default:
@@ -157,11 +170,7 @@ export const ItemDetail = ({
                     {field.label}
                   </span>
                   <div className="text-right">
-                    {field.type === 'array' ? (
-                      <Badge variant="secondary">{formattedValue as React.ReactNode}</Badge>
-                    ) : (
-                      <span className="text-sm">{formattedValue as React.ReactNode}</span>
-                    )}
+                    <span className="text-sm">{formattedValue as React.ReactNode}</span>
                   </div>
                 </div>
                 {index < fields.length - 1 && <Separator />}

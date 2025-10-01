@@ -3,7 +3,7 @@ import { useApiCrudWithFilters } from "@/hooks/use-api-crud-with-filters";
 import { useApiCrud } from "@/hooks/use-api-crud";
 import { apiService } from "@/lib/api";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { ReactNode, useState, useEffect } from "react";
+import { ReactNode, useState, useEffect, useCallback } from "react";
 import { ItemDetail } from "@/components/ui/item-detail";
 import { CrudFormPage } from "@/components/ui/crud-form-page";
 import { CrudListPage } from "@/components/ui/crud-list-page";
@@ -20,11 +20,13 @@ interface Column {
 interface FormField {
   name: string;
   label: string;
-  type: 'text' | 'email' | 'number' | 'select' | 'textarea' | 'color' | 'file';
+  type: 'text' | 'email' | 'number' | 'select' | 'multiselect' | 'textarea' | 'color' | 'file';
   required?: boolean;
   placeholder?: string;
   options?: Array<{ value: string; label: string }>;
   accept?: string;
+  generateButton?: boolean;
+  generateEndpoint?: string;
 }
 
 interface DetailField {
@@ -58,7 +60,7 @@ interface DefaultPageProps<T extends Record<string, unknown>> {
   selectable?: boolean;
   actionButtons?: (selectedItems: Record<string, unknown>[]) => ReactNode;
   deleteConfirmMessage?: (item: T) => string;
-  onCustomSubmit?: (formData: Record<string, unknown>, view: 'create' | 'edit', params: any) => Promise<void>;
+  onCustomSubmit?: (formData: Record<string, unknown>, view: 'create' | 'edit', params: Record<string, string | undefined>) => Promise<void>;
   
   // Caminhos de navegação
   basePath: string; // Ex: '/dashboard/usuarios'
@@ -89,9 +91,9 @@ export function DefaultPage<T extends Record<string, unknown>>({
   const [itemToDelete, setItemToDelete] = useState<T | null>(null);
 
   // Use conditional hook based on useFilters prop
-  const crudHook = useFilters 
-    ? useApiCrudWithFilters<T>({ endpoint })
-    : useApiCrud<T>({ endpoint });
+  const crudWithFilters = useApiCrudWithFilters<T>({ endpoint });
+  const crudWithoutFilters = useApiCrud<T>({ endpoint });
+  const crudHook = useFilters ? crudWithFilters : crudWithoutFilters;
 
   const {
     data,
@@ -106,14 +108,7 @@ export function DefaultPage<T extends Record<string, unknown>>({
   const currentPage = 'currentPage' in crudHook ? crudHook.currentPage : undefined;
   const handleFiltersChange = 'handleFiltersChange' in crudHook ? crudHook.handleFiltersChange : undefined;
 
-  // Fetch single item when viewing details or editing
-  useEffect(() => {
-    if ((view === 'detail' || view === 'edit') && params.id) {
-      fetchItem(parseInt(params.id));
-    }
-  }, [params.id, view]);
-
-  const fetchItem = async (id: number) => {
+  const fetchItem = useCallback(async (id: number) => {
     setLoadingItem(true);
     setItemError(null);
     try {
@@ -128,7 +123,14 @@ export function DefaultPage<T extends Record<string, unknown>>({
     } finally {
       setLoadingItem(false);
     }
-  };
+  }, [endpoint]);
+
+  // Fetch single item when viewing details or editing
+  useEffect(() => {
+    if ((view === 'detail' || view === 'edit') && params.id) {
+      fetchItem(parseInt(params.id));
+    }
+  }, [params.id, view, fetchItem]);
 
   const handleAdd = () => {
     navigate(`${basePath}/create`);

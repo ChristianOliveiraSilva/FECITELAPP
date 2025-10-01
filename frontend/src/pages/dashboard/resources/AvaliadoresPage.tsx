@@ -54,36 +54,11 @@ const columns = [
     filterType: 'text' as const 
   },
   { 
-    key: "user_active", 
-    label: "Ativo", 
+    key: "year", 
+    label: "Ano", 
     sortable: true, 
     filterable: true, 
-    filterType: 'select' as const,
-    filterOptions: [
-      { value: "true", label: "Sim" },
-      { value: "false", label: "Não" }
-    ]
-  },
-  { 
-    key: "categories_count", 
-    label: "Áreas", 
-    sortable: false, 
-    filterable: true, 
     filterType: 'number' as const 
-  },
-  { 
-    key: "assessments_count", 
-    label: "Avaliações", 
-    sortable: false, 
-    filterable: true, 
-    filterType: 'number' as const 
-  },
-  { 
-    key: "created_at", 
-    label: "Criado em", 
-    sortable: true, 
-    filterable: true, 
-    filterType: 'date' as const 
   }
 ];
 
@@ -93,7 +68,9 @@ const formFields = [
     label: "PIN",
     type: "text" as const,
     required: true,
-    placeholder: "Digite o PIN do avaliador"
+    placeholder: "Digite o PIN do avaliador",
+    generateButton: true,
+    generateEndpoint: "/api/v3/evaluators/generate-pin"
   },
   {
     name: "user_id",
@@ -102,19 +79,39 @@ const formFields = [
     required: true,
     placeholder: "Selecione o usuário",
     options: [] // Será preenchido dinamicamente
+  },
+  {
+    name: "year",
+    label: "Ano",
+    type: "number" as const,
+    required: true,
+    placeholder: "Digite o ano"
+  },
+  {
+    name: "categories",
+    label: "Categorias",
+    type: "multiselect" as const,
+    required: false,
+    placeholder: "Selecione as categorias",
+    options: [] // Será preenchido dinamicamente
+  },
+  {
+    name: "assessments",
+    label: "Avaliações",
+    type: "multiselect" as const,
+    required: false,
+    placeholder: "Selecione as avaliações",
+    options: [] // Será preenchido dinamicamente
   }
 ];
 
 const detailFields = [
-  { key: "id", label: "ID", type: "number" as const },
   { key: "PIN", label: "PIN", type: "text" as const },
   { key: "user_name", label: "Nome", type: "text" as const },
   { key: "user_email", label: "Email", type: "text" as const },
-  { key: "user_active", label: "Ativo", type: "boolean" as const },
-  { key: "categories_count", label: "Áreas", type: "array" as const },
-  { key: "assessments_count", label: "Avaliações", type: "array" as const },
-  { key: "created_at", label: "Criado em", type: "date" as const },
-  { key: "updated_at", label: "Atualizado em", type: "date" as const }
+  { key: "year", label: "Ano", type: "number" as const },
+  { key: "categories", label: "Categorias", type: "array" as const },
+  { key: "assessments", label: "Avaliações", type: "array" as const }
 ];
 
 const handleGerarInstrucoes = async (selectedItems: Record<string, unknown>[]) => {
@@ -179,9 +176,7 @@ const transformData = (item: Avaliador): Record<string, ReactNode> => ({
   user_id: item.user_id,
   user_name: item.user?.name || "-",
   user_email: item.user?.email || "-",
-  user_active: item.user?.active ? "Sim" : "Não",
-  categories_count: item.categories?.length || 0,
-  assessments_count: item.assessments?.length || 0,
+  year: item.assessments?.[0]?.project?.year || "-",
   created_at: item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : "-",
   updated_at: item.updated_at
 });
@@ -189,11 +184,12 @@ const transformData = (item: Avaliador): Record<string, ReactNode> => ({
 const transformCurrentItem = (item: Avaliador): Record<string, unknown> => ({
   id: item.id,
   PIN: item.PIN,
+  user_id: item.user_id,
   user_name: item.user?.name || "-",
   user_email: item.user?.email || "-",
-  user_active: item.user?.active || false,
-  categories_count: item.categories?.length || 0,
-  assessments_count: item.assessments?.length || 0,
+  year: item.assessments?.[0]?.project?.year || null,
+  categories: item.categories || [],
+  assessments: item.assessments || [],
   created_at: item.created_at,
   updated_at: item.updated_at
 });

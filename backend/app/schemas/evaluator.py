@@ -37,4 +37,9 @@ class EvaluatorListResponse(BaseModel):
 class EvaluatorDetailResponse(BaseModel):
     status: bool
     message: str
-    data: EvaluatorWithRelations 
+    data: EvaluatorWithRelations
+
+class PinGenerateResponse(BaseModel):
+    status: bool
+    message: str
+    data: dict 

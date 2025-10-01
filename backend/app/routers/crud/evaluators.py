@@ -5,7 +5,7 @@ from app.database import get_db
 from app.models.evaluator import Evaluator
 from app.models.user import User
 from app.schemas.evaluator import (
-    EvaluatorCreate, EvaluatorUpdate, EvaluatorListResponse, EvaluatorDetailResponse
+    EvaluatorCreate, EvaluatorUpdate, EvaluatorListResponse, EvaluatorDetailResponse, PinGenerateResponse
 )
 from typing import Optional
 import random
@@ -16,7 +16,6 @@ import pandas as pd
 import os
 import tempfile
 from sqlalchemy import and_
-
 router = APIRouter()
 
 @router.get("/", response_model=EvaluatorListResponse)
@@ -100,6 +99,40 @@ async def get_evaluators(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error retrieving evaluators: {str(e)}"
+        )
+
+@router.get("/generate-pin", response_model=PinGenerateResponse)
+async def generate_pin(db: Session = Depends(get_db)):
+    """Generate a unique PIN for evaluator"""
+    try:
+        max_attempts = 1000
+        attempts = 0
+        
+        while attempts < max_attempts:
+            pin = str(random.randint(1000, 9999))
+            
+            existing_pin = db.query(Evaluator).filter(Evaluator.PIN == pin).first()
+            
+            if not existing_pin:
+                return PinGenerateResponse(
+                    status=True,
+                    message="PIN gerado com sucesso",
+                    data={"PIN": pin}
+                )
+            
+            attempts += 1
+        
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Não foi possível gerar um PIN único. Tente novamente."
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao gerar PIN: {str(e)}"
         )
 
 @router.get("/{evaluator_id}", response_model=EvaluatorDetailResponse)

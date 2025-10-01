@@ -6,16 +6,27 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { X, Save, Plus } from "lucide-react";
+import { X, Save, Plus, RefreshCw } from "lucide-react";
+import { apiService } from "@/lib/api";
+
+interface GeneratePinResponse {
+  status: boolean;
+  message: string;
+  data: {
+    PIN: string;
+  };
+}
 
 interface Field {
   name: string;
   label: string;
-  type: "text" | "email" | "textarea" | "select" | "number" | "file" | "color";
+  type: "text" | "email" | "textarea" | "select" | "multiselect" | "number" | "file" | "color";
   required?: boolean;
   options?: { value: string; label: string }[];
   placeholder?: string;
   accept?: string;
+  generateButton?: boolean;
+  generateEndpoint?: string;
 }
 
 interface CrudFormProps {
@@ -40,6 +51,7 @@ export const CrudForm = ({
   const form = useForm({
     defaultValues: initialData
   });
+  const [generating, setGenerating] = useState<string | null>(null);
 
   useEffect(() => {
     if (initialData && Object.keys(initialData).length > 0) {
@@ -49,6 +61,39 @@ export const CrudForm = ({
 
   const handleSubmit = (data: Record<string, unknown>) => {
     onSubmit(data);
+  };
+
+  const generateValue = async (endpoint: string, fieldName: string) => {
+    setGenerating(fieldName);
+    try {
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL}${endpoint}`, {
+        method: 'GET',
+        headers,
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao gerar PIN');
+      }
+
+      const data: GeneratePinResponse = await response.json();
+      if (data.status && data.data?.PIN) {
+        form.setValue(fieldName, data.data.PIN);
+      }
+    } catch (error) {
+      console.error('Erro ao gerar valor:', error);
+      alert('Erro ao gerar PIN. Tente novamente.');
+    } finally {
+      setGenerating(null);
+    }
   };
 
   const renderField = (field: Field) => {
@@ -100,6 +145,78 @@ export const CrudForm = ({
                     ))}
                   </SelectContent>
                 </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        );
+
+      case "multiselect":
+        return (
+          <FormField
+            key={field.name}
+            control={form.control}
+            name={field.name}
+            rules={{ required: field.required && "Este campo é obrigatório" }}
+            render={({ field: formField }) => (
+              <FormItem>
+                <FormLabel>{field.label}</FormLabel>
+                <FormControl>
+                  <Select
+                    onValueChange={(value) => {
+                      const currentValues = Array.isArray(formField.value) ? formField.value : [];
+                      if (currentValues.includes(value)) {
+                        formField.onChange(currentValues.filter(v => v !== value));
+                      } else {
+                        formField.onChange([...currentValues, value]);
+                      }
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={field.placeholder || "Selecione as opções"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {field.options?.map((option) => {
+                        const isSelected = Array.isArray(formField.value) && formField.value.includes(option.value);
+                        return (
+                          <SelectItem 
+                            key={option.value} 
+                            value={option.value}
+                            className={isSelected ? "bg-accent" : ""}
+                          >
+                            {option.label}
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                {Array.isArray(formField.value) && formField.value.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {formField.value.map((value) => {
+                      const option = field.options?.find(opt => opt.value === value);
+                      return (
+                        <span
+                          key={value}
+                          className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-primary text-primary-foreground"
+                        >
+                          {option?.label || value}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const currentValues = Array.isArray(formField.value) ? formField.value : [];
+                              const newValues = currentValues.filter((v: string) => v !== value);
+                              formField.onChange(newValues);
+                            }}
+                            className="ml-1 text-primary-foreground hover:text-primary-foreground/70"
+                          >
+                            ×
+                          </button>
+                        </span>
+                      );
+                    })}
+                  </div>
+                )}
                 <FormMessage />
               </FormItem>
             )}
@@ -167,12 +284,28 @@ export const CrudForm = ({
               <FormItem>
                 <FormLabel>{field.label}</FormLabel>
                 <FormControl>
-                  <Input
-                    type={field.type}
-                    placeholder={field.placeholder}
-                    {...formField}
-                    value={String(formField.value || '')}
-                  />
+                  <div className="flex gap-2">
+                    <Input
+                      type={field.type}
+                      placeholder={field.placeholder}
+                      {...formField}
+                      value={String(formField.value || '')}
+                      className="flex-1"
+                    />
+                    {field.generateButton && field.generateEndpoint && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => generateValue(field.generateEndpoint!, field.name)}
+                        className="px-3"
+                        title="Gerar PIN"
+                        disabled={generating === field.name}
+                      >
+                        <RefreshCw className={`h-4 w-4 ${generating === field.name ? 'animate-spin' : ''}`} />
+                      </Button>
+                    )}
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
