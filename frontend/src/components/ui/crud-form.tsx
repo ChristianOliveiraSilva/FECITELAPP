@@ -56,16 +56,19 @@ export const CrudForm = ({
   const [generating, setGenerating] = useState<string | null>(null);
   const [dynamicOptions, setDynamicOptions] = useState<Record<string, { value: string; label: string }[]>>({});
   const [loadingOptions, setLoadingOptions] = useState<Record<string, boolean>>({});
+  const [optionsLoaded, setOptionsLoaded] = useState(false);
 
+  // Carregar opções dos endpoints primeiro
   useEffect(() => {
-    if (initialData && Object.keys(initialData).length > 0) {
-      form.reset(initialData);
-    }
-  }, [initialData, form]);
+    const loadOptions = async () => {
+      const fieldsWithEndpoints = fields.filter(f => f.optionsEndpoint && !f.options);
+      
+      if (fieldsWithEndpoints.length === 0) {
+        setOptionsLoaded(true);
+        return;
+      }
 
-  useEffect(() => {
-    fields.forEach(async (field) => {
-      if (field.optionsEndpoint && !field.options) {
+      for (const field of fieldsWithEndpoints) {
         setLoadingOptions(prev => ({ ...prev, [field.name]: true }));
         try {
           const response = await apiService.get<Record<string, unknown>>(field.optionsEndpoint, { limit: 1000 });
@@ -82,11 +85,39 @@ export const CrudForm = ({
           setLoadingOptions(prev => ({ ...prev, [field.name]: false }));
         }
       }
-    });
-  }, [fields]);
+      
+      setOptionsLoaded(true);
+    };
+    
+    loadOptions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Reset do formulário após as opções serem carregadas
+  useEffect(() => {
+    if (optionsLoaded && initialData && Object.keys(initialData).length > 0) {
+      form.reset(initialData);
+    }
+  }, [initialData, optionsLoaded, form]);
 
   const handleSubmit = (data: Record<string, unknown>) => {
-    onSubmit(data);
+    const normalizedData = { ...data };
+    
+    fields.forEach(field => {
+      if (field.type === "multiselect" && normalizedData[field.name]) {
+        const value = normalizedData[field.name];
+        if (Array.isArray(value)) {
+          normalizedData[field.name] = value.map(v => {
+            if (typeof v === 'object' && v !== null && 'id' in v) {
+              return String(v.id);
+            }
+            return String(v);
+          });
+        }
+      }
+    });
+    
+    onSubmit(normalizedData);
   };
 
   const generateValue = async (endpoint: string, fieldName: string) => {
@@ -162,7 +193,7 @@ export const CrudForm = ({
                 <FormLabel>{field.label}</FormLabel>
                 <Select 
                   onValueChange={formField.onChange} 
-                  defaultValue={String(formField.value || '')}
+                  value={String(formField.value || '')}
                   disabled={isLoadingSelectOptions}
                 >
                   <FormControl>

@@ -14,9 +14,25 @@ class Evaluator(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     deleted_at = Column(DateTime(timezone=True), nullable=True)
     
-    user = relationship("User", back_populates="evaluator")
-    assessments = relationship("Assessment", back_populates="evaluator")
-    categories = relationship("Category", secondary="evaluator_categories", back_populates="evaluators")
+    user = relationship(
+        "User",
+        back_populates="evaluator",
+        primaryjoin="and_(User.id==Evaluator.user_id, User.deleted_at==None)"
+    )
+
+    assessments = relationship(
+        "Assessment",
+        back_populates="evaluator",
+        primaryjoin="and_(Assessment.evaluator_id==Evaluator.id, Assessment.deleted_at==None)"
+    )
+
+    categories = relationship(
+        "Category",
+        secondary="evaluator_categories",
+        back_populates="evaluators",
+        primaryjoin="and_(Evaluator.id==evaluator_categories.c.evaluator_id, Evaluator.deleted_at==None)",
+        secondaryjoin="and_(Category.id==evaluator_categories.c.category_id, Category.deleted_at==None)"
+    )
         
     @property
     def total_projects(self) -> int:

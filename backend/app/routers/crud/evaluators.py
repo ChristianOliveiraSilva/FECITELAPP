@@ -4,6 +4,9 @@ from sqlalchemy.orm import Session, joinedload
 from app.database import get_db
 from app.models.evaluator import Evaluator
 from app.models.user import User
+from app.models.category import Category
+from app.models.assessment import Assessment
+from app.models.project import Project
 from app.schemas.evaluator import (
     EvaluatorCreate, EvaluatorUpdate, EvaluatorListResponse, EvaluatorDetailResponse, PinGenerateResponse
 )
@@ -53,9 +56,9 @@ async def get_evaluators(
             query = query.filter(User.email.ilike(f"%{email}%"))
         
         query = query.options(
-            joinedload(Evaluator.user),
-            joinedload(Evaluator.assessments),
-            joinedload(Evaluator.categories)
+            joinedload(Evaluator.user.and_(User.deleted_at == None)),
+            joinedload(Evaluator.assessments.and_(Assessment.deleted_at == None)),
+            joinedload(Evaluator.categories.and_(Category.deleted_at == None))
         )
         
         evaluators = query.offset(skip).limit(limit).all()
@@ -253,6 +256,29 @@ async def create_evaluator(evaluator_data: EvaluatorCreate, db: Session = Depend
         )
         
         db.add(evaluator)
+        db.flush()  # Flush para obter o ID do evaluator
+        
+        # Processar categories
+        if evaluator_data.categories:
+            categories_list = db.query(Category).filter(
+                Category.id.in_(evaluator_data.categories),
+                Category.deleted_at == None
+            ).all()
+            evaluator.categories = categories_list
+        
+        # Processar assessments
+        if evaluator_data.assessments:
+            # Converter IDs para int
+            assessment_ids = [int(aid) for aid in evaluator_data.assessments]
+            
+            assessments_to_update = db.query(Assessment).filter(
+                Assessment.id.in_(assessment_ids),
+                Assessment.deleted_at == None
+            ).all()
+            
+            for assessment in assessments_to_update:
+                assessment.evaluator_id = evaluator.id
+        
         db.commit()
         db.refresh(evaluator)
         
@@ -351,9 +377,36 @@ async def update_evaluator(
                     detail="PIN já existe"
                 )
         
-        update_data = evaluator_data.dict(exclude_unset=True)
+        # Atualizar campos simples
+        update_data = evaluator_data.dict(exclude_unset=True, exclude={'categories', 'assessments'})
         for field, value in update_data.items():
             setattr(evaluator, field, value)
+        
+        # Atualizar categories
+        if evaluator_data.categories is not None:
+            categories_list = db.query(Category).filter(
+                Category.id.in_(evaluator_data.categories),
+                Category.deleted_at == None
+            ).all()
+            evaluator.categories = categories_list
+        
+        # Atualizar assessments
+        if evaluator_data.assessments is not None:
+            assessments_to_update = db.query(Assessment).filter(
+                Assessment.id.in_(evaluator_data.assessments),
+                Assessment.deleted_at == None
+            ).all()
+
+            for assessment in assessments_to_update:
+                assessment.evaluator_id = evaluator.id
+
+            assessments_to_delete = db.query(Assessment).filter(
+                Assessment.evaluator_id == evaluator.id,
+                ~Assessment.id.in_(evaluator_data.assessments)
+            ).all()
+
+            for assessment in assessments_to_delete:
+                db.delete(assessment)
         
         db.commit()
         db.refresh(evaluator)
