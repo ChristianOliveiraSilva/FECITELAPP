@@ -42,6 +42,13 @@ interface Projeto extends Record<string, unknown> {
         email: string;
       };
     };
+    responses?: Array<{
+      id: number;
+      question_id: number;
+      response?: string;
+      score?: number;
+      created_at: string;
+    }>;
   }>;
 }
 
@@ -88,6 +95,13 @@ const columns = [
   { 
     key: "assessments_count", 
     label: "Nº de Avaliações", 
+    sortable: false,
+    filterable: true,
+    filterType: 'number' as const
+  },
+  { 
+    key: "completed_assessments_count", 
+    label: "Nº de Avaliações realizadas", 
     sortable: false,
     filterable: true,
     filterType: 'number' as const
@@ -282,6 +296,9 @@ const transformData = (item: Projeto): Record<string, ReactNode> => ({
   category_name: item.category?.name || "-",
   project_type: item.projectType == 1 ? "Tecnológico" : "Científico",
   assessments_count: item.assessments?.length || 0,
+  completed_assessments_count: item.assessments?.filter(assessment => 
+    assessment.responses && assessment.responses.length > 0
+  ).length || 0,
   created_at: item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : "-",
   updated_at: item.updated_at
 });

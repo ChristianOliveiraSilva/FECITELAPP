@@ -78,7 +78,8 @@ async def get_projects(
                 joinedload(Project.category),
                 joinedload(Project.students),
                 joinedload(Project.supervisors),
-                joinedload(Project.assessments).joinedload(Assessment.evaluator).joinedload(Evaluator.user)
+                joinedload(Project.assessments).joinedload(Assessment.evaluator).joinedload(Evaluator.user),
+                joinedload(Project.assessments).joinedload(Assessment.responses)
             )
         )
         
@@ -160,7 +161,16 @@ async def get_projects(
                             "name": assessment.evaluator.user.name,
                             "email": assessment.evaluator.user.email
                         } if assessment.evaluator.user else None
-                    } if assessment.evaluator else None
+                    } if assessment.evaluator else None,
+                    "responses": [
+                        {
+                            "id": response.id,
+                            "question_id": response.question_id,
+                            "response": response.response,
+                            "score": response.score,
+                            "created_at": response.created_at
+                        } for response in assessment.responses
+                    ]
                 } for assessment in project.assessments
             ]
             
@@ -187,7 +197,8 @@ async def get_project(
             joinedload(Project.category),
             joinedload(Project.students),
             joinedload(Project.supervisors),
-            joinedload(Project.assessments).joinedload(Assessment.evaluator).joinedload(Evaluator.user)
+            joinedload(Project.assessments).joinedload(Assessment.evaluator).joinedload(Evaluator.user),
+            joinedload(Project.assessments).joinedload(Assessment.responses)
         )
         
         project = query.filter(Project.id == project_id).first()
@@ -255,7 +266,16 @@ async def get_project(
                         "name": assessment.evaluator.user.name,
                         "email": assessment.evaluator.user.email
                     } if assessment.evaluator.user else None
-                } if assessment.evaluator else None
+                } if assessment.evaluator else None,
+                "responses": [
+                    {
+                        "id": response.id,
+                        "question_id": response.question_id,
+                        "response": response.response,
+                        "score": response.score,
+                        "created_at": response.created_at
+                    } for response in assessment.responses
+                ]
             } for assessment in project.assessments
         ]
         
