@@ -45,8 +45,8 @@ const columns = [
     filterable: true, 
     filterType: 'select' as const,
     filterOptions: [
-      { value: "1", label: "Científico" },
-      { value: "2", label: "Tecnológico" }
+      { value: "1", label: "Múltipla Escolha" },
+      { value: "2", label: "Questão de Texto" }
     ]
   },
   { 
@@ -94,8 +94,8 @@ const formFields = [
     required: true,
     placeholder: "Selecione o tipo",
     options: [
-      { value: "1", label: "Científico" },
-      { value: "2", label: "Tecnológico" }
+      { value: "1", label: "Múltipla Escolha" },
+      { value: "2", label: "Questão de Texto" }
     ]
   },
   {
@@ -128,7 +128,7 @@ const transformData = (item: Pergunta): Record<string, ReactNode> => ({
   id: item.id,
   scientific_text: item.scientific_text,
   technological_text: item.technological_text,
-  type: item.type === 1 ? "Científico" : "Tecnológico",
+  type: item.type === 1 ? "Múltipla Escolha" : "Questão de Texto",
   number_alternatives: item.number_alternatives,
   year: item.year,
   responses_count: item.responses?.length || 0,
@@ -140,7 +140,7 @@ const transformCurrentItem = (item: Pergunta): Record<string, unknown> => ({
   id: item.id,
   scientific_text: item.scientific_text,
   technological_text: item.technological_text,
-  type: item.type === 1 ? "Científico" : "Tecnológico",
+  type: item.type === 1 ? "Múltipla Escolha" : "Questão de Texto",
   number_alternatives: item.number_alternatives,
   year: item.year,
   responses_count: item.responses?.length || 0,
