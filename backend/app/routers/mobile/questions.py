@@ -37,7 +37,7 @@ async def get_questions_by_assessment(
         project = assessment.project
         project_type = ProjectType(project.projectType)
         
-        questions = db.query(Question).all()
+        questions = db.query(Question).filter(Question.deleted_at == None).all()
         
         responses = db.query(Response).filter(Response.assessment_id == assessment_id).all()
         
