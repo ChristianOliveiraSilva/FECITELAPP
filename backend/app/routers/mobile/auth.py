@@ -29,45 +29,6 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
                 message="Usuário inativo. Entre em contato com o administrador."
             )
         
-        # Verificar se o avaliador tem pelo menos 4 avaliações
-        evaluator = db.query(Evaluator).filter(Evaluator.user_id == user.id).first()
-        if evaluator:
-            current_assessments = db.query(Assessment).filter(
-                Assessment.evaluator_id == evaluator.id,
-                Assessment.deleted_at.is_(None)
-            ).count()
-            
-            # Se o avaliador tem menos de 4 avaliações, criar 4 novas
-            if current_assessments < 4:
-                # Buscar projetos disponíveis do mesmo ano do avaliador
-                available_projects = db.query(Project).filter(
-                    Project.year == evaluator.year,
-                    Project.deleted_at.is_(None)
-                ).all()
-                
-                if available_projects:
-                    # Selecionar 4 projetos aleatórios que ainda não foram atribuídos ao avaliador
-                    existing_project_ids = db.query(Assessment.project_id).filter(
-                        Assessment.evaluator_id == evaluator.id,
-                        Assessment.deleted_at.is_(None)
-                    ).all()
-                    existing_project_ids = [pid[0] for pid in existing_project_ids]
-                    
-                    available_projects = [p for p in available_projects if p.id not in existing_project_ids]
-                    
-                    # Selecionar até 4 projetos aleatórios
-                    projects_to_assign = random.sample(available_projects, min(4, len(available_projects)) - current_assessments)
-                    
-                    # Criar as avaliações
-                    for project in projects_to_assign:
-                        new_assessment = Assessment(
-                            evaluator_id=evaluator.id,
-                            project_id=project.id
-                        )
-                        db.add(new_assessment)
-
-                    db.commit()
-        
         access_token_expires = timedelta(minutes=30)
         access_token = create_access_token(
             data={"sub": str(user.id)}, expires_delta=access_token_expires

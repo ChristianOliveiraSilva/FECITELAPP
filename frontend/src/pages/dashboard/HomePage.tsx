@@ -46,6 +46,8 @@ const HomePage = () => {
     };
 
     fetchCardsData();
+    const interval = setInterval(fetchCardsData, 30000);
+    return () => clearInterval(interval);
   }, [toast]);
 
   const handleCardClick = (type: 'all_projects' | 'evaluators' | 'pending' | 'evaluated' | 'missing_1' | 'missing_2' | 'missing_3') => {
@@ -280,8 +282,6 @@ const HomePage = () => {
           </CardContent>
         </Card>
       </div>
-
-
     </div>
   );
 };
