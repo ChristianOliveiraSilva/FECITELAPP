@@ -50,7 +50,7 @@ def find_or_create_user(db: Session, name: str) -> User:
         return user
     
     email_base = name.lower().replace(" ", ".").replace("/", ".")
-    email = f"{email_base}@ifms.edu.br"
+    email = f"{email_base}@ifsp.edu.br"
     
     existing_user = db.query(User).filter(User.email == email).first()
     if existing_user:
@@ -122,12 +122,13 @@ def get_or_create_default_category(db: Session) -> Category:
 
 def get_or_create_default_school(db: Session) -> School:
     school = db.query(School).filter(
+        School.name == "IFSP - Campus Presidente Prudente",
         School.deleted_at == None
     ).first()
     
     if not school:
         school = School(
-            name="IFMS - Instituto Federal de Mato Grosso do Sul"
+            name="IFSP - Campus Presidente Prudente"
         )
         db.add(school)
         db.commit()
@@ -309,6 +310,9 @@ if __name__ == "__main__":
     db = SessionLocal()
     
     try:
+        school = get_or_create_default_school(db)
+        print(f"✅ Escola criada/encontrada: {school.name}\n")
+        
         create_questions(db)
         
         print("=== LENDO ARQUIVO CSV ===\n")
