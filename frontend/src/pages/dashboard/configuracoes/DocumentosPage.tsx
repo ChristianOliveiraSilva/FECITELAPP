@@ -34,7 +34,7 @@ const documentos: Documento[] = [
     tamanho: "2.4 MB",
     dataUpload: "15/03/2024",
     categoria: "anais",
-    descricao: "Anais da FECITEL com todos os trabalhos apresentados",
+    descricao: "Anais da saipru com todos os trabalhos apresentados",
     endpoint: "/api/v3/docs/anais/"
   },
   {
@@ -69,13 +69,13 @@ const documentos: Documento[] = [
   },
   {
     id: "5",
-    nome: "Slide FECITEL",
+    nome: "Slide saipru",
     tipo: "odp",
     tamanho: "5.6 MB",
     dataUpload: "06/03/2024",
     categoria: "slide",
-    descricao: "Slides de apresentação da FECITEL",
-    endpoint: "/api/v3/docs/slide-fecitel/"
+    descricao: "Slides de apresentação da saipru",
+    endpoint: "/api/v3/docs/slide-saipru/"
   }
 ];
 
@@ -162,9 +162,9 @@ export const DocumentosPage = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-ifms-green-dark">Documentos FECITEL</h1>
+          <h1 className="text-3xl font-bold text-ifms-green-dark">Documentos saipru</h1>
           <p className="text-muted-foreground">
-            Gerencie e acesse todos os documentos da FECITEL
+            Gerencie e acesse todos os documentos da saipru
           </p>
           {!downloadsEnabled && <p className="text-muted-foreground">
             Alguns documentos só serão gerados após a finalização da feira.

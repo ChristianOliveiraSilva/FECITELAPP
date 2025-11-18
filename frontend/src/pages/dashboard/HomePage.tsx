@@ -67,7 +67,7 @@ const HomePage = () => {
       icon: FileText,
       color: "text-blue-600",
       bgColor: "bg-blue-50",
-      description: "Projetos inscritos na FECITEL",
+      description: "Projetos inscritos na saipru",
       clickable: true,
       type: 'all_projects' as const
     },
@@ -108,7 +108,7 @@ const HomePage = () => {
       <div>
         <h1 className="text-3xl font-bold text-ifms-green-dark">Painel de Controle</h1>
         <p className="text-muted-foreground">
-          Visão geral do sistema FECITEL - acompanhe os principais indicadores
+          Visão geral do sistema saipru - acompanhe os principais indicadores
         </p>
       </div>
 

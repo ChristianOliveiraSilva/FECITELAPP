@@ -38,8 +38,8 @@ export const ImportarDadosGeraisPage = () => {
 
   const handleDownloadTemplate = () => {
     const link = document.createElement('a');
-    link.href = '/assets/templates/Trabalhos FECITEL.xlsx';
-    link.download = 'Trabalhos FECITEL.xlsx';
+    link.href = '/assets/templates/Trabalhos saipru.xlsx';
+    link.download = 'Trabalhos saipru.xlsx';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

@@ -130,7 +130,7 @@ export const EventosPage = ({ view }: EventosPageProps) => {
     <PageComponent
       endpoint="/events/"
       title={view === 'list' ? "Eventos" : "Evento"}
-      description="Gerencie os eventos da FECITEL"
+      description="Gerencie os eventos da saipru"
       view={view}
       columns={columns}
       formFields={formFields}

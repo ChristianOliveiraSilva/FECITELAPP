@@ -20,7 +20,7 @@ const PoliticaPrivacidade = () => {
               </h1>
             </div>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Conheça como o iFecitel protege e gerencia suas informações pessoais
+              Conheça como o saipru protege e gerencia suas informações pessoais
             </p>
           </div>
         </div>
@@ -32,12 +32,12 @@ const PoliticaPrivacidade = () => {
             <CardHeader>
               <CardTitle className="flex items-center text-ifms-green-dark">
                 <FileText className="h-5 w-5 mr-2" />
-                Sobre o iFecitel
+                Sobre o saipru
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-muted-foreground">
-                O <strong>iFecitel</strong> é um aplicativo para avaliação de trabalhos em Feiras de Ciências e Tecnologia. 
+                O <strong>saipru</strong> é um aplicativo para avaliação de trabalhos em Feiras de Ciências e Tecnologia. 
                 Com ele, os avaliadores podem registrar notas e comentários de forma prática, digital e organizada.
               </p>
               <p className="text-muted-foreground">
@@ -248,7 +248,7 @@ const PoliticaPrivacidade = () => {
               <strong>Última atualização:</strong> {new Date().toLocaleDateString('pt-BR')}
             </p>
             <p className="text-sm text-muted-foreground">
-              Versão 1.0 - Política de Privacidade do iFecitel
+              Versão 1.0 - Política de Privacidade do saipru
             </p>
           </div>
         </div>

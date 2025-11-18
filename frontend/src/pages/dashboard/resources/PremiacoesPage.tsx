@@ -200,7 +200,7 @@ export const PremiacoesPage = ({ view }: PremiacoesPageProps) => {
     <PageComponent
       endpoint="/awards/"
       title={view === 'list' ? "Premiações" : "Premiação"}
-      description="Gerencie as premiações da FECITEL"
+      description="Gerencie as premiações da saipru"
       view={view}
       columns={columns}
       formFields={formFields}

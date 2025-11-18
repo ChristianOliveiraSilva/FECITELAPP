@@ -160,7 +160,7 @@ export const PerguntasPage = ({ view }: PerguntasPageProps) => {
     <PageComponent
       endpoint="/questions/"
       title={view === 'list' ? "Perguntas" : "Pergunta"}
-      description="Gerencie as perguntas de avaliação da FECITEL"
+      description="Gerencie as perguntas de avaliação da saipru"
       view={view}
       columns={columns}
       formFields={formFields}

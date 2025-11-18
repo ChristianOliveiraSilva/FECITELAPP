@@ -119,7 +119,7 @@ export const AreasPage = ({ view }: AreasPageProps) => {
     <PageComponent
       endpoint="/categories/"
       title={view === 'list' ? "Áreas" : "Área"}
-      description="Gerencie as áreas de projetos da FECITEL"
+      description="Gerencie as áreas de projetos da saipru"
       view={view}
       columns={columns}
       formFields={formFields}

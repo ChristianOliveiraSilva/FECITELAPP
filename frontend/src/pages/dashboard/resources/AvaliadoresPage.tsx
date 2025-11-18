@@ -207,7 +207,7 @@ export const AvaliadoresPage = ({ view }: AvaliadoresPageProps) => {
     <PageComponent
       endpoint="/evaluators/"
       title={view === 'list' ? "Avaliadores" : "Avaliador"}
-      description="Gerencie os avaliadores da FECITEL"
+      description="Gerencie os avaliadores da saipru"
       view={view}
       columns={columns}
       formFields={formFields}

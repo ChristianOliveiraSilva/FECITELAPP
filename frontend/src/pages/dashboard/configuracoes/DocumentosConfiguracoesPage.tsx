@@ -48,14 +48,14 @@ interface ConfiguracoesDocumentos {
 
 const configuracoesIniciais: ConfiguracoesDocumentos = {
   cabecalho: {
-    titulo: "FECITEL",
+    titulo: "saipru",
     subtitulo: "Feira de Ciência e Tecnologia",
     logo: "",
     instituicao: "Instituto Federal de Mato Grosso do Sul"
   },
   apoiadores: [
     {
-      nome: "IFMS",
+      nome: "SAIPRU",
       tipo: "Instituição",
       logo: ""
     },
@@ -66,11 +66,11 @@ const configuracoesIniciais: ConfiguracoesDocumentos = {
     }
   ],
   footer: {
-    texto: "© 2024 FECITEL - Todos os direitos reservados",
+    texto: "© 2024 saipru - Todos os direitos reservados",
     contato: "Coordenação Geral",
-    email: "fecitel@ifms.edu.br",
+    email: "saipru@saipru.edu.br",
     telefone: "(67) 3357-8500",
-    website: "www.ifms.edu.br"
+    website: "www.saipru.edu.br"
   },
   configuracoes: {
     corPrimaria: "#1f5f5f",
@@ -176,7 +176,7 @@ export const DocumentosConfiguracoesPage = () => {
                     ...prev,
                     cabecalho: { ...prev.cabecalho, titulo: e.target.value }
                   }))}
-                  placeholder="Ex: FECITEL"
+                  placeholder="Ex: saipru"
                 />
               </div>
               <div className="space-y-2">
@@ -326,7 +326,7 @@ export const DocumentosConfiguracoesPage = () => {
                     ...prev,
                     footer: { ...prev.footer, email: e.target.value }
                   }))}
-                  placeholder="contato@fecitel.edu.br"
+                  placeholder="contato@saipru.edu.br"
                 />
               </div>
             </div>
@@ -352,7 +352,7 @@ export const DocumentosConfiguracoesPage = () => {
                     ...prev,
                     footer: { ...prev.footer, website: e.target.value }
                   }))}
-                  placeholder="www.fecitel.edu.br"
+                  placeholder="www.saipru.edu.br"
                 />
               </div>
             </div>

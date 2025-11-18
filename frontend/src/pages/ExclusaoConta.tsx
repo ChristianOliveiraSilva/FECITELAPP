@@ -189,7 +189,7 @@ const ExclusaoConta = () => {
               </AlertDialogTitle>
               <AlertDialogDescription className="text-left">
                 <p className="mb-4">
-                  Você está prestes a <strong>excluir permanentemente</strong> sua conta no iFecitel.
+                  Você está prestes a <strong>excluir permanentemente</strong> sua conta no saipru.
                 </p>
                 <p className="mb-4">
                   <strong>Esta ação não pode ser desfeita.</strong>
@@ -242,7 +242,7 @@ const ExclusaoConta = () => {
                 Conta Excluída com Sucesso
               </AlertDialogTitle>
               <AlertDialogDescription>
-                Sua conta foi permanentemente removida do sistema iFecitel. 
+                Sua conta foi permanentemente removida do sistema saipru. 
                 Todos os seus dados foram excluídos conforme solicitado.
                 <br /><br />
                 Obrigado por ter utilizado nossos serviços.

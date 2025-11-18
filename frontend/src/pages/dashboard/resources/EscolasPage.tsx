@@ -130,7 +130,7 @@ export const EscolasPage = ({ view }: EscolasPageProps) => {
     <PageComponent
       endpoint="/schools/"
       title={view === 'list' ? "Escolas" : "Escola"}
-      description="Gerencie as escolas participantes da FECITEL"
+      description="Gerencie as escolas participantes da saipru"
       view={view}
       columns={columns}
       formFields={formFields}

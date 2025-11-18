@@ -151,7 +151,7 @@ export const EstudantesPage = ({ view }: EstudantesPageProps) => {
     <PageComponent
       endpoint="/students/"
       title={view === 'list' ? "Estudantes" : "Estudante"}
-      description="Gerencie os estudantes participantes da FECITEL"
+      description="Gerencie os estudantes participantes da saipru"
       view={view}
       columns={columns}
       formFields={formFields}
