@@ -142,7 +142,7 @@ export const AvaliacoesPage = ({ view }: AvaliacoesPageProps) => {
     <PageComponent
       endpoint="/assessments/"
       title={view === 'list' ? "Avaliações" : "Avaliação"}
-      description="Gerencie as avaliações dos projetos da FECITEL"
+      description="Gerencie as avaliações dos projetos da saipru"
       view={view}
       columns={columns}
       formFields={formFields}

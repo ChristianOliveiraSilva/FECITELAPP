@@ -217,7 +217,7 @@ class CertificatesScreen extends StatelessWidget {
               const SizedBox(height: 8),
               const Text('Status: Válido'),
               const SizedBox(height: 8),
-              const Text('Emitido por: Fecitel'),
+              const Text('Emitido por: Saipru'),
             ],
           ),
         ),

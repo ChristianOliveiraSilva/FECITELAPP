@@ -136,7 +136,7 @@ export const LoginForm = ({ onLogin, isLoading: externalLoading }: LoginFormProp
             <LogIn className="h-8 w-8 text-white" />
           </div>
           <CardTitle className="text-2xl font-bold text-ifms-green-dark">
-            IFMS FECITEL
+            SAIPRU
           </CardTitle>
           <p className="text-muted-foreground">
             Sistema de Avaliação

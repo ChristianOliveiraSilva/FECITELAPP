@@ -138,7 +138,7 @@ export const DashboardWrapper = () => {
             >
               <Menu className="h-5 w-5" />
             </Button>
-            <h1 className="text-xl font-bold">IFMS FECITEL</h1>
+            <h1 className="text-xl font-bold">SAIPRU</h1>
             {user && (
               <span className="text-sm opacity-90">
                 Olá, {user.name}

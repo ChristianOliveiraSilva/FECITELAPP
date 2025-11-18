@@ -331,7 +331,7 @@ export const ProjetosPage = ({ view }: ProjetosPageProps) => {
     <PageComponent
       endpoint="/projects/"
       title={view === 'list' ? "Projetos" : "Projeto"}
-      description="Gerencie os projetos inscritos na FECITEL"
+      description="Gerencie os projetos inscritos na saipru"
       view={view}
       columns={columns}
       formFields={formFields}

@@ -34,7 +34,7 @@ class MyApp extends StatelessWidget {
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
           return MaterialApp(
-            title: 'Fecitel App',
+            title: 'Saipru App',
             debugShowCheckedModeBanner: false,
             theme: themeProvider.themeData,
             darkTheme: themeProvider.darkThemeData,

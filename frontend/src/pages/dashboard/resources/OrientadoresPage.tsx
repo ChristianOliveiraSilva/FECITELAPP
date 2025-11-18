@@ -110,7 +110,7 @@ export const OrientadoresPage = ({ view }: OrientadoresPageProps) => {
     <PageComponent
       endpoint="/supervisors/"
       title={view === 'list' ? "Orientadores" : "Orientador"}
-      description="Gerencie os orientadores participantes da FECITEL"
+      description="Gerencie os orientadores participantes da saipru"
       view={view}
       columns={columns}
       formFields={formFields}

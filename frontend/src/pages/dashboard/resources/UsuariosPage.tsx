@@ -121,7 +121,7 @@ export const UsuariosPage = ({ view }: UsuariosPageProps) => {
     <PageComponent
       endpoint="/users/"
       title={view === 'list' ? "Usuários do Sistema" : "Usuário"}
-      description="Gerencie os usuários do sistema FECITEL"
+      description="Gerencie os usuários do sistema saipru"
       view={view}
       columns={columns}
       formFields={formFields}
